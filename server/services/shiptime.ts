@@ -58,11 +58,19 @@ class ShipTimeService {
 
   // Load credentials from database settings or environment variables
   async loadCredentials() {
-    // First try environment variables
+    // First try new environment variables
+    if (process.env.SHIPTIME_USERNAME && process.env.SHIPTIME_PASSWORD) {
+      this.username = process.env.SHIPTIME_USERNAME;
+      this.password = process.env.SHIPTIME_PASSWORD;
+      console.log('ShipTime credentials loaded from environment variables for username:', this.username);
+      return true;
+    }
+    
+    // Fallback to old environment variables
     if (process.env.SHIPTIME_EMAIL && process.env.SHIPTIME_PASS) {
       this.username = process.env.SHIPTIME_EMAIL;
       this.password = process.env.SHIPTIME_PASS;
-      console.log('ShipTime credentials loaded from environment variables for username:', this.username);
+      console.log('ShipTime credentials loaded from legacy environment variables for username:', this.username);
       return true;
     }
     

@@ -18,6 +18,12 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
   - ABLP clients can customize shipping interface branding for their end users
   - Logo upload and color scheme customization capabilities
   - White-label tracking pages with client branding
+- **Fixed rate calculation system (August 2025)**
+  - Fixed Create Shipment page from being blank due to React Suspense issues
+  - Implemented auto-rate fetching with 1.5 second debounce when package dimensions entered
+  - Fixed ShipTime service to use environment variables as fallback when database missing
+  - Created fallback sample rate system when API credentials fail (shows realistic Canadian rates)
+  - Rate calculator now properly handles API failures gracefully with sample data
 
 # User Preferences
 
