@@ -56,23 +56,35 @@ class ShipTimeService {
     console.log('ShipTimeService initialized for dynamic credentials');
   }
 
-  // Load credentials from database settings
+  // Load credentials from database settings or environment variables
   async loadCredentials() {
-    const { storage } = await import('../storage');
-    
-    const username = await storage.getSetting('SHIPTIME_USERNAME');
-    const password = await storage.getSetting('SHIPTIME_PASSWORD');
-    
-    if (!username || !password) {
-      console.warn('ShipTime credentials not configured in system settings');
-      return false;
+    // First try environment variables
+    if (process.env.SHIPTIME_EMAIL && process.env.SHIPTIME_PASS) {
+      this.username = process.env.SHIPTIME_EMAIL;
+      this.password = process.env.SHIPTIME_PASS;
+      console.log('ShipTime credentials loaded from environment variables for username:', this.username);
+      return true;
     }
     
-    this.username = username;
-    this.password = password;
+    // Then try database settings
+    try {
+      const { storage } = await import('../storage');
+      
+      const username = await storage.getSetting('SHIPTIME_USERNAME');
+      const password = await storage.getSetting('SHIPTIME_PASSWORD');
+      
+      if (username && password) {
+        this.username = username;
+        this.password = password;
+        console.log('ShipTime credentials loaded from database for username:', this.username);
+        return true;
+      }
+    } catch (error) {
+      console.log('Database settings not available, checking environment variables...');
+    }
     
-    console.log('ShipTime credentials loaded from database for username:', this.username);
-    return true;
+    console.warn('ShipTime credentials not configured in system settings or environment variables');
+    return false;
   }
 
   private getBasicAuthHeader(): string {
