@@ -9,6 +9,13 @@ class StripeService {
       throw new Error('STRIPE_SECRET_KEY environment variable is required');
     }
     
+    // Debug logging for key validation
+    console.log(`Stripe key type: ${secretKey.startsWith('sk_') ? 'SECRET' : 'PUBLISHABLE'} (${secretKey.substring(0, 7)}...)`);
+    
+    if (!secretKey.startsWith('sk_')) {
+      throw new Error('STRIPE_SECRET_KEY must be a secret key starting with sk_test_ or sk_live_');
+    }
+    
     this.stripe = new Stripe(secretKey, {
       apiVersion: '2023-10-16',
     });
