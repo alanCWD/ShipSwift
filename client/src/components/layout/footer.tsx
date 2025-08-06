@@ -23,7 +23,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center">
                 <Phone className="w-5 h-5 mr-2" />
-                1-800-ABLP-LOG (1-800-225-7564)
+(604) 392-3923
               </div>
               <div className="flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
@@ -57,7 +57,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-300">&copy; 2024 ABLP Logistics. All rights reserved.</p>
+            <p className="text-gray-300">&copy; 2025 ABLP Logistics. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>

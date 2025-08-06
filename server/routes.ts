@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { shiptimeService } from "./services/shiptime";
+import { freightcomService } from "./services/freightcom";
 import { stripeService } from "./services/stripe-service";
 import { requireAuth, requireAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required shipping parameters" });
       }
 
-      const rates = await shiptimeService.getRates({
+      const rates = await freightcomService.getRates({
         from: { countryCode: fromCountry, postalCode: fromPostalCode },
         to: { countryCode: toCountry, postalCode: toPostalCode },
         packageDetails
@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error.message.includes('authentication failed')) {
         res.status(503).json({ 
           message: "Shipping service authentication error. Please contact support.",
-          error: "SHIPTIME_AUTH_FAILED"
+          error: "FREIGHTCOM_AUTH_FAILED"
         });
       } else {
         res.status(500).json({ 
@@ -117,8 +117,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
       };
 
-      // Create shipment with ShipTime
-      const shiptimeShipment = await shiptimeService.createShipment(shipmentData);
+      // Create shipment with Freightcom
+      const freightcomShipment = await freightcomService.createShipment(shipmentData);
       
       // Calculate markup
       const markups = await storage.getRateMarkups();
@@ -144,9 +144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save shipment to database
       const shipment = await storage.createShipment({
         ...shipmentData,
-        shiptimeShipmentId: shiptimeShipment.id,
-        trackingNumber: shiptimeShipment.trackingNumber,
-        labelUrl: shiptimeShipment.labelUrl,
+        shiptimeShipmentId: freightcomShipment.id,
+        trackingNumber: freightcomShipment.trackingNumber,
+        labelUrl: freightcomShipment.labelUrl,
         markupCost: markupCost.toString(),
         totalCost: totalCost.toString(),
         stripeChargeId: paymentIntent.id,
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         shipment,
         clientSecret: paymentIntent.client_secret,
-        labelUrl: shiptimeShipment.labelUrl
+        labelUrl: freightcomShipment.labelUrl
       });
     } catch (error: any) {
       console.error("Shipment creation error:", error);
