@@ -73,6 +73,7 @@ class ShipTimeService {
     }
 
     try {
+      console.log('ShipTime authentication attempt with username:', this.username);
       const response = await fetch(`${this.apiUrl}token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
