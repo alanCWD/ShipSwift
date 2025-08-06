@@ -7,10 +7,6 @@ import { apiRequest } from '@/lib/queryClient';
 export default function Dashboard() {
   const { data: shipmentsData, isLoading } = useQuery({
     queryKey: ['/api/shipments'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/shipments');
-      return response.json();
-    },
   });
 
   const shipments = shipmentsData?.shipments || [];

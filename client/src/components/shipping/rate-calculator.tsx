@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -73,6 +73,39 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Auto-fetch rates when all required fields are filled
+  const autoFetchRates = useCallback(() => {
+    const {
+      fromPostalCode,
+      toPostalCode,
+      length,
+      width,
+      height,
+      weight
+    } = formData;
+    
+    // Check if all required fields have valid values
+    const hasValidPostalCodes = fromPostalCode.trim().length >= 3 && toPostalCode.trim().length >= 3;
+    const hasValidDimensions = 
+      parseFloat(length) > 0 && 
+      parseFloat(width) > 0 && 
+      parseFloat(height) > 0 && 
+      parseFloat(weight) > 0;
+    
+    if (hasValidPostalCodes && hasValidDimensions && !ratesMutation.isPending) {
+      ratesMutation.mutate(formData);
+    }
+  }, [formData, ratesMutation]);
+
+  // Debounced auto-fetch effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      autoFetchRates();
+    }, 1500); // Wait 1.5 seconds after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [autoFetchRates]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,13 +255,26 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 text-lg py-4"
-            disabled={ratesMutation.isPending}
-          >
-            {ratesMutation.isPending ? 'Comparing Rates...' : 'Compare Shipping Rates'}
-          </Button>
+          <div className="space-y-4">
+            {ratesMutation.isPending && (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full mr-3" />
+                <span className="text-gray-600">Auto-fetching rates...</span>
+              </div>
+            )}
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 text-lg py-4"
+              disabled={ratesMutation.isPending}
+            >
+              {ratesMutation.isPending ? 'Comparing Rates...' : 'Refresh Shipping Rates'}
+            </Button>
+            
+            <p className="text-sm text-gray-500 text-center">
+              Rates are automatically updated when you enter package details
+            </p>
+          </div>
         </form>
       </CardContent>
     </Card>

@@ -116,10 +116,12 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
             <p className="text-gray-600 mb-6">
               Create your first shipment to start tracking your shipping activity.
             </p>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Shipment
-            </Button>
+            <Link href="/create-shipment">
+              <Button className="bg-blue-600 text-white hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Shipment
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -132,10 +134,12 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         <div className="flex items-center justify-between">
           <CardTitle>Recent Shipments</CardTitle>
           <div className="flex space-x-2">
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Shipment
-            </Button>
+            <Link href="/create-shipment">
+              <Button className="bg-blue-600 text-white hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Shipment
+              </Button>
+            </Link>
             <Button variant="outline">
               <Upload className="w-4 h-4 mr-2" />
               Import CSV
