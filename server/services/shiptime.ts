@@ -58,6 +58,11 @@ class ShipTimeService {
     this.username = process.env.SHIPTIME_USERNAME || '';
     this.password = process.env.SHIPTIME_PASSWORD || '';
     
+    // Clear any cached token when credentials change
+    this.accessToken = undefined;
+    
+    console.log('ShipTimeService initialized with username:', this.username);
+    
     if (!this.username || !this.password) {
       console.warn('ShipTime credentials not configured. Some features may not work.');
     }
