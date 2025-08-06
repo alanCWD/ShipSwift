@@ -35,6 +35,15 @@ export default function RateResults({ rates }: RateResultsProps) {
   };
 
   const calculateTotal = (rate: any) => {
+    // Handle sample rates format (has totalCharge or price as string)
+    if (rate.totalCharge) {
+      return parseFloat(rate.totalCharge);
+    }
+    if (rate.price) {
+      return parseFloat(rate.price);
+    }
+    
+    // Handle real API format (has baseCharge.amount in cents)
     let total = 0;
     
     if (rate.baseCharge?.amount) {
@@ -75,8 +84,9 @@ export default function RateResults({ rates }: RateResultsProps) {
         <div className="space-y-4">
           {rates.map((rate, index) => {
             const total = calculateTotal(rate);
-            const carrierName = rate.carrier?.name || 'Unknown Carrier';
-            const serviceName = rate.service?.name || 'Standard Service';
+            // Handle both sample rates and real API format
+            const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
+            const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
             
             return (
               <Card key={index} className="hover:shadow-md transition-shadow">
@@ -92,15 +102,15 @@ export default function RateResults({ rates }: RateResultsProps) {
                         <h3 className="font-semibold text-gray-900">{carrierName}</h3>
                         <p className="text-sm text-gray-600">{serviceName}</p>
                         <div className="flex items-center space-x-4 mt-1">
-                          {rate.deliveryDays && (
+                          {(rate.deliveryDays || rate.transitTime) && (
                             <div className="flex items-center text-xs text-gray-500">
                               <Clock className="w-3 h-3 mr-1" />
-                              {rate.deliveryDays} business day{rate.deliveryDays !== 1 ? 's' : ''}
+                              {rate.deliveryDays || rate.transitTime}
                             </div>
                           )}
                           <Badge variant="secondary" className="text-xs">
                             <Truck className="w-3 h-3 mr-1" />
-                            Ground
+                            {rate.serviceType || 'Standard'}
                           </Badge>
                         </div>
                       </div>

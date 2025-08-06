@@ -24,6 +24,8 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     height: '15',
     weight: '2.5',
   });
+  
+  const [hasRates, setHasRates] = useState(false);
 
   const { toast } = useToast();
 
@@ -45,6 +47,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     },
     onSuccess: (data) => {
       onRatesReceived(data.rates);
+      setHasRates(true);
       toast({
         title: "Rates Retrieved",
         description: `Found ${data.rates.length} available shipping options.`,
@@ -72,6 +75,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    setHasRates(false); // Reset rates when form data changes
   };
 
   // Auto-fetch rates when all required fields are filled
@@ -93,10 +97,10 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       parseFloat(height) > 0 && 
       parseFloat(weight) > 0;
     
-    if (hasValidPostalCodes && hasValidDimensions && !ratesMutation.isPending) {
+    if (hasValidPostalCodes && hasValidDimensions && !ratesMutation.isPending && !hasRates) {
       ratesMutation.mutate(formData);
     }
-  }, [formData, ratesMutation]);
+  }, [formData, ratesMutation, hasRates]);
 
   // Debounced auto-fetch effect
   useEffect(() => {
