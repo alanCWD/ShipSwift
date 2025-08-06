@@ -317,6 +317,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
 
+  // Admin settings routes
+  app.get("/api/admin/settings", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get key system settings
+      const settings = [
+        { 
+          key: 'SHIPTIME_USERNAME', 
+          value: await storage.getSetting('SHIPTIME_USERNAME') || '',
+          description: 'ShipTime API username/email'
+        },
+        { 
+          key: 'SHIPTIME_PASSWORD', 
+          value: await storage.getSetting('SHIPTIME_PASSWORD') || '',
+          description: 'ShipTime API password'
+        }
+      ];
+
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching admin settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.post("/api/admin/settings/shiptime-credentials", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      await storage.setSetting('SHIPTIME_USERNAME', username, userId);
+      await storage.setSetting('SHIPTIME_PASSWORD', password, userId);
+
+      res.json({ message: "Credentials saved successfully" });
+    } catch (error) {
+      console.error("Error saving ShipTime credentials:", error);
+      res.status(500).json({ message: "Failed to save credentials" });
+    }
+  });
+
+  app.get("/api/admin/rate-markups", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const markups = await storage.getRateMarkups();
+      res.json(markups);
+    } catch (error) {
+      console.error("Error fetching rate markups:", error);
+      res.status(500).json({ message: "Failed to fetch rate markups" });
+    }
+  });
+
+  app.post("/api/admin/rate-markups", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const markupData = req.body;
+      const markup = await storage.createRateMarkup(markupData);
+      res.json(markup);
+    } catch (error) {
+      console.error("Error creating rate markup:", error);
+      res.status(500).json({ message: "Failed to create rate markup" });
+    }
+  });
+
+  app.delete("/api/admin/rate-markups/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteRateMarkup(req.params.id);
+      res.json({ message: "Rate markup deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting rate markup:", error);
+      res.status(500).json({ message: "Failed to delete rate markup" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

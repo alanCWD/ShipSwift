@@ -49,7 +49,9 @@ export interface IStorage {
   createReturn(returnData: InsertReturn): Promise<Return>;
   updateReturn(id: string, updates: Partial<Return>): Promise<Return>;
   
-  // System settings
+  // System settings (alias methods)
+  getSetting(key: string): Promise<string | undefined>;
+  setSetting(key: string, value: string, updatedBy: string): Promise<void>;
   getSystemSetting(key: string): Promise<string | undefined>;
   setSystemSetting(key: string, value: string, updatedBy: string): Promise<void>;
 }
@@ -230,7 +232,15 @@ export class DatabaseStorage implements IStorage {
     return returnRecord;
   }
 
-  // System settings
+  // System settings (alias methods for convenience)
+  async getSetting(key: string): Promise<string | undefined> {
+    return this.getSystemSetting(key);
+  }
+
+  async setSetting(key: string, value: string, updatedBy: string): Promise<void> {
+    return this.setSystemSetting(key, value, updatedBy);
+  }
+
   async getSystemSetting(key: string): Promise<string | undefined> {
     const [setting] = await db
       .select()

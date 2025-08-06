@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -34,7 +35,10 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/track" component={TrackShipment} />
           {user.role === 'admin' && (
-            <Route path="/admin" component={Admin} />
+            <>
+              <Route path="/admin" component={Admin} />
+              <Route path="/admin-settings" component={React.lazy(() => import("@/pages/admin-settings"))} />
+            </>
           )}
         </>
       )}

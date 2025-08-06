@@ -47,27 +47,32 @@ interface ShipTimeShipment {
 
 class ShipTimeService {
   private apiUrl: string;
-  private username: string;
-  private password: string;
-  private accessToken?: string;
-
+  private username?: string;
+  private password?: string;
+  
   constructor() {
     // Always use production environment as requested
     this.apiUrl = 'https://restapi.shiptime.com/rest/';
+    console.log('ShipTimeService initialized for dynamic credentials');
+  }
+
+  // Load credentials from database settings
+  async loadCredentials() {
+    const { storage } = await import('../storage');
     
-    // Use SHIPTIME_EMAIL for username to avoid confusion with swapped values
-    this.username = process.env.SHIPTIME_EMAIL || process.env.SHIPTIME_USERNAME || '';
-    this.password = process.env.SHIPTIME_PASS || process.env.SHIPTIME_PASSWORD || '';
+    const username = await storage.getSetting('SHIPTIME_USERNAME');
+    const password = await storage.getSetting('SHIPTIME_PASSWORD');
     
-    // Clear any cached token when credentials change
-    this.accessToken = undefined;
-    
-    console.log('ShipTimeService initialized with username:', this.username);
-    console.log('ShipTimeService password length:', this.password.length);
-    
-    if (!this.username || !this.password) {
-      console.warn('ShipTime credentials not configured. Some features may not work.');
+    if (!username || !password) {
+      console.warn('ShipTime credentials not configured in system settings');
+      return false;
     }
+    
+    this.username = username;
+    this.password = password;
+    
+    console.log('ShipTime credentials loaded from database for username:', this.username);
+    return true;
   }
 
   private getBasicAuthHeader(): string {
@@ -81,6 +86,14 @@ class ShipTimeService {
   }
 
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any) {
+    // Load credentials from database if not already loaded
+    if (!this.username || !this.password) {
+      const loaded = await this.loadCredentials();
+      if (!loaded) {
+        throw new Error('ShipTime credentials not configured in system settings');
+      }
+    }
+    
     console.log('ShipTime API request to endpoint:', endpoint);
     
     const response = await fetch(`${this.apiUrl}${endpoint}`, {
