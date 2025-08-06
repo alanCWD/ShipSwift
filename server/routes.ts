@@ -47,15 +47,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email } = req.body;
+      const { email, password } = req.body;
       const user = await storage.getUserByEmail(email);
       
       if (!user || !user.isActive) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // In a real app, you'd verify password here
-      // For now, we'll just return the user (simplified for demo)
+      // In a real app, you'd verify password here against hashed password
+      // For demo purposes, we'll check if password is provided
+      if (!password) {
+        return res.status(401).json({ message: "Password is required" });
+      }
+      
+      // For demo: accept any non-empty password (in production, verify against hashed password)
       res.json({ user: { ...user, role: user.role } });
     } catch (error: any) {
       console.error("Login error:", error);
@@ -87,7 +92,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ rates });
     } catch (error: any) {
       console.error("Rate calculation error:", error);
-      res.status(500).json({ message: error.message || "Failed to get shipping rates" });
+      
+      // Provide more specific error messages
+      if (error.message.includes('authentication failed')) {
+        res.status(503).json({ 
+          message: "Shipping service authentication error. Please contact support.",
+          error: "SHIPTIME_AUTH_FAILED"
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Unable to calculate shipping rates at this time. Please try again later.",
+          error: "RATE_CALCULATION_FAILED"
+        });
+      }
     }
   });
 

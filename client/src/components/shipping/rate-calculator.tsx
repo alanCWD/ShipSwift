@@ -51,9 +51,20 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       });
     },
     onError: (error: any) => {
+      let title = "Rate Calculation Failed";
+      let description = "Unable to get shipping rates. Please try again.";
+      
+      if (error.message.includes('503')) {
+        title = "Service Temporarily Unavailable";
+        description = "The shipping service is currently unavailable. Please contact support or try again later.";
+      } else if (error.message.includes('authentication')) {
+        title = "Service Configuration Issue";
+        description = "There's a configuration issue with the shipping service. Please contact support.";
+      }
+      
       toast({
-        title: "Rate Calculation Failed",
-        description: error.message || "Unable to get shipping rates. Please try again.",
+        title,
+        description,
         variant: "destructive",
       });
     },

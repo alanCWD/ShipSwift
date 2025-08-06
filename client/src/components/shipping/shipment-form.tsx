@@ -12,7 +12,11 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiRequest } from '@/lib/queryClient';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey).catch(() => {
+  console.error('Failed to load Stripe');
+  return null;
+}) : Promise.resolve(null);
 
 interface ShipmentFormProps {
   rate: any;

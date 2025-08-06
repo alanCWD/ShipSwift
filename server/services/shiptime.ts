@@ -94,7 +94,7 @@ class ShipTimeService {
         throw new Error('No access token received from ShipTime');
       }
 
-      this.accessToken = data.token;
+      this.accessToken = data.token as string;
       return this.accessToken;
     } catch (error) {
       console.error('ShipTime authentication error:', error);
