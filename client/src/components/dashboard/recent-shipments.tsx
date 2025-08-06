@@ -180,34 +180,26 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                     <p className="text-sm text-gray-600">{shipment.carrierName}</p>
                   </div>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                        <MoreVertical className="w-4 h-4" />
+                  <div className="flex space-x-2">
+                    <Link href={`/track?id=${shipment.id}`}>
+                      <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-800">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        Track
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/track?id=${shipment.id}`} className="flex items-center">
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Track Shipment
-                        </Link>
-                      </DropdownMenuItem>
-                      {shipment.labelUrl && (
-                        <DropdownMenuItem asChild>
-                          <a 
-                            href={shipment.labelUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center text-blue-600 font-medium"
-                          >
-                            <Package className="w-4 h-4 mr-2" />
-                            Download Shipping Label
-                          </a>
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    </Link>
+                    {shipment.labelUrl && (
+                      <a 
+                        href={shipment.labelUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-800">
+                          <Package className="w-4 h-4 mr-1" />
+                          Label
+                        </Button>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -216,9 +208,11 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         
         {shipments.length > 10 && (
           <div className="px-6 py-4 border-t border-gray-200">
-            <Button variant="outline" className="w-full">
-              View All Shipments
-            </Button>
+            <Link href="/shipments">
+              <Button variant="outline" className="w-full">
+                View All Shipments
+              </Button>
+            </Link>
           </div>
         )}
       </CardContent>

@@ -29,6 +29,13 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
   - Fixed frontend Stripe loading and payment form functionality
   - Complete shipment creation flow operational: rate selection → details → payment → label generation
   - Enhanced user experience with clearer success messages and label access instructions
+- **COMPLETED: UI improvements for shipment workflow (August 2025)**
+  - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
+  - Added automatic redirect to dashboard after successful payment completion
+  - Replaced 3-dot dropdown menu with direct "Track" and "Label" buttons in Recent Shipments
+  - Created comprehensive /shipments page to replace 404 error with full shipment management
+  - Fixed tracking page auto-fill functionality when accessed from shipment links
+  - Replaced broken demo label placeholder with proper SVG-based shipping labels
 
 # User Preferences
 

@@ -71,6 +71,10 @@ function PaymentForm({ clientSecret, onPaymentSuccess }: { clientSecret: string;
           title: "Payment Successful",
           description: "Your shipment has been created and paid for.",
         });
+        // Auto-redirect to dashboard after successful payment
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
         onPaymentSuccess();
       }
     } catch (error: any) {
@@ -442,13 +446,6 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={shipmentMutation.isPending}
-                    >
-                      {shipmentMutation.isPending ? 'Creating Shipment...' : 'Continue to Payment'}
-                    </Button>
                   </form>
                 </CardContent>
               </Card>
@@ -503,10 +500,19 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                     )}
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
+                  <div className="flex justify-between font-bold text-lg mb-6">
                     <span>Total:</span>
                     <span>${total.toFixed(2)} CAD</span>
                   </div>
+                  
+                  {/* Continue to Payment Button moved below Total */}
+                  <Button 
+                    onClick={() => handleShippingSubmit(new Event('submit') as any)}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={shipmentMutation.isPending}
+                  >
+                    {shipmentMutation.isPending ? 'Creating Shipment...' : 'Continue to Payment'}
+                  </Button>
                 </CardContent>
               </Card>
             </div>

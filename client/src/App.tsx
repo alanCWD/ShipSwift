@@ -36,6 +36,7 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/create-shipment" component={CreateShipment} />
           <Route path="/track" component={TrackShipment} />
+          <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
           <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
           {user.role === 'admin' && (
             <>
