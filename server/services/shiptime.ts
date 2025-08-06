@@ -55,7 +55,8 @@ class ShipTimeService {
     // Always use production environment as requested
     this.apiUrl = 'https://restapi.shiptime.com/rest/';
     
-    this.username = process.env.SHIPTIME_USERNAME || '';
+    // Use SHIPTIME_EMAIL for username to avoid confusion with swapped values
+    this.username = process.env.SHIPTIME_EMAIL || process.env.SHIPTIME_USERNAME || '';
     this.password = process.env.SHIPTIME_PASSWORD || '';
     
     // Clear any cached token when credentials change
