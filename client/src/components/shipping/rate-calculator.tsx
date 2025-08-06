@@ -19,10 +19,10 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     fromPostalCode: 'V2R 4H1',
     toCountry: 'CA',
     toPostalCode: '',
-    length: '30',
-    width: '20',
-    height: '15',
-    weight: '2.5',
+    length: '',
+    width: '',
+    height: '',
+    weight: '',
   });
   
   const [hasRates, setHasRates] = useState(false);
@@ -272,7 +272,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
               className="w-full bg-blue-600 text-white hover:bg-blue-700 text-lg py-4"
               disabled={ratesMutation.isPending}
             >
-              {ratesMutation.isPending ? 'Comparing Rates...' : 'Refresh Shipping Rates'}
+              {ratesMutation.isPending ? 'Comparing Rates...' : 'Fetch Shipping Rates'}
             </Button>
             
             <p className="text-sm text-gray-500 text-center">

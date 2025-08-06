@@ -81,80 +81,64 @@ export default function RateResults({ rates }: RateResultsProps) {
     <div className="bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-8">Available Shipping Options</h2>
-        <div className="space-y-4">
-          {rates.map((rate, index) => {
-            const total = calculateTotal(rate);
-            // Handle both sample rates and real API format
-            const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
-            const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
-            
-            return (
-              <Card key={index} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-16 h-12 ${getCarrierColor(carrierName)} rounded flex items-center justify-center`}>
-                        <span className="text-white font-bold text-sm">
-                          {getCarrierInitials(carrierName)}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{carrierName}</h3>
-                        <p className="text-sm text-gray-600">{serviceName}</p>
-                        <div className="flex items-center space-x-4 mt-1">
-                          {(rate.deliveryDays || rate.transitTime) && (
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {rate.deliveryDays || rate.transitTime}
-                            </div>
-                          )}
-                          <Badge variant="secondary" className="text-xs">
-                            <Truck className="w-3 h-3 mr-1" />
-                            {rate.serviceType || 'Standard'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${total.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
-                      </p>
-                      <Button 
-                        onClick={() => setSelectedRate(rate)}
-                        className="mt-2 bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        Select
-                      </Button>
-                    </div>
-                  </div>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrier</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transit Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (CAD)</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {rates.map((rate, index) => {
+                  const total = calculateTotal(rate);
+                  // Handle both sample rates and real API format
+                  const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
+                  const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
                   
-                  {/* Rate breakdown */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-600 space-y-1">
-                      {rate.baseCharge?.amount && (
-                        <div className="flex justify-between">
-                          <span>Base Rate:</span>
-                          <span>${(rate.baseCharge.amount / 100).toFixed(2)}</span>
+                  return (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className={`w-10 h-8 ${getCarrierColor(carrierName)} rounded flex items-center justify-center mr-3`}>
+                            <span className="text-white font-bold text-xs">
+                              {getCarrierInitials(carrierName)}
+                            </span>
+                          </div>
+                          <div className="text-sm font-medium text-gray-900">{carrierName}</div>
                         </div>
-                      )}
-                      {rate.surcharges?.map((surcharge: any, idx: number) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{surcharge.name || 'Surcharge'}:</span>
-                          <span>${(surcharge.price.amount / 100).toFixed(2)}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{serviceName}</div>
+                        <div className="text-sm text-gray-500">{rate.serviceType || 'Standard'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{rate.deliveryDays || rate.transitTime}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-lg font-bold text-gray-900">
+                          ${total.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
                         </div>
-                      ))}
-                      {rate.taxes?.map((tax: any, idx: number) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{tax.name || 'Tax'}:</span>
-                          <span>${(tax.price.amount / 100).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Button 
+                          onClick={() => setSelectedRate(rate)}
+                          className="bg-blue-600 text-white hover:bg-blue-700"
+                          size="sm"
+                        >
+                          Select
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

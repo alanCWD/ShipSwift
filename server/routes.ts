@@ -95,47 +95,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate weight-based pricing for realistic rates
       const weight = packageDetails.weight || 1;
-      const basePrices = {
-        regular: 12 + (weight * 2.5),
-        expedited: 18 + (weight * 3.2),
-        express: 25 + (weight * 4.1)
-      };
+      const timestamp = Date.now();
       
-      // Provide sample rates when API is unavailable
+      // Provide comprehensive sample rates when API is unavailable
       const sampleRates = [
+        // Canada Post Options
         {
-          id: `rate_${Date.now()}_1`,
+          id: `rate_${timestamp}_1`,
           carrierId: 'canadapost',
           carrierName: 'Canada Post',
           serviceName: 'Regular Parcel',
           serviceType: 'regular',
-          totalCharge: basePrices.regular.toFixed(2),
-          price: basePrices.regular.toFixed(2),
+          totalCharge: (12 + (weight * 2.5)).toFixed(2),
+          price: (12 + (weight * 2.5)).toFixed(2),
           transitTime: '5-7 business days',
           currency: 'CAD',
           estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         },
         {
-          id: `rate_${Date.now()}_2`,
+          id: `rate_${timestamp}_2`,
           carrierId: 'canadapost',
           carrierName: 'Canada Post',
           serviceName: 'Expedited Parcel',
           serviceType: 'expedited',
-          totalCharge: basePrices.expedited.toFixed(2),
-          price: basePrices.expedited.toFixed(2),
+          totalCharge: (18 + (weight * 3.2)).toFixed(2),
+          price: (18 + (weight * 3.2)).toFixed(2),
           transitTime: '2-3 business days',
           currency: 'CAD',
           estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
         },
         {
-          id: `rate_${Date.now()}_3`,
+          id: `rate_${timestamp}_3`,
+          carrierId: 'canadapost',
+          carrierName: 'Canada Post',
+          serviceName: 'Xpresspost',
+          serviceType: 'express',
+          totalCharge: (25 + (weight * 4.1)).toFixed(2),
+          price: (25 + (weight * 4.1)).toFixed(2),
+          transitTime: '1-2 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        
+        // Purolator Options
+        {
+          id: `rate_${timestamp}_4`,
           carrierId: 'purolator',
           carrierName: 'Purolator',
           serviceName: 'Ground',
           serviceType: 'ground',
-          totalCharge: basePrices.express.toFixed(2),
-          price: basePrices.express.toFixed(2),
+          totalCharge: (22 + (weight * 3.8)).toFixed(2),
+          price: (22 + (weight * 3.8)).toFixed(2),
           transitTime: '1-3 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: `rate_${timestamp}_5`,
+          carrierId: 'purolator',
+          carrierName: 'Purolator',
+          serviceName: 'Express',
+          serviceType: 'express',
+          totalCharge: (32 + (weight * 4.5)).toFixed(2),
+          price: (32 + (weight * 4.5)).toFixed(2),
+          transitTime: '1-2 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        
+        // UPS Options
+        {
+          id: `rate_${timestamp}_6`,
+          carrierId: 'ups',
+          carrierName: 'UPS',
+          serviceName: 'Ground',
+          serviceType: 'ground',
+          totalCharge: (24 + (weight * 4.0)).toFixed(2),
+          price: (24 + (weight * 4.0)).toFixed(2),
+          transitTime: '2-4 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: `rate_${timestamp}_7`,
+          carrierId: 'ups',
+          carrierName: 'UPS',
+          serviceName: 'Express Saver',
+          serviceType: 'express',
+          totalCharge: (38 + (weight * 5.2)).toFixed(2),
+          price: (38 + (weight * 5.2)).toFixed(2),
+          transitTime: '1-2 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        
+        // FedEx Options
+        {
+          id: `rate_${timestamp}_8`,
+          carrierId: 'fedex',
+          carrierName: 'FedEx',
+          serviceName: 'Ground',
+          serviceType: 'ground',
+          totalCharge: (26 + (weight * 4.2)).toFixed(2),
+          price: (26 + (weight * 4.2)).toFixed(2),
+          transitTime: '2-5 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: `rate_${timestamp}_9`,
+          carrierId: 'fedex',
+          carrierName: 'FedEx',
+          serviceName: 'Express',
+          serviceType: 'express',
+          totalCharge: (45 + (weight * 6.0)).toFixed(2),
+          price: (45 + (weight * 6.0)).toFixed(2),
+          transitTime: '1-2 business days',
+          currency: 'CAD',
+          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        
+        // DHL Options  
+        {
+          id: `rate_${timestamp}_10`,
+          carrierId: 'dhl',
+          carrierName: 'DHL',
+          serviceName: 'Express',
+          serviceType: 'express',
+          totalCharge: (52 + (weight * 7.5)).toFixed(2),
+          price: (52 + (weight * 7.5)).toFixed(2),
+          transitTime: '1-2 business days',
           currency: 'CAD',
           estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
         }

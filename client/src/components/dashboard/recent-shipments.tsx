@@ -97,16 +97,10 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Recent Shipments</CardTitle>
-            <div className="flex space-x-2">
-              <Button className="bg-blue-600 text-white hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Shipment
-              </Button>
-              <Button variant="outline">
-                <Upload className="w-4 h-4 mr-2" />
-                Import CSV
-              </Button>
-            </div>
+            <Button variant="outline">
+              <Upload className="w-4 h-4 mr-2" />
+              Import CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
