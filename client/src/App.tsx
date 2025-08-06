@@ -41,9 +41,10 @@ function Router() {
           {user.role === 'admin' && (
             <>
               <Route path="/admin" component={Admin} />
-              <Route path="/admin-settings" component={React.lazy(() => import("@/pages/admin-settings"))} />
+              <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
             </>
           )}
+          <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
         </>
       )}
       <Route component={NotFound} />
