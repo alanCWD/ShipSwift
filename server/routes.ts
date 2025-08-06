@@ -250,6 +250,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public branding endpoint (for white-label tracking pages)
+  app.get("/api/branding/public/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const branding = await storage.getClientBranding(userId);
+      
+      if (!branding) {
+        return res.status(404).json({ message: "Branding not found" });
+      }
+      
+      // Only return public branding data (no sensitive info)
+      const publicBranding = {
+        companyName: branding.companyName,
+        logoUrl: branding.logoUrl,
+        primaryColor: branding.primaryColor,
+        secondaryColor: branding.secondaryColor,
+        backgroundColor: branding.backgroundColor,
+        textColor: branding.textColor,
+        trackingPageTitle: branding.trackingPageTitle,
+        trackingPageDescription: branding.trackingPageDescription,
+        footerText: branding.footerText,
+        supportEmail: branding.supportEmail,
+        supportPhone: branding.supportPhone,
+      };
+      
+      res.json(publicBranding);
+    } catch (error: any) {
+      console.error("Public branding error:", error);
+      res.status(500).json({ message: "Failed to get branding" });
+    }
+  });
+
+  // Public tracking endpoint (for white-label tracking pages)
+  app.get("/api/shipments/track/public/:trackingNumber", async (req, res) => {
+    try {
+      const { trackingNumber } = req.params;
+      const shipment = await storage.getShipmentByTrackingNumber(trackingNumber);
+      
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+      
+      let trackingData;
+      if (shipment.shiptimeShipmentId) {
+        trackingData = await shiptimeService.trackShipment(shipment.shiptimeShipmentId);
+      }
+      
+      // Return public tracking data (no sensitive pricing info)
+      const publicTrackingData = {
+        trackingNumber: shipment.trackingNumber,
+        status: trackingData?.status || shipment.status,
+        carrier: shipment.carrierName,
+        service: shipment.serviceName,
+        estimatedDelivery: trackingData?.estimatedDelivery,
+        origin: `${shipment.fromCity}, ${shipment.fromProvince}`,
+        destination: `${shipment.toCity}, ${shipment.toProvince}`,
+        events: trackingData?.events || [],
+      };
+      
+      res.json(publicTrackingData);
+    } catch (error: any) {
+      console.error("Public tracking error:", error);
+      res.status(500).json({ message: "Failed to get tracking information" });
+    }
+  });
+
   // Returns
   app.post("/api/returns", requireAuth, async (req, res) => {
     try {

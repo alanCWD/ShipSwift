@@ -54,6 +54,9 @@ export interface IStorage {
   setSetting(key: string, value: string, updatedBy: string): Promise<void>;
   getSystemSetting(key: string): Promise<string | undefined>;
   setSystemSetting(key: string, value: string, updatedBy: string): Promise<void>;
+  
+  // Additional shipment methods
+  getShipmentByTrackingNumber(trackingNumber: string): Promise<Shipment | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -266,6 +269,15 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       });
+  }
+
+  // Additional shipment methods
+  async getShipmentByTrackingNumber(trackingNumber: string): Promise<Shipment | undefined> {
+    const [shipment] = await db
+      .select()
+      .from(shipments)
+      .where(eq(shipments.trackingNumber, trackingNumber));
+    return shipment;
   }
 }
 

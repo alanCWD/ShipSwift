@@ -7,13 +7,17 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
 - Migrated from Freightcom API back to ShipTime API for production environment
 - Fixed authentication flow bugs and TypeScript errors
 - Configured ShipTime service to use production API endpoint
-- **NEW: Implemented dynamic credential system for client configuration**
-  - Created admin settings panel for ShipTime API credentials management
+- **NEW: Implemented ABLP internal admin system**
+  - Created ABLP-only admin settings panel for ShipTime API credentials management
   - Added database-driven settings storage with encrypted credential support
-  - Implemented rate markup configuration system for profit margins
-  - ShipTime service now loads credentials dynamically from database settings
+  - Implemented rate markup configuration system for ABLP profit margins (hidden from clients)
+  - ShipTime service now loads ABLP credentials dynamically from database settings
   - Fixed authentication method to use Basic Auth as required by ShipTime API
-  - Created comprehensive admin interface for carrier rate markup management
+  - Created comprehensive ABLP admin interface for carrier rate markup management
+- **NEW: Client branding system for white-label shipping interface**
+  - ABLP clients can customize shipping interface branding for their end users
+  - Logo upload and color scheme customization capabilities
+  - White-label tracking pages with client branding
 
 # User Preferences
 
