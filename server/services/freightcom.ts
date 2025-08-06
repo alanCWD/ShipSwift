@@ -52,8 +52,8 @@ class FreightcomService {
   private accessToken?: string;
 
   constructor() {
-    // Freightcom uses their live API endpoint
-    this.apiUrl = 'https://live.freightcom.com/';
+    // Freightcom API endpoint
+    this.apiUrl = 'https://live.freightcom.com/api/';
     
     this.username = process.env.FREIGHTCOM_USERNAME || '';
     this.password = process.env.FREIGHTCOM_PASSWORD || '';
@@ -73,7 +73,7 @@ class FreightcomService {
     }
 
     try {
-      const response = await fetch(`${this.apiUrl}api/login`, {
+      const response = await fetch(`${this.apiUrl}login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -140,7 +140,7 @@ class FreightcomService {
       };
 
       console.log('Freightcom getRates request:', payload);
-      const response = await this.makeRequest('api/rates', 'POST', payload);
+      const response = await this.makeRequest('rates', 'POST', payload);
       
       console.log('Freightcom getRates response:', response);
       return response.rates || [];
@@ -178,7 +178,7 @@ class FreightcomService {
       };
 
       console.log('Freightcom createShipment request:', payload);
-      const response = await this.makeRequest('api/shipments', 'POST', payload);
+      const response = await this.makeRequest('shipments', 'POST', payload);
       
       console.log('Freightcom createShipment response:', response);
       return response;
@@ -191,7 +191,7 @@ class FreightcomService {
   async trackShipment(trackingNumber: string): Promise<any> {
     try {
       console.log('Freightcom trackShipment request:', trackingNumber);
-      const response = await this.makeRequest(`api/tracking/${trackingNumber}`, 'GET');
+      const response = await this.makeRequest(`tracking/${trackingNumber}`, 'GET');
       
       console.log('Freightcom trackShipment response:', response);
       return response;

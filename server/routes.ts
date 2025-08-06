@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let trackingData;
       if (shipment.shiptimeShipmentId) {
-        trackingData = await shiptimeService.trackShipment(shipment.shiptimeShipmentId);
+        trackingData = await freightcomService.trackShipment(shipment.shiptimeShipmentId);
       }
 
       res.json({ 
