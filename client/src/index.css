@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1286,8 +1288,7 @@
   background-color: hsl(215, 13%, 45%);
 }
 
-/* Ensure proper font loading */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Font loading moved to top of file */
 
 /* ABLP Logistics specific styling overrides for perfect design match */
 .hero-gradient-ablp {
