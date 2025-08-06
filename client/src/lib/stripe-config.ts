@@ -7,8 +7,15 @@ export const getStripe = () => {
   if (!stripePromise) {
     const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
     
+    console.log('Stripe key check:', publishableKey ? `Found (${publishableKey.substring(0, 7)}...)` : 'Not found');
+    
     if (!publishableKey) {
-      console.error('Stripe publishable key not found. Please set VITE_STRIPE_PUBLIC_KEY environment variable.');
+      console.error('Failed to load Stripe');
+      return null;
+    }
+    
+    if (!publishableKey.startsWith('pk_')) {
+      console.error('Failed to load Stripe');
       return null;
     }
     

@@ -8,15 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Package, MapPin, CreditCard } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiRequest } from '@/lib/queryClient';
+import { getStripe } from '@/lib/stripe-config';
 
-const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripePublicKey ? loadStripe(stripePublicKey).catch(() => {
-  console.error('Failed to load Stripe');
-  return null;
-}) : Promise.resolve(null);
+const stripePromise = getStripe();
 
 interface ShipmentFormProps {
   rate: any;
