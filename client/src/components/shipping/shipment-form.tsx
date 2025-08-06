@@ -235,10 +235,15 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
 
   const handlePaymentSuccess = () => {
     toast({
-      title: "Shipment Created Successfully",
-      description: "Your shipping label has been generated and payment processed.",
+      title: "Shipment Created Successfully", 
+      description: "Your shipping label has been generated and payment processed. Check your dashboard to download the label.",
+      duration: 8000, // Show longer so user can read the message
     });
-    onBack(); // Return to dashboard
+    
+    // Small delay before redirect to let user read the success message
+    setTimeout(() => {
+      onBack(); // Return to dashboard
+    }, 2000);
   };
 
   const total = calculateTotal(rate);

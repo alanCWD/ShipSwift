@@ -199,10 +199,10 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                             href={shipment.labelUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="flex items-center"
+                            className="flex items-center text-blue-600 font-medium"
                           >
                             <Package className="w-4 h-4 mr-2" />
-                            View Label
+                            Download Shipping Label
                           </a>
                         </DropdownMenuItem>
                       )}
