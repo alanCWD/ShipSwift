@@ -1,0 +1,1335 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222, 84%, 4%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 84%, 4%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222, 84%, 4%);
+  --primary: hsl(222, 84%, 42%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222, 84%, 11%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 13%, 45%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222, 84%, 11%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --ring: hsl(222, 84%, 42%);
+  --radius: 0.75rem;
+  
+  /* ABLP Logistics Brand Colors - HSL Format */
+  --ablp-blue: hsl(222, 84%, 42%);
+  --ablp-light-blue: hsl(215, 97%, 62%);
+  --ablp-dark-blue: hsl(224, 76%, 22%);
+  --ablp-gray-50: hsl(210, 40%, 98%);
+  --ablp-gray-100: hsl(210, 40%, 96%);
+  --ablp-gray-200: hsl(214, 32%, 91%);
+  --ablp-gray-600: hsl(215, 13%, 45%);
+  --ablp-gray-900: hsl(222, 84%, 4%);
+}
+
+.dark {
+  --background: hsl(222, 84%, 4%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222, 84%, 4%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(222, 84%, 42%);
+  --primary-foreground: hsl(222, 84%, 11%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(217, 32%, 17%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --ring: hsl(212, 72%, 59%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* ABLP Logistics Brand Components */
+  .ablp-logo {
+    background-color: var(--ablp-blue);
+    @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
+  }
+  
+  .ablp-gradient {
+    background: linear-gradient(135deg, var(--ablp-blue) 0%, var(--ablp-dark-blue) 100%);
+  }
+  
+  .ablp-gradient-light {
+    background: linear-gradient(135deg, var(--ablp-light-blue) 0%, var(--ablp-blue) 100%);
+  }
+
+  /* Hero Section - Matches Design Reference Exactly */
+  .hero-section {
+    background: linear-gradient(135deg, hsl(215, 97%, 62%) 0%, hsl(224, 76%, 22%) 100%);
+    @apply relative;
+  }
+
+  .hero-section::before {
+    content: '';
+    @apply absolute inset-0 bg-black opacity-20;
+  }
+
+  .hero-content {
+    @apply relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24;
+  }
+
+  .hero-title {
+    @apply text-4xl md:text-6xl font-bold text-white mb-6 text-center;
+  }
+
+  .hero-subtitle {
+    @apply text-xl text-blue-100 mb-8 max-w-3xl mx-auto text-center;
+  }
+
+  .hero-buttons {
+    @apply flex flex-col sm:flex-row gap-4 justify-center;
+  }
+
+  .hero-primary-btn {
+    @apply bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors;
+  }
+
+  .hero-secondary-btn {
+    @apply border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors;
+  }
+
+  /* Rate Calculator - Exact Match to Design */
+  .rate-calculator {
+    @apply bg-white py-16;
+  }
+
+  .rate-calculator-container {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .rate-calculator-header {
+    @apply text-center mb-12;
+  }
+
+  .rate-calculator-title {
+    @apply text-3xl font-bold text-gray-900 mb-4;
+  }
+
+  .rate-calculator-subtitle {
+    @apply text-lg text-gray-600;
+  }
+
+  .rate-calculator-form {
+    @apply bg-gray-50 rounded-2xl p-8;
+  }
+
+  .rate-calculator-section {
+    @apply space-y-4;
+  }
+
+  .rate-calculator-section-title {
+    @apply text-lg font-semibold text-gray-900 mb-4 flex items-center;
+  }
+
+  .rate-calculator-section-icon {
+    @apply w-5 h-5 mr-2;
+  }
+
+  .rate-calculator-section-icon.from {
+    @apply text-blue-600;
+  }
+
+  .rate-calculator-section-icon.to {
+    @apply text-green-600;
+  }
+
+  .rate-calculator-section-icon.package {
+    @apply text-blue-600;
+  }
+
+  .rate-calculator-grid {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+  }
+
+  .rate-calculator-package-grid {
+    @apply grid grid-cols-1 sm:grid-cols-4 gap-4;
+  }
+
+  .rate-calculator-submit {
+    @apply w-full bg-blue-600 text-white px-6 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors;
+  }
+
+  /* Rate Results Section */
+  .rate-results {
+    @apply bg-gray-50 py-16;
+  }
+
+  .rate-results-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .rate-results-title {
+    @apply text-2xl font-bold text-gray-900 mb-8;
+  }
+
+  .rate-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200;
+  }
+
+  .rate-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .rate-card-content {
+    @apply flex items-center justify-between;
+  }
+
+  .rate-card-carrier-info {
+    @apply flex items-center space-x-4;
+  }
+
+  .rate-card-pricing {
+    @apply text-right;
+  }
+
+  .rate-card-price {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  .rate-card-currency {
+    @apply text-sm font-normal text-gray-600;
+  }
+
+  .rate-card-select-btn {
+    @apply mt-2 bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors;
+  }
+
+  /* Carrier Badges - Matching ShipTime Design */
+  .carrier-badge {
+    @apply w-16 h-12 rounded flex items-center justify-center text-white font-bold text-sm;
+  }
+
+  .carrier-canada-post {
+    background-color: hsl(0, 84%, 60%);
+  }
+
+  .carrier-purolator {
+    background-color: hsl(224, 76%, 22%);
+  }
+
+  .carrier-ups {
+    background-color: hsl(45, 93%, 47%);
+  }
+
+  .carrier-fedex {
+    background-color: hsl(271, 91%, 65%);
+  }
+
+  .carrier-dhl {
+    background-color: hsl(48, 100%, 50%);
+    @apply text-black;
+  }
+
+  .carrier-default {
+    background-color: hsl(215, 13%, 45%);
+  }
+
+  /* Status Badges */
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium border;
+  }
+
+  .status-delivered {
+    background-color: hsl(142, 76%, 96%);
+    color: hsl(142, 76%, 20%);
+    border-color: hsl(142, 76%, 86%);
+  }
+
+  .status-shipped {
+    background-color: hsl(48, 96%, 96%);
+    color: hsl(48, 96%, 20%);
+    border-color: hsl(48, 96%, 86%);
+  }
+
+  .status-processing {
+    background-color: hsl(215, 97%, 96%);
+    color: hsl(215, 97%, 20%);
+    border-color: hsl(215, 97%, 86%);
+  }
+
+  .status-returned {
+    background-color: hsl(0, 84%, 96%);
+    color: hsl(0, 84%, 20%);
+    border-color: hsl(0, 84%, 86%);
+  }
+
+  /* Navigation - Exact Match to Design */
+  .navbar {
+    @apply bg-white shadow-sm border-b border-gray-200;
+  }
+
+  .navbar-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .navbar-content {
+    @apply flex justify-between items-center h-16;
+  }
+
+  .navbar-brand {
+    @apply flex items-center;
+  }
+
+  .navbar-logo {
+    background-color: var(--ablp-blue);
+    @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
+  }
+
+  .navbar-company-name {
+    @apply ml-3 text-2xl font-bold text-gray-900;
+  }
+
+  .navbar-nav {
+    @apply hidden md:block ml-10;
+  }
+
+  .navbar-nav-items {
+    @apply flex items-baseline space-x-8;
+  }
+
+  .navbar-nav-link {
+    @apply text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors;
+  }
+
+  .navbar-nav-link.active {
+    @apply text-gray-900;
+  }
+
+  .navbar-actions {
+    @apply flex items-center space-x-4;
+  }
+
+  .navbar-sign-in {
+    @apply text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium;
+  }
+
+  .navbar-get-started {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors;
+  }
+
+  /* Dashboard Layout */
+  .dashboard-header {
+    @apply bg-white border-b border-gray-200;
+  }
+
+  .dashboard-header-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .dashboard-header-content {
+    @apply flex items-center justify-between h-16;
+  }
+
+  .dashboard-nav {
+    @apply flex space-x-8;
+  }
+
+  .dashboard-nav-link {
+    @apply text-gray-500 hover:text-gray-700 px-1 pb-4 text-sm font-medium transition-colors;
+  }
+
+  .dashboard-nav-link.active {
+    @apply border-b-2 border-blue-600 text-blue-600;
+  }
+
+  .dashboard-user-info {
+    @apply flex items-center space-x-4;
+  }
+
+  .dashboard-user-avatar {
+    @apply w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center;
+  }
+
+  .dashboard-user-details {
+    @apply text-sm;
+  }
+
+  .dashboard-main {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  /* Stats Cards */
+  .stats-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+  }
+
+  .stats-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow;
+  }
+
+  .stats-card-content {
+    @apply flex items-center;
+  }
+
+  .stats-card-icon-wrapper {
+    @apply flex-shrink-0;
+  }
+
+  .stats-card-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center;
+  }
+
+  .stats-card-icon.blue {
+    background-color: hsl(215, 97%, 96%);
+    color: hsl(215, 97%, 42%);
+  }
+
+  .stats-card-icon.green {
+    background-color: hsl(142, 76%, 96%);
+    color: hsl(142, 76%, 36%);
+  }
+
+  .stats-card-icon.yellow {
+    background-color: hsl(48, 96%, 96%);
+    color: hsl(48, 96%, 33%);
+  }
+
+  .stats-card-icon.purple {
+    background-color: hsl(271, 91%, 96%);
+    color: hsl(271, 91%, 45%);
+  }
+
+  .stats-card-info {
+    @apply ml-4 flex-1;
+  }
+
+  .stats-card-label {
+    @apply text-sm font-medium text-gray-600;
+  }
+
+  .stats-card-value {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  /* Recent Shipments */
+  .shipments-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200;
+  }
+
+  .shipments-header {
+    @apply px-6 py-4 border-b border-gray-200;
+  }
+
+  .shipments-header-content {
+    @apply flex items-center justify-between;
+  }
+
+  .shipments-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .shipments-actions {
+    @apply flex space-x-2;
+  }
+
+  .shipments-create-btn {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors;
+  }
+
+  .shipments-import-btn {
+    @apply border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors;
+  }
+
+  .shipments-list {
+    @apply divide-y divide-gray-200;
+  }
+
+  .shipment-row {
+    @apply px-6 py-4 hover:bg-gray-50 transition-colors;
+  }
+
+  .shipment-row-content {
+    @apply flex items-center justify-between;
+  }
+
+  .shipment-info {
+    @apply flex items-center space-x-4;
+  }
+
+  .shipment-status-icon {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+  }
+
+  .shipment-details {
+    @apply space-y-1;
+  }
+
+  .shipment-id {
+    @apply font-medium text-gray-900;
+  }
+
+  .shipment-route {
+    @apply text-sm text-gray-600;
+  }
+
+  .shipment-meta {
+    @apply text-right space-y-1;
+  }
+
+  .shipment-cost {
+    @apply font-medium text-gray-900;
+  }
+
+  .shipment-date {
+    @apply text-sm text-gray-500;
+  }
+
+  .shipment-carrier {
+    @apply text-sm text-gray-600;
+  }
+
+  .shipment-actions {
+    @apply text-blue-600 hover:text-blue-800;
+  }
+
+  /* Features Section */
+  .features-section {
+    @apply py-20 bg-white;
+  }
+
+  .features-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .features-header {
+    @apply text-center mb-16;
+  }
+
+  .features-title {
+    @apply text-3xl md:text-4xl font-bold text-gray-900 mb-4;
+  }
+
+  .features-subtitle {
+    @apply text-xl text-gray-600 max-w-3xl mx-auto;
+  }
+
+  .features-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+  }
+
+  .feature-card {
+    @apply bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-all duration-300;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .feature-icon-wrapper {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center mb-6;
+  }
+
+  .feature-icon-wrapper.blue {
+    background-color: hsl(215, 97%, 96%);
+    color: hsl(215, 97%, 42%);
+  }
+
+  .feature-icon-wrapper.green {
+    background-color: hsl(142, 76%, 96%);
+    color: hsl(142, 76%, 36%);
+  }
+
+  .feature-icon-wrapper.purple {
+    background-color: hsl(271, 91%, 96%);
+    color: hsl(271, 91%, 45%);
+  }
+
+  .feature-icon-wrapper.orange {
+    background-color: hsl(25, 95%, 96%);
+    color: hsl(25, 95%, 53%);
+  }
+
+  .feature-icon-wrapper.red {
+    background-color: hsl(0, 84%, 96%);
+    color: hsl(0, 84%, 60%);
+  }
+
+  .feature-icon-wrapper.indigo {
+    background-color: hsl(231, 76%, 96%);
+    color: hsl(231, 76%, 60%);
+  }
+
+  .feature-title {
+    @apply text-xl font-semibold text-gray-900 mb-4;
+  }
+
+  .feature-description {
+    @apply text-gray-600 mb-4;
+  }
+
+  .feature-list {
+    @apply text-sm text-gray-600 space-y-2;
+  }
+
+  .feature-list-item {
+    @apply flex items-center;
+  }
+
+  .feature-list-checkmark {
+    @apply w-4 h-4 text-green-500 mr-2;
+  }
+
+  /* Tracking Section */
+  .tracking-section {
+    @apply bg-gray-50 py-20;
+  }
+
+  .tracking-container {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .tracking-header {
+    @apply text-center mb-12;
+  }
+
+  .tracking-title {
+    @apply text-3xl md:text-4xl font-bold text-gray-900 mb-4;
+  }
+
+  .tracking-subtitle {
+    @apply text-xl text-gray-600;
+  }
+
+  .tracking-form-card {
+    @apply bg-white rounded-2xl p-8 shadow-lg;
+  }
+
+  .tracking-form {
+    @apply space-y-4;
+  }
+
+  .tracking-input-label {
+    @apply block text-sm font-medium text-gray-700 mb-2;
+  }
+
+  .tracking-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-lg;
+  }
+
+  .tracking-submit-btn {
+    @apply w-full bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors;
+  }
+
+  /* Tracking Results */
+  .tracking-results {
+    @apply mt-8 p-6 bg-gray-50 rounded-lg;
+  }
+
+  .tracking-results-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .tracking-results-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .tracking-status-badge {
+    @apply px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium;
+  }
+
+  .tracking-timeline {
+    @apply space-y-4;
+  }
+
+  .tracking-event {
+    @apply flex items-start space-x-4;
+  }
+
+  .tracking-event-icon {
+    @apply w-8 h-8 rounded-full flex items-center justify-center mt-1;
+  }
+
+  .tracking-event-icon.completed {
+    background-color: hsl(142, 76%, 36%);
+    @apply text-white;
+  }
+
+  .tracking-event-icon.pending {
+    background-color: hsl(215, 13%, 65%);
+    @apply text-white;
+  }
+
+  .tracking-event-details {
+    @apply flex-1;
+  }
+
+  .tracking-event-title {
+    @apply font-medium text-gray-900;
+  }
+
+  .tracking-event-location {
+    @apply text-sm text-gray-600;
+  }
+
+  .tracking-event-description {
+    @apply text-sm text-gray-500;
+  }
+
+  /* Footer */
+  .footer {
+    @apply bg-gray-900 text-white;
+  }
+
+  .footer-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16;
+  }
+
+  .footer-grid {
+    @apply grid grid-cols-1 md:grid-cols-4 gap-8;
+  }
+
+  .footer-brand {
+    @apply col-span-1 md:col-span-2;
+  }
+
+  .footer-brand-header {
+    @apply flex items-center mb-6;
+  }
+
+  .footer-logo {
+    background-color: var(--ablp-blue);
+    @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
+  }
+
+  .footer-company-name {
+    @apply ml-3 text-2xl font-bold;
+  }
+
+  .footer-description {
+    @apply text-gray-300 mb-6 max-w-md;
+  }
+
+  .footer-contact {
+    @apply space-y-2 text-gray-300;
+  }
+
+  .footer-contact-item {
+    @apply flex items-center;
+  }
+
+  .footer-contact-icon {
+    @apply w-5 h-5 mr-2;
+  }
+
+  .footer-section {
+    @apply space-y-4;
+  }
+
+  .footer-section-title {
+    @apply text-lg font-semibold mb-4;
+  }
+
+  .footer-links {
+    @apply space-y-2 text-gray-300;
+  }
+
+  .footer-link {
+    @apply hover:text-white transition-colors;
+  }
+
+  .footer-bottom {
+    @apply border-t border-gray-800 mt-12 pt-8;
+  }
+
+  .footer-bottom-content {
+    @apply flex flex-col md:flex-row justify-between items-center;
+  }
+
+  .footer-copyright {
+    @apply text-gray-300;
+  }
+
+  .footer-legal {
+    @apply flex space-x-6 mt-4 md:mt-0;
+  }
+
+  .footer-legal-link {
+    @apply text-gray-300 hover:text-white transition-colors;
+  }
+
+  /* Modal Styling */
+  .modal-overlay {
+    background-color: hsla(222, 84%, 4%, 0.5);
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl;
+  }
+
+  .modal-header {
+    @apply flex justify-between items-center mb-6;
+  }
+
+  .modal-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  .modal-close {
+    @apply text-gray-400 hover:text-gray-600;
+  }
+
+  .modal-form {
+    @apply space-y-4;
+  }
+
+  .modal-input-group {
+    @apply space-y-1;
+  }
+
+  .modal-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .modal-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+  }
+
+  .modal-checkbox-group {
+    @apply flex items-center space-x-2;
+  }
+
+  .modal-checkbox-label {
+    @apply text-sm text-gray-600;
+  }
+
+  .modal-submit {
+    @apply w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors;
+  }
+
+  .modal-footer {
+    @apply text-center mt-6;
+  }
+
+  .modal-switch {
+    @apply text-blue-600 hover:text-blue-800 font-medium;
+  }
+
+  /* Form Components */
+  .form-section {
+    @apply space-y-4 p-6 bg-gray-50 rounded-lg;
+  }
+
+  .form-header {
+    @apply text-lg font-semibold text-gray-900 mb-4 flex items-center;
+  }
+
+  .form-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  .form-grid-4 {
+    @apply grid grid-cols-1 sm:grid-cols-4 gap-4;
+  }
+
+  .form-input-group {
+    @apply space-y-1;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+  }
+
+  .form-select {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+  }
+
+  .form-textarea {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+  }
+
+  .form-help-text {
+    @apply text-xs text-gray-500 mt-1;
+  }
+
+  .required-field::after {
+    content: " *";
+    color: hsl(0, 84%, 60%);
+  }
+
+  /* Canadian Address Format */
+  .canadian-address {
+    @apply space-y-1 text-sm;
+  }
+
+  .canadian-address .street {
+    @apply font-medium;
+  }
+
+  .canadian-address .city-province {
+    color: hsl(215, 13%, 45%);
+  }
+
+  .canadian-address .postal-code {
+    @apply font-mono uppercase tracking-wider;
+    color: hsl(222, 84%, 11%);
+  }
+
+  .input-canadian-postal {
+    @apply uppercase tracking-wider;
+    letter-spacing: 0.1em;
+  }
+
+  /* Admin Panel */
+  .admin-panel {
+    @apply bg-gray-50 min-h-screen;
+  }
+
+  .admin-header {
+    @apply mb-8;
+  }
+
+  .admin-title {
+    @apply text-3xl font-bold text-gray-900;
+  }
+
+  .admin-subtitle {
+    @apply text-gray-600;
+  }
+
+  .admin-tabs {
+    @apply w-full;
+  }
+
+  .admin-tab-list {
+    @apply grid grid-cols-2 md:grid-cols-4;
+  }
+
+  .admin-tab {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  }
+
+  .admin-tab.active {
+    background-color: var(--ablp-blue);
+    @apply text-white;
+  }
+
+  .admin-tab:not(.active) {
+    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100;
+  }
+
+  .admin-card {
+    @apply bg-white rounded-lg shadow border border-gray-200;
+  }
+
+  .admin-card-header {
+    @apply px-6 py-4 border-b border-gray-200;
+  }
+
+  .admin-card-title {
+    @apply text-lg font-semibold text-gray-900 flex items-center;
+  }
+
+  .admin-card-content {
+    @apply p-6;
+  }
+
+  /* Loading States */
+  .loading-spinner {
+    @apply animate-spin w-8 h-8 border-4 border-t-transparent rounded-full;
+    border-color: var(--ablp-blue);
+    border-top-color: transparent;
+  }
+
+  .loading-state {
+    @apply flex items-center justify-center min-h-screen;
+  }
+
+  .loading-text {
+    @apply text-gray-600 mt-2;
+  }
+
+  /* Error and Success Messages */
+  .error-message {
+    background-color: hsl(0, 84%, 96%);
+    border-color: hsl(0, 84%, 86%);
+    color: hsl(0, 84%, 30%);
+    @apply px-4 py-3 rounded-lg border;
+  }
+
+  .success-message {
+    background-color: hsl(142, 76%, 96%);
+    border-color: hsl(142, 76%, 86%);
+    color: hsl(142, 76%, 20%);
+    @apply px-4 py-3 rounded-lg border;
+  }
+
+  .warning-message {
+    background-color: hsl(48, 96%, 96%);
+    border-color: hsl(48, 96%, 86%);
+    color: hsl(48, 96%, 20%);
+    @apply px-4 py-3 rounded-lg border;
+  }
+
+  .info-message {
+    background-color: hsl(215, 97%, 96%);
+    border-color: hsl(215, 97%, 86%);
+    color: hsl(215, 97%, 20%);
+    @apply px-4 py-3 rounded-lg border;
+  }
+
+  /* Empty States */
+  .empty-state {
+    @apply text-center py-12;
+  }
+
+  .empty-state-icon {
+    @apply w-12 h-12 text-gray-400 mx-auto mb-4;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-medium text-gray-900 mb-2;
+  }
+
+  .empty-state-description {
+    @apply text-gray-600 mb-6;
+  }
+
+  .empty-state-action {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  /* Color utilities with HSL */
+  .text-ablp-blue {
+    color: var(--ablp-blue);
+  }
+
+  .bg-ablp-blue {
+    background-color: var(--ablp-blue);
+  }
+
+  .border-ablp-blue {
+    border-color: var(--ablp-blue);
+  }
+
+  .hover\:bg-ablp-blue:hover {
+    background-color: var(--ablp-blue);
+  }
+
+  .hover\:text-ablp-blue:hover {
+    color: var(--ablp-blue);
+  }
+
+  .bg-ablp-dark-blue {
+    background-color: var(--ablp-dark-blue);
+  }
+
+  .hover\:bg-ablp-dark-blue:hover {
+    background-color: var(--ablp-dark-blue);
+  }
+
+  .focus\:ring-ablp-blue:focus {
+    --tw-ring-color: var(--ablp-blue);
+  }
+
+  .focus\:border-ablp-blue:focus {
+    border-color: var(--ablp-blue);
+  }
+
+  /* Buttons - Exact Match to Design */
+  .btn-primary {
+    background-color: var(--ablp-blue);
+    @apply text-white hover:bg-ablp-dark-blue focus:ring-2 focus:ring-ablp-blue focus:ring-offset-2 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-white text-white hover:bg-white hover:text-ablp-blue transition-colors;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
+  }
+
+  /* Responsive Design Breakpoints */
+  .canadian-business-layout {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply py-20;
+  }
+
+  .container-spacing {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Print Styles for Shipping Labels */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .print-only {
+      display: block !important;
+    }
+    
+    .shipping-label {
+      @apply border border-black p-4;
+      page-break-inside: avoid;
+    }
+  }
+
+  /* Focus Management for Accessibility */
+  .focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+    ring-color: var(--ablp-blue);
+  }
+
+  /* Branded Elements Specific to ABLP */
+  .branded-header {
+    @apply flex items-center space-x-3;
+  }
+
+  .branded-header .logo {
+    background-color: var(--ablp-blue);
+    @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
+  }
+
+  .branded-header .company-name {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  /* Tracking Page Branding */
+  .tracking-branded-footer {
+    background: linear-gradient(135deg, hsl(215, 97%, 96%) 0%, hsl(215, 97%, 92%) 100%);
+    border-color: hsl(215, 97%, 80%);
+    @apply border rounded-lg p-6 text-center;
+  }
+
+  .tracking-branded-footer .logo-section {
+    @apply flex items-center justify-center mb-4;
+  }
+
+  .tracking-branded-footer .contact-info {
+    @apply flex justify-center space-x-4 text-sm text-gray-600;
+  }
+
+  /* Rate Markup Configuration Table */
+  .rate-markup-table {
+    @apply w-full border-collapse;
+  }
+
+  .rate-markup-table th,
+  .rate-markup-table td {
+    @apply px-4 py-3 text-left border-b border-gray-200;
+  }
+
+  .rate-markup-table th {
+    @apply bg-gray-50 font-medium text-gray-900;
+  }
+
+  /* Custom Animations */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .hero-title {
+      @apply text-3xl;
+    }
+    
+    .hero-buttons {
+      @apply flex-col space-y-4;
+    }
+    
+    .rate-calculator-grid {
+      @apply grid-cols-1;
+    }
+    
+    .rate-calculator-package-grid {
+      @apply grid-cols-2;
+    }
+    
+    .features-grid {
+      @apply grid-cols-1;
+    }
+    
+    .stats-grid {
+      @apply grid-cols-2;
+    }
+    
+    .footer-grid {
+      @apply grid-cols-1 text-center;
+    }
+    
+    .footer-bottom-content {
+      @apply flex-col space-y-4;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .rate-card,
+    .stats-card,
+    .feature-card {
+      @apply border-2 border-gray-800;
+    }
+    
+    .btn-primary {
+      @apply border-2 border-blue-800;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .rate-card:hover,
+    .feature-card:hover {
+      transform: none;
+    }
+    
+    .animate-slide-up,
+    .animate-fade-in {
+      animation: none;
+    }
+    
+    .loading-spinner {
+      animation: none;
+      @apply border-4 border-gray-300 border-t-blue-600;
+    }
+  }
+
+  /* Dark mode overrides (if implemented later) */
+  .dark .hero-section {
+    background: linear-gradient(135deg, hsl(224, 76%, 22%) 0%, hsl(222, 84%, 4%) 100%);
+  }
+  
+  .dark .rate-calculator {
+    @apply bg-gray-900;
+  }
+  
+  .dark .rate-calculator-form {
+    @apply bg-gray-800;
+  }
+  
+  .dark .navbar {
+    @apply bg-gray-900 border-gray-800;
+  }
+  
+  .dark .footer {
+    @apply bg-black;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: hsl(210, 40%, 96%);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(215, 13%, 65%);
+  @apply rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(215, 13%, 45%);
+}
+
+/* Ensure proper font loading */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ABLP Logistics specific styling overrides for perfect design match */
+.hero-gradient-ablp {
+  background: linear-gradient(135deg, hsl(215, 97%, 62%) 0%, hsl(224, 76%, 22%) 100%);
+}
+
+/* Ensure buttons match the exact blue from design reference */
+.btn-ablp-primary {
+  background-color: hsl(222, 84%, 42%);
+  @apply text-white hover:bg-opacity-90 transition-all duration-200;
+}
+
+.btn-ablp-primary:hover {
+  background-color: hsl(224, 76%, 22%);
+}
+
+/* Ensure consistent spacing throughout */
+.page-header-ablp {
+  @apply mb-8;
+}
+
+.page-header-ablp h1 {
+  @apply text-3xl font-bold text-gray-900 mb-2;
+}
+
+.page-header-ablp p {
+  @apply text-gray-600;
+}
+
+/* Final adjustments for perfect design match */
+.rate-results-card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200;
+}
+
+.rate-results-card:hover {
+  transform: translateY(-2px);
+}
+
+.chilliwack-address {
+  @apply text-gray-600 font-medium;
+}
+
+.chilliwack-address::before {
+  content: "📍 ";
+}

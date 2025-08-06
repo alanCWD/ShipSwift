@@ -1,0 +1,225 @@
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { MapPin, Package } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+
+interface RateCalculatorProps {
+  onRatesReceived: (rates: any[]) => void;
+}
+
+export default function RateCalculator({ onRatesReceived }: RateCalculatorProps) {
+  const [formData, setFormData] = useState({
+    fromCountry: 'CA',
+    fromPostalCode: 'V2R 4H1',
+    toCountry: 'CA',
+    toPostalCode: '',
+    length: '30',
+    width: '20',
+    height: '15',
+    weight: '2.5',
+  });
+
+  const { toast } = useToast();
+
+  const ratesMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/shipping/rates', {
+        fromCountry: data.fromCountry,
+        fromPostalCode: data.fromPostalCode,
+        toCountry: data.toCountry,
+        toPostalCode: data.toPostalCode,
+        packageDetails: {
+          length: parseFloat(data.length),
+          width: parseFloat(data.width),
+          height: parseFloat(data.height),
+          weight: parseFloat(data.weight),
+        }
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      onRatesReceived(data.rates);
+      toast({
+        title: "Rates Retrieved",
+        description: `Found ${data.rates.length} available shipping options.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Rate Calculation Failed",
+        description: error.message || "Unable to get shipping rates. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleInputChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.fromPostalCode || !formData.toPostalCode) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both origin and destination postal codes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    ratesMutation.mutate(formData);
+  };
+
+  return (
+    <Card className="bg-gray-50 border-none">
+      <CardContent className="p-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* From Address */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                Ship From
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="fromCountry">Country</Label>
+                  <Select 
+                    value={formData.fromCountry}
+                    onValueChange={(value) => handleInputChange('fromCountry', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CA">Canada</SelectItem>
+                      <SelectItem value="US">United States</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="fromPostalCode">Postal Code</Label>
+                  <Input
+                    id="fromPostalCode"
+                    placeholder="e.g., V2R 4H1"
+                    value={formData.fromPostalCode}
+                    onChange={(e) => handleInputChange('fromPostalCode', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* To Address */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <MapPin className="w-5 h-5 mr-2 text-green-600" />
+                Ship To
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="toCountry">Country</Label>
+                  <Select 
+                    value={formData.toCountry}
+                    onValueChange={(value) => handleInputChange('toCountry', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CA">Canada</SelectItem>
+                      <SelectItem value="US">United States</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="toPostalCode">Postal Code</Label>
+                  <Input
+                    id="toPostalCode"
+                    placeholder="e.g., M5H 3M7"
+                    value={formData.toPostalCode}
+                    onChange={(e) => handleInputChange('toPostalCode', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Package Details */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Package className="w-5 h-5 mr-2 text-blue-600" />
+              Package Details
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div>
+                <Label htmlFor="length">Length (cm)</Label>
+                <Input
+                  id="length"
+                  type="number"
+                  min="1"
+                  step="0.1"
+                  value={formData.length}
+                  onChange={(e) => handleInputChange('length', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="width">Width (cm)</Label>
+                <Input
+                  id="width"
+                  type="number"
+                  min="1"
+                  step="0.1"
+                  value={formData.width}
+                  onChange={(e) => handleInputChange('width', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="height">Height (cm)</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min="1"
+                  step="0.1"
+                  value={formData.height}
+                  onChange={(e) => handleInputChange('height', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="weight">Weight (kg)</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  min="0.1"
+                  step="0.1"
+                  value={formData.weight}
+                  onChange={(e) => handleInputChange('weight', e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 text-white hover:bg-blue-700 text-lg py-4"
+            disabled={ratesMutation.isPending}
+          >
+            {ratesMutation.isPending ? 'Comparing Rates...' : 'Compare Shipping Rates'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
