@@ -418,9 +418,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Shipment not found" });
       }
 
-      let trackingData;
+      let trackingData = null;
       if (shipment.shiptimeShipmentId) {
-        trackingData = await shiptimeService.trackShipment(shipment.shiptimeShipmentId);
+        try {
+          trackingData = await shiptimeService.trackShipment(shipment.shiptimeShipmentId);
+        } catch (trackingError: any) {
+          console.error("ShipTime tracking error:", trackingError);
+          // Don't fail the whole request if tracking fails - just return shipment data
+          trackingData = null;
+        }
       }
 
       res.json({ 

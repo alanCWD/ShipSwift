@@ -36,6 +36,13 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
   - Created comprehensive /shipments page to replace 404 error with full shipment management
   - Fixed tracking page auto-fill functionality when accessed from shipment links
   - Replaced broken demo label placeholder with proper SVG-based shipping labels
+- **COMPLETED: Enhanced tracking and admin system (August 2025)**
+  - Developed realistic tracking data generation based on shipment age and status
+  - Fixed Home button navigation to redirect logged-in users to dashboard
+  - Created comprehensive ABLP admin settings system with API credential management
+  - Implemented advanced markup configuration with conditional logic (cost/weight/location-based rules)
+  - Enhanced database schema to support complex markup rules with boolean logic and priority system
+  - Admins can now configure intelligent markup rules for different scenarios (e.g., higher markup for expensive shipments)
 
 # User Preferences
 

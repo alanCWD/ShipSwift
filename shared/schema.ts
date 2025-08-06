@@ -93,15 +93,30 @@ export const systemSettings = pgTable("system_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Rate markups (admin configurable)
+// Enhanced rate markups with conditional logic (admin configurable)
 export const rateMarkups = pgTable("rate_markups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ruleName: varchar("rule_name").notNull(),
   carrierName: varchar("carrier_name").notNull(),
-  serviceName: varchar("service_name"),
+  serviceName: varchar("service_name"), // optional - applies to all services if null
+  
+  // Conditional logic fields
+  minCost: decimal("min_cost", { precision: 10, scale: 2 }), // minimum shipment cost to apply
+  maxCost: decimal("max_cost", { precision: 10, scale: 2 }), // maximum shipment cost to apply
+  minWeight: decimal("min_weight", { precision: 10, scale: 2 }), // minimum weight in kg
+  maxWeight: decimal("max_weight", { precision: 10, scale: 2 }), // maximum weight in kg
+  destinationProvince: varchar("destination_province"), // specific province/state
+  destinationCountry: varchar("destination_country"), // specific country
+  
+  // Markup configuration
   markupType: varchar("markup_type").notNull(), // percentage, fixed
   markupValue: decimal("markup_value", { precision: 10, scale: 2 }).notNull(),
-  minMarkup: decimal("min_markup", { precision: 10, scale: 2 }),
-  maxMarkup: decimal("max_markup", { precision: 10, scale: 2 }),
+  minMarkup: decimal("min_markup", { precision: 10, scale: 2 }), // minimum markup amount
+  maxMarkup: decimal("max_markup", { precision: 10, scale: 2 }), // maximum markup amount
+  
+  // Rule priority (lower number = higher priority)
+  priority: integer("priority").default(100),
+  description: text("description"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
