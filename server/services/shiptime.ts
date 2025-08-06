@@ -52,10 +52,8 @@ class ShipTimeService {
   private accessToken?: string;
 
   constructor() {
-    const environment = process.env.SHIPTIME_ENVIRONMENT || 'sandbox';
-    this.apiUrl = environment === 'production' 
-      ? 'https://restapi.shiptime.com/rest/'
-      : 'https://sandboxapi.shiptime.com/rest/';
+    // Always use production environment as requested
+    this.apiUrl = 'https://restapi.shiptime.com/rest/';
     
     this.username = process.env.SHIPTIME_USERNAME || '';
     this.password = process.env.SHIPTIME_PASSWORD || '';

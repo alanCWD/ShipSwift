@@ -2,6 +2,13 @@
 
 This is a Canadian shipping platform called "ABLP Logistics" that provides multi-carrier rate comparison, shipment management, and branded tracking experiences. The application allows users to compare shipping rates from major Canadian carriers (Canada Post, Purolator, UPS, FedEx, DHL), create shipments with payment processing, and track packages through a white-labeled interface. It features role-based access with customer and admin portals, where admins can configure rate markups and system settings.
 
+## Recent Changes (January 2025)
+- Updated footer to 2025 copyright and new phone number (604) 392-3923
+- Migrated from Freightcom API back to ShipTime API for production environment
+- Fixed authentication flow bugs and TypeScript errors
+- Configured ShipTime service to use production API endpoint
+- All shipping operations now use live ShipTime API with production credentials
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -40,8 +47,9 @@ Preferred communication style: Simple, everyday language.
 # External Dependencies
 
 ## Shipping Integration
-- **ShipTime API**: Primary shipping carrier integration for rates, label generation, and tracking
+- **ShipTime API**: Primary shipping carrier integration for rates, label generation, and tracking (Production Environment)
 - **Multi-Carrier Support**: Canada Post, Purolator, UPS, FedEx, DHL through unified API
+- **API Endpoint**: https://restapi.shiptime.com/rest/ (Production)
 
 ## Database & Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting with connection pooling
