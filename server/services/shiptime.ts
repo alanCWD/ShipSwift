@@ -57,63 +57,36 @@ class ShipTimeService {
     
     // Use SHIPTIME_EMAIL for username to avoid confusion with swapped values
     this.username = process.env.SHIPTIME_EMAIL || process.env.SHIPTIME_USERNAME || '';
-    this.password = process.env.SHIPTIME_PASSWORD || '';
+    this.password = process.env.SHIPTIME_PASS || process.env.SHIPTIME_PASSWORD || '';
     
     // Clear any cached token when credentials change
     this.accessToken = undefined;
     
     console.log('ShipTimeService initialized with username:', this.username);
+    console.log('ShipTimeService password length:', this.password.length);
     
     if (!this.username || !this.password) {
       console.warn('ShipTime credentials not configured. Some features may not work.');
     }
   }
 
-  private async getAccessToken(): Promise<string> {
-    if (this.accessToken) {
-      return this.accessToken;
-    }
-
+  private getBasicAuthHeader(): string {
     if (!this.username || !this.password) {
       throw new Error('ShipTime credentials not configured');
     }
 
-    try {
-      console.log('ShipTime authentication attempt with username:', this.username);
-      const response = await fetch(`${this.apiUrl}token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: this.username,
-          password: this.password
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`ShipTime authentication failed: ${errorText}`);
-      }
-
-      const data = await response.json();
-      if (!data.token) {
-        throw new Error('No access token received from ShipTime');
-      }
-
-      this.accessToken = data.token as string;
-      return this.accessToken;
-    } catch (error) {
-      console.error('ShipTime authentication error:', error);
-      throw error;
-    }
+    // Create Basic Auth header as per ShipTime API documentation
+    const credentials = Buffer.from(`${this.username}:${this.password}`).toString('base64');
+    return `Basic ${credentials}`;
   }
 
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any) {
-    const token = await this.getAccessToken();
+    console.log('ShipTime API request to endpoint:', endpoint);
     
     const response = await fetch(`${this.apiUrl}${endpoint}`, {
       method,
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': this.getBasicAuthHeader(),
         'Content-Type': 'application/json',
       },
       body: body ? JSON.stringify(body) : undefined,
@@ -121,6 +94,7 @@ class ShipTimeService {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`ShipTime API error (${response.status}):`, errorText);
       throw new Error(`ShipTime API error (${response.status}): ${errorText}`);
     }
 
