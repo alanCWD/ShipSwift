@@ -26,6 +26,64 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Demo label endpoint
+  app.get("/api/demo-label", (req, res) => {
+    // Generate a simple SVG shipping label
+    const svg = `
+      <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="600" fill="white" stroke="black" stroke-width="2"/>
+        
+        <!-- ABLP Logo Area -->
+        <rect x="20" y="20" width="360" height="80" fill="#1E40AF" rx="8"/>
+        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">ABLP LOGISTICS</text>
+        <text x="200" y="75" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Canadian Shipping Solutions</text>
+        
+        <!-- Demo Label Notice -->
+        <rect x="20" y="120" width="360" height="40" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" rx="4"/>
+        <text x="200" y="135" text-anchor="middle" fill="#92400E" font-family="Arial, sans-serif" font-size="12" font-weight="bold">DEMO SHIPPING LABEL</text>
+        <text x="200" y="150" text-anchor="middle" fill="#92400E" font-family="Arial, sans-serif" font-size="10">For demonstration purposes only</text>
+        
+        <!-- From Address -->
+        <text x="30" y="190" fill="black" font-family="Arial, sans-serif" font-size="14" font-weight="bold">FROM:</text>
+        <text x="30" y="210" fill="black" font-family="Arial, sans-serif" font-size="12">ABLP Logistics</text>
+        <text x="30" y="225" fill="black" font-family="Arial, sans-serif" font-size="12">44322 Yale Rd #3</text>
+        <text x="30" y="240" fill="black" font-family="Arial, sans-serif" font-size="12">Chilliwack, BC V2R 4H1</text>
+        <text x="30" y="255" fill="black" font-family="Arial, sans-serif" font-size="12">Canada</text>
+        
+        <!-- To Address -->
+        <text x="30" y="290" fill="black" font-family="Arial, sans-serif" font-size="14" font-weight="bold">TO:</text>
+        <text x="30" y="310" fill="black" font-family="Arial, sans-serif" font-size="12">Sample Recipient</text>
+        <text x="30" y="325" fill="black" font-family="Arial, sans-serif" font-size="12">123 Main Street</text>
+        <text x="30" y="340" fill="black" font-family="Arial, sans-serif" font-size="12">Vancouver, BC V6B 1A1</text>
+        <text x="30" y="355" fill="black" font-family="Arial, sans-serif" font-size="12">Canada</text>
+        
+        <!-- Tracking Number -->
+        <rect x="20" y="380" width="360" height="60" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1" rx="4"/>
+        <text x="30" y="400" fill="black" font-family="Arial, sans-serif" font-size="12" font-weight="bold">TRACKING NUMBER:</text>
+        <text x="200" y="420" text-anchor="middle" fill="black" font-family="monospace" font-size="18" font-weight="bold">DEMO${new Date().getTime().toString().slice(-8)}</text>
+        
+        <!-- Service Info -->
+        <text x="30" y="470" fill="black" font-family="Arial, sans-serif" font-size="12" font-weight="bold">SERVICE: Canada Post Expedited</text>
+        <text x="30" y="485" fill="black" font-family="Arial, sans-serif" font-size="12" font-weight="bold">WEIGHT: 1.0 kg</text>
+        
+        <!-- Barcode placeholder -->
+        <rect x="50" y="510" width="300" height="40" fill="black"/>
+        <rect x="52" y="512" width="4" height="36" fill="white"/>
+        <rect x="58" y="512" width="2" height="36" fill="white"/>
+        <rect x="62" y="512" width="4" height="36" fill="white"/>
+        <rect x="68" y="512" width="2" height="36" fill="white"/>
+        <rect x="72" y="512" width="6" height="36" fill="white"/>
+        <!-- Add more barcode lines... -->
+        
+        <!-- Footer -->
+        <text x="200" y="575" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="10">Generated: ${new Date().toLocaleString()}</text>
+      </svg>
+    `;
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Content-Disposition', 'inline; filename="demo-shipping-label.svg"');
+    res.send(svg);
+  });
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -289,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shiptimeShipment = {
           id: `demo_${Date.now()}`,
           trackingNumber: `DEMO${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-          labelUrl: 'https://via.placeholder.com/400x600/blue/white?text=DEMO+SHIPPING+LABEL',
+          labelUrl: '/api/demo-label', // Use our own demo label endpoint
           carrier: { name: otherData.carrierName },
           service: { name: otherData.serviceName },
         };

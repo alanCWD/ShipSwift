@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/navbar';
 import Footer from '../components/layout/footer';
@@ -11,6 +11,16 @@ import { apiRequest } from '@/lib/queryClient';
 export default function TrackShipment() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [searchedNumber, setSearchedNumber] = useState('');
+
+  // Auto-fill tracking number from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const idParam = urlParams.get('id');
+    if (idParam) {
+      setTrackingNumber(idParam);
+      setSearchedNumber(idParam);
+    }
+  }, []);
 
   const { data: trackingData, isLoading } = useQuery({
     queryKey: ['/api/shipments', searchedNumber, 'track'],
