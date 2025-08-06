@@ -125,6 +125,15 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
   });
 
   const calculateTotal = (rate: any) => {
+    // Handle sample rates format (has totalCharge or price as string)
+    if (rate.totalCharge) {
+      return parseFloat(rate.totalCharge);
+    }
+    if (rate.price) {
+      return parseFloat(rate.price);
+    }
+    
+    // Handle real API format (has baseCharge.amount in cents)
     let total = 0;
     
     if (rate.baseCharge?.amount) {
@@ -200,9 +209,9 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
     const total = calculateTotal(rate);
     
     const shipmentData = {
-      rateId: rate.rateId,
-      carrierName: rate.carrier?.name || 'Unknown Carrier',
-      serviceName: rate.service?.name || 'Standard Service',
+      rateId: rate.rateId || rate.id,
+      carrierName: rate.carrierName || rate.carrier?.name || 'Unknown Carrier',
+      serviceName: rate.serviceName || rate.service?.name || 'Standard Service',
       fromAddress: {
         attention: shippingDetails.fromName,
         streetAddress: shippingDetails.fromAddress,
@@ -453,14 +462,19 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
                     <span className="font-medium">Carrier:</span>
-                    <span>{rate.carrier?.name || 'Unknown'}</span>
+                    <span>{rate.carrierName || rate.carrier?.name || 'Unknown'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium">Service:</span>
-                    <span>{rate.service?.name || 'Standard'}</span>
+                    <span>{rate.serviceName || rate.service?.name || 'Standard'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Transit Time:</span>
+                    <span>{rate.transitTime || rate.deliveryDays || 'N/A'}</span>
                   </div>
                   <Separator />
                   <div className="space-y-2 text-sm">
+                    {/* Show breakdown for real API rates */}
                     {rate.baseCharge?.amount && (
                       <div className="flex justify-between">
                         <span>Base Rate:</span>
@@ -479,6 +493,13 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                         <span>${(tax.price.amount / 100).toFixed(2)}</span>
                       </div>
                     ))}
+                    {/* Show simple rate for sample rates */}
+                    {(rate.totalCharge || rate.price) && !rate.baseCharge?.amount && (
+                      <div className="flex justify-between">
+                        <span>Shipping Rate:</span>
+                        <span>${parseFloat(rate.totalCharge || rate.price).toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
@@ -505,7 +526,7 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                   <div className="text-center">
                     <p className="text-lg font-semibold">Total: ${total.toFixed(2)} CAD</p>
                     <p className="text-sm text-gray-600">
-                      {rate.carrier?.name} - {rate.service?.name}
+                      {rate.carrierName || rate.carrier?.name} - {rate.serviceName || rate.service?.name}
                     </p>
                   </div>
                 </div>
