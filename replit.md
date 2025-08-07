@@ -43,6 +43,11 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
   - Implemented advanced markup configuration with conditional logic (cost/weight/location-based rules)
   - Enhanced database schema to support complex markup rules with boolean logic and priority system
   - Admins can now configure intelligent markup rules for different scenarios (e.g., higher markup for expensive shipments)
+  - **FIXED: ShipTime API connection testing (August 2025)**
+    - Enhanced error handling to detect HTML responses vs JSON (common with auth failures)
+    - Added proper sandbox/production environment support with correct API URLs
+    - Improved connection test endpoint with better error messages and credential reloading
+    - Now provides specific error messages for authentication, endpoint, and server issues
 
 # User Preferences
 

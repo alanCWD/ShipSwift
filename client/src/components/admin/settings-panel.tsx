@@ -81,7 +81,7 @@ export default function SettingsPanel() {
   }, [existingSettings]);
 
   const saveShipTimeSettings = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
+    mutationFn: async (credentials: { username: string; password: string; environment: string }) => {
       const response = await apiRequest('POST', '/api/admin/settings/shiptime-credentials', credentials);
       return response.json();
     },
@@ -150,6 +150,7 @@ export default function SettingsPanel() {
     saveShipTimeSettings.mutate({
       username: shiptimeSettings.username,
       password: shiptimeSettings.password,
+      environment: shiptimeSettings.environment,
     });
   };
 

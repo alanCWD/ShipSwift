@@ -47,13 +47,23 @@ interface ShipTimeShipment {
 
 class ShipTimeService {
   private apiUrl: string;
+  private sandboxApiUrl: string;
   private username?: string;
   private password?: string;
+  private environment?: string;
   
   constructor() {
-    // Always use production environment as requested
+    // Production and sandbox endpoints
     this.apiUrl = 'https://restapi.shiptime.com/rest/';
+    this.sandboxApiUrl = 'https://apitest.shiptime.com/rest/';
     console.log('ShipTimeService initialized for dynamic credentials');
+  }
+
+  // Clear credentials cache (for testing)
+  async clearCredentials() {
+    this.username = undefined;
+    this.password = undefined;
+    this.environment = undefined;
   }
 
   // Load credentials from database settings or environment variables
@@ -62,6 +72,7 @@ class ShipTimeService {
     if (process.env.SHIPTIME_USERNAME && process.env.SHIPTIME_PASSWORD) {
       this.username = process.env.SHIPTIME_USERNAME;
       this.password = process.env.SHIPTIME_PASSWORD;
+      this.environment = process.env.SHIPTIME_ENVIRONMENT || 'production';
       console.log('ShipTime credentials loaded from environment variables for username:', this.username);
       return true;
     }
@@ -70,6 +81,7 @@ class ShipTimeService {
     if (process.env.SHIPTIME_EMAIL && process.env.SHIPTIME_PASS) {
       this.username = process.env.SHIPTIME_EMAIL;
       this.password = process.env.SHIPTIME_PASS;
+      this.environment = 'production';
       console.log('ShipTime credentials loaded from legacy environment variables for username:', this.username);
       return true;
     }
@@ -80,11 +92,13 @@ class ShipTimeService {
       
       const username = await storage.getSetting('SHIPTIME_USERNAME');
       const password = await storage.getSetting('SHIPTIME_PASSWORD');
+      const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
       
       if (username && password) {
         this.username = username;
         this.password = password;
-        console.log('ShipTime credentials loaded from database for username:', this.username);
+        this.environment = environment;
+        console.log('ShipTime credentials loaded from database for username:', this.username, 'environment:', this.environment);
         return true;
       }
     } catch (error) {
@@ -105,6 +119,10 @@ class ShipTimeService {
     return `Basic ${credentials}`;
   }
 
+  private getApiUrl(): string {
+    return this.environment === 'sandbox' ? this.sandboxApiUrl : this.apiUrl;
+  }
+
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any) {
     // Load credentials from database if not already loaded
     if (!this.username || !this.password) {
@@ -114,24 +132,93 @@ class ShipTimeService {
       }
     }
     
-    console.log('ShipTime API request to endpoint:', endpoint);
+    const apiUrl = this.getApiUrl();
+    console.log(`ShipTime API request to ${this.environment} environment:`, `${apiUrl}${endpoint}`);
     
-    const response = await fetch(`${this.apiUrl}${endpoint}`, {
+    const response = await fetch(`${apiUrl}${endpoint}`, {
       method,
       headers: {
         'Authorization': this.getBasicAuthHeader(),
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    const responseText = await response.text();
+    
+    // Check if response is HTML (usually error pages)
+    if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+      console.error(`ShipTime API returned HTML instead of JSON (${response.status}):`, responseText.substring(0, 200));
+      
+      if (response.status === 401) {
+        throw new Error('Authentication failed: Invalid ShipTime credentials');
+      } else if (response.status === 404) {
+        throw new Error('API endpoint not found: Check ShipTime API URL or credentials');
+      } else if (response.status >= 500) {
+        throw new Error(`ShipTime server error (${response.status}): Service temporarily unavailable`);
+      } else {
+        throw new Error(`ShipTime API error (${response.status}): Server returned HTML instead of JSON`);
+      }
+    }
+    
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`ShipTime API error (${response.status}):`, errorText);
-      throw new Error(`ShipTime API error (${response.status}): ${errorText}`);
+      console.error(`ShipTime API error (${response.status}):`, responseText);
+      
+      try {
+        const errorData = JSON.parse(responseText);
+        const errorMessage = errorData.message || errorData.error || responseText;
+        throw new Error(`ShipTime API error (${response.status}): ${errorMessage}`);
+      } catch (parseError) {
+        throw new Error(`ShipTime API error (${response.status}): ${responseText}`);
+      }
     }
 
-    return await response.json();
+    try {
+      return JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse ShipTime API response:', responseText);
+      throw new Error('Invalid JSON response from ShipTime API');
+    }
+  }
+
+  // Test API connection
+  async testConnection(): Promise<boolean> {
+    try {
+      // Use a simple endpoint that doesn't require complex payload
+      // Most APIs have a health check or simple endpoint for testing
+      const testResponse = await this.makeRequest('health', 'GET');
+      return true;
+    } catch (error: any) {
+      // If health endpoint doesn't exist, try a minimal rates request
+      try {
+        const minimalRatesRequest = {
+          from: {
+            countryCode: 'CA',
+            postalCode: 'V2R4H1'
+          },
+          to: {
+            countryCode: 'CA', 
+            postalCode: 'V6B1A1'
+          },
+          packageType: 'PACKAGE',
+          unitOfMeasurement: 'METRIC',
+          lineItems: [{
+            length: 30,
+            width: 20,
+            height: 10,
+            weight: 1,
+          }],
+          shipDate: new Date().toISOString(),
+        };
+        
+        await this.makeRequest('rates', 'POST', minimalRatesRequest);
+        return true;
+      } catch (testError: any) {
+        console.error('ShipTime connection test failed:', testError.message);
+        throw testError;
+      }
+    }
   }
 
   async getRates(request: RateRequest): Promise<ShipTimeRate[]> {

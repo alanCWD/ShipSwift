@@ -643,6 +643,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           key: 'SHIPTIME_PASSWORD', 
           value: await storage.getSetting('SHIPTIME_PASSWORD') || '',
           description: 'ShipTime API password'
+        },
+        { 
+          key: 'SHIPTIME_ENVIRONMENT', 
+          value: await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production',
+          description: 'ShipTime API environment (production/sandbox)'
         }
       ];
 
@@ -662,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { username, password } = req.body;
+      const { username, password, environment = 'production' } = req.body;
       
       if (!username || !password) {
         return res.status(400).json({ message: "Username and password are required" });
@@ -670,6 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.setSetting('SHIPTIME_USERNAME', username, userId);
       await storage.setSetting('SHIPTIME_PASSWORD', password, userId);
+      await storage.setSetting('SHIPTIME_ENVIRONMENT', environment, userId);
 
       res.json({ message: "Credentials saved successfully" });
     } catch (error) {
@@ -727,6 +733,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting rate markup:", error);
       res.status(500).json({ message: "Failed to delete rate markup" });
+    }
+  });
+
+  // Test API connections
+  app.post("/api/admin/test-connection/:service", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { service } = req.params;
+      
+      if (service === 'shiptime') {
+        try {
+          // Test ShipTime API connection with a simple rates request
+          const testRequest = {
+            from: {
+              countryCode: 'CA',
+              postalCode: 'V2R4H1',
+              streetAddress: '44322 Yale Rd #3',
+              city: 'Chilliwack',
+              state: 'BC'
+            },
+            to: {
+              countryCode: 'CA',
+              postalCode: 'V6B1A1',
+              city: 'Vancouver',
+              state: 'BC'
+            },
+            packageDetails: {
+              length: 30,
+              width: 20,
+              height: 10,
+              weight: 1
+            }
+          };
+
+          // Clear credentials cache and reload from database
+          await shiptimeService.clearCredentials();
+          await shiptimeService.testConnection();
+          
+          res.json({ message: "ShipTime API connection successful", status: "connected" });
+        } catch (error: any) {
+          console.error("ShipTime connection test failed:", error);
+          res.status(400).json({ message: `ShipTime API connection failed: ${error.message}` });
+        }
+      } else {
+        res.status(400).json({ message: "Unknown service" });
+      }
+    } catch (error: any) {
+      console.error("Connection test error:", error);
+      res.status(500).json({ message: "Failed to test connection" });
     }
   });
 
