@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/navbar';
+import Footer from '../components/layout/footer';
 import StatsCards from '../components/dashboard/stats-cards';
 import RecentShipments from '../components/dashboard/recent-shipments';
 import { apiRequest } from '@/lib/queryClient';
@@ -9,7 +10,7 @@ export default function Dashboard() {
     queryKey: ['/api/shipments'],
   });
 
-  const shipments = shipmentsData?.shipments || [];
+  const shipments = (shipmentsData as any)?.shipments || [];
 
   // Calculate stats from shipments
   const stats = {
@@ -41,6 +42,8 @@ export default function Dashboard() {
         <StatsCards stats={stats} />
         <RecentShipments shipments={shipments} />
       </div>
+      
+      <Footer />
     </div>
   );
 }

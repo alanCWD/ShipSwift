@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import Navbar from '@/components/layout/navbar';
+import Footer from '@/components/layout/footer';
 import RateCalculator from '@/components/shipping/rate-calculator';
 import RateResults from '@/components/shipping/rate-results';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,8 @@ export default function CreateShipment() {
           <RateResults rates={rateResults} />
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 }

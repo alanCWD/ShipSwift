@@ -1,4 +1,5 @@
 import Navbar from '../components/layout/navbar';
+import Footer from '../components/layout/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -341,6 +342,8 @@ export default function AdminAccessGuide() {
           </Card>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

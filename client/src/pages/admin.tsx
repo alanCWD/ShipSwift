@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Navbar from '../components/layout/navbar';
+import Footer from '../components/layout/footer';
 import SettingsPanel from '../components/admin/settings-panel';
 import AdvancedMarkupConfig from '../components/admin/advanced-markup-config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,6 +33,8 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <Footer />
     </div>
   );
 }
