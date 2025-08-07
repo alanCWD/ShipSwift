@@ -31,6 +31,7 @@ export interface IStorage {
   getShipmentsByUser(userId: string): Promise<Shipment[]>;
   createShipment(shipment: InsertShipment): Promise<Shipment>;
   updateShipment(id: string, updates: Partial<Shipment>): Promise<Shipment>;
+  updateShipmentStatus(id: string, status: string): Promise<Shipment>;
   
   // Client branding operations
   getClientBranding(userId: string): Promise<ClientBranding | undefined>;
@@ -124,6 +125,18 @@ export class DatabaseStorage implements IStorage {
       .update(shipments)
       .set({
         ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(shipments.id, id))
+      .returning();
+    return shipment;
+  }
+
+  async updateShipmentStatus(id: string, status: string): Promise<Shipment> {
+    const [shipment] = await db
+      .update(shipments)
+      .set({
+        status,
         updatedAt: new Date(),
       })
       .where(eq(shipments.id, id))

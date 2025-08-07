@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
 import Navbar from '@/components/layout/navbar';
@@ -6,12 +6,46 @@ import Footer from '@/components/layout/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Package, ArrowLeft, Plus } from 'lucide-react';
+import { ExternalLink, Package, ArrowLeft, Plus, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 export default function Shipments() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const cancelMutation = useMutation({
+    mutationFn: async (shipmentId: string) => {
+      const response = await apiRequest('POST', `/api/shipments/${shipmentId}/cancel`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Shipment Cancelled",
+        description: "The shipment has been successfully cancelled.",
+      });
+      // Invalidate queries to refresh the shipments list
+      queryClient.invalidateQueries({ queryKey: ['/api/shipments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message || "Failed to cancel shipment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelShipment = async (shipmentId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (window.confirm('Are you sure you want to cancel this shipment? This action cannot be undone.')) {
+      cancelMutation.mutate(shipmentId);
+    }
+  };
 
   const { data: shipmentsData, isLoading } = useQuery({
     queryKey: ['/api/shipments'],
@@ -32,6 +66,8 @@ export default function Shipments() {
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'returned':
         return 'bg-red-100 text-red-800 border-red-200';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -177,6 +213,18 @@ export default function Shipments() {
                                 Label
                               </Button>
                             </a>
+                          )}
+                          {shipment.status !== 'cancelled' && shipment.status !== 'delivered' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-800"
+                              onClick={(e) => handleCancelShipment(shipment.id, e)}
+                              disabled={cancelMutation.isPending}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </Button>
                           )}
                         </div>
                       </div>

@@ -58,7 +58,7 @@ export const shipments = pgTable("shipments", {
   markupCost: decimal("markup_cost", { precision: 10, scale: 2 }).notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency").default('CAD'),
-  status: varchar("status").default('processing'), // processing, shipped, delivered, returned
+  status: varchar("status").default('processing'), // processing, shipped, delivered, returned, cancelled
   labelUrl: text("label_url"),
   stripeChargeId: varchar("stripe_charge_id"),
   customsDeclaration: jsonb("customs_declaration"),

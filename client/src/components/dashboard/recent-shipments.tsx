@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,14 +10,49 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Package, Plus, Upload, ExternalLink } from 'lucide-react';
+import { MoreVertical, Package, Plus, Upload, ExternalLink, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface RecentShipmentsProps {
   shipments: any[];
 }
 
 export default function RecentShipments({ shipments }: RecentShipmentsProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const cancelMutation = useMutation({
+    mutationFn: async (shipmentId: string) => {
+      const response = await apiRequest('POST', `/api/shipments/${shipmentId}/cancel`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Shipment Cancelled",
+        description: "The shipment has been successfully cancelled.",
+      });
+      // Invalidate queries to refresh the shipments list
+      queryClient.invalidateQueries({ queryKey: ['/api/shipments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message || "Failed to cancel shipment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelShipment = async (shipmentId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (window.confirm('Are you sure you want to cancel this shipment? This action cannot be undone.')) {
+      cancelMutation.mutate(shipmentId);
+    }
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'delivered':
@@ -28,6 +64,8 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         return 'bg-blue-100 text-blue-800';
       case 'returned':
         return 'bg-red-100 text-red-800';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -44,6 +82,8 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         return '📦';
       case 'returned':
         return '↩';
+      case 'cancelled':
+        return '✕';
       default:
         return '●';
     }
@@ -198,6 +238,18 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                           Label
                         </Button>
                       </a>
+                    )}
+                    {shipment.status !== 'cancelled' && shipment.status !== 'delivered' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-800"
+                        onClick={(e) => handleCancelShipment(shipment.id, e)}
+                        disabled={cancelMutation.isPending}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Cancel
+                      </Button>
                     )}
                   </div>
                 </div>

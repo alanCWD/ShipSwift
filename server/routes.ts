@@ -439,6 +439,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cancel shipment
+  app.post("/api/shipments/:id/cancel", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      
+      const shipment = await storage.getShipment(id);
+      
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      // Verify shipment belongs to the user
+      if (shipment.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check if shipment can be cancelled
+      if (shipment.status === 'cancelled') {
+        return res.status(400).json({ message: "Shipment is already cancelled" });
+      }
+
+      if (shipment.status === 'delivered') {
+        return res.status(400).json({ message: "Cannot cancel delivered shipment" });
+      }
+
+      // Cancel with ShipTime API if shipment ID exists
+      if (shipment.shiptimeShipmentId) {
+        try {
+          await shiptimeService.cancelShipment(shipment.shiptimeShipmentId);
+        } catch (shiptimeError: any) {
+          console.error("ShipTime cancel error:", shiptimeError);
+          // Continue with local cancellation even if ShipTime API fails
+        }
+      }
+
+      // Update shipment status in database
+      const cancelledShipment = await storage.updateShipmentStatus(id, 'cancelled');
+
+      res.json({ 
+        message: "Shipment cancelled successfully",
+        shipment: cancelledShipment
+      });
+    } catch (error: any) {
+      console.error("Cancel shipment error:", error);
+      res.status(500).json({ message: "Failed to cancel shipment" });
+    }
+  });
+
   // Client branding
   app.get("/api/branding", requireAuth, async (req, res) => {
     try {

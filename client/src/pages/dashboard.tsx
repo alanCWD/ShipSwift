@@ -12,12 +12,13 @@ export default function Dashboard() {
 
   const shipments = (shipmentsData as any)?.shipments || [];
 
-  // Calculate stats from shipments
+  // Calculate stats from shipments (exclude cancelled shipments)
+  const activeShipments = shipments.filter((s: any) => s.status !== 'cancelled');
   const stats = {
-    totalShipments: shipments.length,
-    delivered: shipments.filter((s: any) => s.status === 'delivered').length,
-    inTransit: shipments.filter((s: any) => s.status === 'shipped').length,
-    totalSaved: shipments.reduce((sum: number, s: any) => sum + parseFloat(s.markupCost || '0'), 0),
+    totalShipments: activeShipments.length,
+    delivered: activeShipments.filter((s: any) => s.status === 'delivered').length,
+    inTransit: activeShipments.filter((s: any) => s.status === 'shipped').length,
+    totalSaved: activeShipments.reduce((sum: number, s: any) => sum + parseFloat(s.markupCost || '0'), 0),
   };
 
   if (isLoading) {
