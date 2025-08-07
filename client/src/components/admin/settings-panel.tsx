@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Globe, CreditCard, Building, Shield, AlertTriangle, CheckCircle, Key, Truck, Mail } from 'lucide-react';
+import { Settings, Globe, CreditCard, Building, Shield, AlertTriangle, CheckCircle, Key, Truck, Mail, Info } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import ShipTimeGuidelines from './shiptime-guidelines';
 
 export default function SettingsPanel() {
   const { toast } = useToast();
@@ -180,10 +181,14 @@ export default function SettingsPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="shiptime">
             <Truck className="w-4 h-4 mr-2" />
             ShipTime API
+          </TabsTrigger>
+          <TabsTrigger value="guidelines">
+            <Info className="w-4 h-4 mr-2" />
+            Guidelines
           </TabsTrigger>
           <TabsTrigger value="stripe">
             <CreditCard className="w-4 h-4 mr-2" />
@@ -285,6 +290,10 @@ export default function SettingsPanel() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="guidelines">
+          <ShipTimeGuidelines />
         </TabsContent>
 
         <TabsContent value="stripe">

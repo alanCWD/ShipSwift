@@ -55,6 +55,12 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
       - Authentication now working properly with sandbox environment
       - **COMPLETED: Sandbox testing successful - 19 shipping rates returned**
       - Ready for production testing with live ShipTime credentials
+      - **DOCUMENTED: ShipTime best practices for sandbox and production environments**
+        - Sandbox: Add "Test booking Not for Pick up" in special instructions
+        - Sandbox: Use Drop-off only (not Pick-up) for rate testing
+        - Sandbox: Cancel ALL shipments same-day to avoid charges
+        - Production: No test shipments (shipper liable for charges)
+        - Production: Use actual ShipTime account credentials
 
 # User Preferences
 

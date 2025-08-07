@@ -280,6 +280,12 @@ class ShipTimeService {
 
   async createShipment(request: ShipmentRequest): Promise<ShipTimeShipment> {
     try {
+      // Add environment-specific special instructions
+      const isSandbox = this.environment === 'sandbox';
+      const specialInstructions = isSandbox 
+        ? 'Test booking Not for Pick up - SANDBOX TESTING ONLY'
+        : undefined;
+
       const payload = {
         rateId: request.rateId,
         from: {
@@ -308,6 +314,10 @@ class ShipTimeService {
           height: request.packageDetails.height,
           weight: request.packageDetails.weight,
         }],
+        // Add special instructions for sandbox testing
+        ...(specialInstructions && { specialInstructions }),
+        // Default to drop-off service for testing (not pickup)
+        serviceType: 'DROP_OFF',
       };
 
       const response = await this.makeRequest('shipments', 'POST', payload);
