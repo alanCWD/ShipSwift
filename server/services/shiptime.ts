@@ -68,7 +68,27 @@ class ShipTimeService {
 
   // Load credentials from database settings or environment variables
   async loadCredentials() {
-    // First try new environment variables
+    // First try database settings (priority for admin-configured credentials)
+    try {
+      const { storage } = await import('../storage');
+      
+      const username = await storage.getSetting('SHIPTIME_USERNAME');
+      const password = await storage.getSetting('SHIPTIME_PASSWORD');
+      const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+      
+      if (username && password) {
+        this.username = username;
+        this.password = password;
+        this.environment = environment;
+        console.log('ShipTime credentials loaded from database for username:', this.username, 'environment:', this.environment);
+        console.log('Using API URL:', this.getApiUrl());
+        return true;
+      }
+    } catch (error) {
+      console.log('Database settings not available, checking environment variables...');
+    }
+    
+    // Fallback to new environment variables
     if (process.env.SHIPTIME_USERNAME && process.env.SHIPTIME_PASSWORD) {
       this.username = process.env.SHIPTIME_USERNAME;
       this.password = process.env.SHIPTIME_PASSWORD;
@@ -84,25 +104,6 @@ class ShipTimeService {
       this.environment = 'production';
       console.log('ShipTime credentials loaded from legacy environment variables for username:', this.username);
       return true;
-    }
-    
-    // Then try database settings
-    try {
-      const { storage } = await import('../storage');
-      
-      const username = await storage.getSetting('SHIPTIME_USERNAME');
-      const password = await storage.getSetting('SHIPTIME_PASSWORD');
-      const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
-      
-      if (username && password) {
-        this.username = username;
-        this.password = password;
-        this.environment = environment;
-        console.log('ShipTime credentials loaded from database for username:', this.username, 'environment:', this.environment);
-        return true;
-      }
-    } catch (error) {
-      console.log('Database settings not available, checking environment variables...');
     }
     
     console.warn('ShipTime credentials not configured in system settings or environment variables');
@@ -133,7 +134,8 @@ class ShipTimeService {
     }
     
     const apiUrl = this.getApiUrl();
-    console.log(`ShipTime API request to ${this.environment} environment:`, `${apiUrl}${endpoint}`);
+    console.log(`ShipTime API request to ${this.environment || 'production'} environment:`, `${apiUrl}${endpoint}`);
+    console.log('Using credentials:', this.username);
     
     const response = await fetch(`${apiUrl}${endpoint}`, {
       method,
