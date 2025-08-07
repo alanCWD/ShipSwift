@@ -48,6 +48,11 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
     - Added proper sandbox/production environment support with correct API URLs
     - Improved connection test endpoint with better error messages and credential reloading
     - Now provides specific error messages for authentication, endpoint, and server issues
+    - **RESOLVED: ShipTime sandbox API configuration (August 2025)**
+      - Fixed sandbox API URL from apitest.shiptime.com to sandboxapi.shiptime.com
+      - Configured official ShipTime development credentials provided by their support team
+      - Enhanced connection test with complete address data required by ShipTime API
+      - Authentication now working properly with sandbox environment
 
 # User Preferences
 

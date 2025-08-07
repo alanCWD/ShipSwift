@@ -187,39 +187,45 @@ class ShipTimeService {
   // Test API connection
   async testConnection(): Promise<boolean> {
     try {
-      // Use a simple endpoint that doesn't require complex payload
-      // Most APIs have a health check or simple endpoint for testing
-      const testResponse = await this.makeRequest('health', 'GET');
+      // Try a complete rates request with all required fields
+      const completeRatesRequest = {
+        from: {
+          companyName: 'ABLP Logistics',
+          streetAddress: '44322 Yale Rd #3',
+          city: 'Chilliwack',
+          state: 'BC',
+          countryCode: 'CA',
+          postalCode: 'V2R4H1',
+          attention: 'ABLP Logistics',
+          phone: '1-800-225-7564'
+        },
+        to: {
+          companyName: 'Test Customer',
+          streetAddress: '123 West Hastings St',
+          city: 'Vancouver',
+          state: 'BC',
+          countryCode: 'CA', 
+          postalCode: 'V6B1A1',
+          attention: 'Test Customer',
+          phone: '604-555-0123'
+        },
+        packageType: 'PACKAGE',
+        unitOfMeasurement: 'METRIC',
+        lineItems: [{
+          length: 30,
+          width: 20,
+          height: 10,
+          weight: 1,
+        }],
+        shipDate: new Date().toISOString(),
+      };
+      
+      const response = await this.makeRequest('rates', 'POST', completeRatesRequest);
+      console.log('ShipTime connection test successful, received rates:', response.availableRates?.length || 0);
       return true;
-    } catch (error: any) {
-      // If health endpoint doesn't exist, try a minimal rates request
-      try {
-        const minimalRatesRequest = {
-          from: {
-            countryCode: 'CA',
-            postalCode: 'V2R4H1'
-          },
-          to: {
-            countryCode: 'CA', 
-            postalCode: 'V6B1A1'
-          },
-          packageType: 'PACKAGE',
-          unitOfMeasurement: 'METRIC',
-          lineItems: [{
-            length: 30,
-            width: 20,
-            height: 10,
-            weight: 1,
-          }],
-          shipDate: new Date().toISOString(),
-        };
-        
-        await this.makeRequest('rates', 'POST', minimalRatesRequest);
-        return true;
-      } catch (testError: any) {
-        console.error('ShipTime connection test failed:', testError.message);
-        throw testError;
-      }
+    } catch (testError: any) {
+      console.error('ShipTime connection test failed:', testError.message);
+      throw testError;
     }
   }
 
