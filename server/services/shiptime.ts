@@ -55,7 +55,7 @@ class ShipTimeService {
   constructor() {
     // Production and sandbox endpoints
     this.apiUrl = 'https://restapi.shiptime.com/rest/';
-    this.sandboxApiUrl = 'https://apitest.shiptime.com/rest/';
+    this.sandboxApiUrl = 'https://sandboxapi.shiptime.com/rest/';
     console.log('ShipTimeService initialized for dynamic credentials');
   }
 
