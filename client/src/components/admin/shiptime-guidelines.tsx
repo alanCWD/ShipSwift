@@ -50,10 +50,10 @@ export default function ShipTimeGuidelines() {
               </div>
               
               <div className="flex items-start">
-                <AlertTriangle className="w-4 h-4 text-orange-600 mr-2 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5" />
                 <div>
-                  <p className="font-medium text-orange-800">Cancel Same-Day</p>
-                  <p className="text-sm text-orange-700">ALL sandbox shipments must be cancelled same-day</p>
+                  <p className="font-medium text-green-800">Auto-Cancellation</p>
+                  <p className="text-sm text-green-700">ALL sandbox shipments are automatically cancelled immediately to prevent charges</p>
                 </div>
               </div>
             </div>

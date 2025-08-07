@@ -322,6 +322,22 @@ class ShipTimeService {
 
       const response = await this.makeRequest('shipments', 'POST', payload);
       
+      // Auto-cancel sandbox shipments immediately to prevent charges
+      if (isSandbox && response.shipmentId) {
+        console.log(`Auto-cancelling sandbox shipment ${response.shipmentId} to prevent charges`);
+        try {
+          await this.cancelShipment(response.shipmentId);
+          console.log(`Successfully cancelled sandbox shipment ${response.shipmentId}`);
+          
+          // Add cancellation note to response
+          response.autocancelled = true;
+          response.cancellationReason = 'Automatic sandbox cancellation to prevent charges';
+        } catch (cancelError) {
+          console.error(`Failed to auto-cancel sandbox shipment ${response.shipmentId}:`, cancelError);
+          // Continue anyway - shipment was created but cancellation failed
+        }
+      }
+
       if (!response.id || !response.labelUrl) {
         throw new Error('Invalid shipment response from ShipTime');
       }
@@ -332,9 +348,21 @@ class ShipTimeService {
         labelUrl: response.labelUrl,
         carrier: response.carrier || { name: request.carrierName },
         service: response.service || { name: request.serviceName },
+        autocancelled: response.autocancelled || false,
+        cancellationReason: response.cancellationReason || undefined,
       };
     } catch (error) {
       console.error('ShipTime createShipment error:', error);
+      throw error;
+    }
+  }
+
+  // Cancel a shipment
+  async cancelShipment(shipmentId: string): Promise<void> {
+    try {
+      await this.makeRequest(`shipments/${shipmentId}/cancel`, 'POST');
+    } catch (error: any) {
+      console.error('ShipTime cancel shipment error:', error.message);
       throw error;
     }
   }

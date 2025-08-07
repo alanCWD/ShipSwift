@@ -58,9 +58,13 @@ This is a Canadian shipping platform called "ABLP Logistics" that provides multi
       - **DOCUMENTED: ShipTime best practices for sandbox and production environments**
         - Sandbox: Add "Test booking Not for Pick up" in special instructions
         - Sandbox: Use Drop-off only (not Pick-up) for rate testing
-        - Sandbox: Cancel ALL shipments same-day to avoid charges
+        - Sandbox: Automatically cancel ALL shipments immediately to prevent charges
         - Production: No test shipments (shipper liable for charges)
         - Production: Use actual ShipTime account credentials
+      - **IMPLEMENTED: Automatic sandbox shipment cancellation (August 2025)**
+        - Sandbox shipments are automatically cancelled immediately after creation
+        - Prevents any charges or fees from ShipTime for test shipments
+        - Logs cancellation status for debugging and verification
 
 # User Preferences
 
