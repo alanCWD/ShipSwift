@@ -57,12 +57,20 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                     Tracking
                   </Link>
                   {user.role === 'admin' && (
-                    <Link 
-                      href="/admin" 
-                      className="text-orange-600 hover:text-orange-700 px-3 py-2 text-sm font-medium font-semibold border border-orange-200 rounded-md bg-orange-50"
-                    >
-                      ABLP Admin
-                    </Link>
+                    <>
+                      <Link 
+                        href="/admin" 
+                        className="text-orange-600 hover:text-orange-700 px-3 py-2 text-sm font-medium font-semibold border border-orange-200 rounded-md bg-orange-50"
+                      >
+                        ABLP Admin
+                      </Link>
+                      <Link 
+                        href="/admin-guide" 
+                        className="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm font-medium border border-blue-200 rounded-md bg-blue-50"
+                      >
+                        Guidelines
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>

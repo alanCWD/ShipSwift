@@ -348,8 +348,6 @@ class ShipTimeService {
         labelUrl: response.labelUrl,
         carrier: response.carrier || { name: request.carrierName },
         service: response.service || { name: request.serviceName },
-        autocancelled: response.autocancelled || false,
-        cancellationReason: response.cancellationReason || undefined,
       };
     } catch (error) {
       console.error('ShipTime createShipment error:', error);
