@@ -25,27 +25,19 @@ function Router() {
 
   return (
     <Switch>
-      {!user ? (
+      <Route path="/" component={user ? Dashboard : Home} />
+      <Route path="/home" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/create-shipment" component={CreateShipment} />
+      <Route path="/track" component={TrackShipment} />
+      <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
+      <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
+      {user?.role === 'admin' && (
         <>
-          <Route path="/" component={Home} />
-          <Route path="/track" component={TrackShipment} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/create-shipment" component={CreateShipment} />
-          <Route path="/track" component={TrackShipment} />
-          <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
-          <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
-          {user.role === 'admin' && (
-            <>
-              <Route path="/admin" component={Admin} />
-            </>
-          )}
-          <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
+          <Route path="/admin" component={Admin} />
         </>
       )}
+      <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
       <Route component={NotFound} />
     </Switch>
   );
