@@ -51,6 +51,7 @@ export default function Footer() {
               <li><Link href="#" className="hover:text-white transition-colors">Integration Guide</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">Contact Support</Link></li>
               <li><Link href="#" className="hover:text-white transition-colors">Status Page</Link></li>
+              <li><Link href="/admin-guide" className="hover:text-white transition-colors">Guidelines</Link></li>
             </ul>
           </div>
         </div>

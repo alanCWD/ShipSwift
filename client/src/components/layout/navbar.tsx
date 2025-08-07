@@ -28,7 +28,7 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href={user ? "/dashboard" : "/"} className="flex items-center hover:opacity-80 transition-opacity">
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
               <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
                 ABLP
               </div>
@@ -56,22 +56,7 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                   >
                     Tracking
                   </Link>
-                  {user.role === 'admin' && (
-                    <>
-                      <Link 
-                        href="/admin" 
-                        className="text-orange-600 hover:text-orange-700 px-3 py-2 text-sm font-medium font-semibold border border-orange-200 rounded-md bg-orange-50"
-                      >
-                        ABLP Admin
-                      </Link>
-                      <Link 
-                        href="/admin-guide" 
-                        className="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm font-medium border border-blue-200 rounded-md bg-blue-50"
-                      >
-                        Guidelines
-                      </Link>
-                    </>
-                  )}
+
                 </div>
               </div>
             )}
@@ -125,10 +110,19 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                     <Package className="mr-2 h-4 w-4" />
                     My Shipments
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
+                  {user.role === 'admin' ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex w-full">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
