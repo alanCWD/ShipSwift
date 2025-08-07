@@ -12,7 +12,7 @@ import { Package, Truck, Globe, RotateCcw, BarChart3, Settings } from 'lucide-re
 export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [rateResults, setRateResults] = useState(null);
+  const [rateResults, setRateResults] = useState<any[] | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,7 +44,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white text-lg px-8 py-4"
               >
                 Watch Demo
               </Button>
