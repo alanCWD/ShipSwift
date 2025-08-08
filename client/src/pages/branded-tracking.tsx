@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Package, Truck, MapPin, Calendar, Clock, Phone, Mail } from 'lucide-react';
+import { Package, MapPin, Clock, CheckCircle, Truck, AlertCircle } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { format } from 'date-fns';
 
-interface ClientBranding {
-  id: string;
-  userId: string;
+interface BrandingData {
   companyName: string;
   logoUrl?: string;
   primaryColor: string;
@@ -24,298 +23,345 @@ interface ClientBranding {
   supportPhone?: string;
 }
 
-interface TrackingEvent {
-  date: string;
-  time: string;
-  status: string;
-  location: string;
-  description: string;
-}
-
-interface TrackingData {
-  trackingNumber: string;
-  status: string;
-  carrier: string;
-  service: string;
-  estimatedDelivery?: string;
-  origin: string;
-  destination: string;
-  events: TrackingEvent[];
-}
-
 export default function BrandedTracking() {
-  const [location] = useLocation();
   const [trackingNumber, setTrackingNumber] = useState('');
   const [searchedNumber, setSearchedNumber] = useState('');
-  
-  // Extract client ID and tracking number from URL
-  // URL format: /track/:clientId/:trackingNumber or /track/:clientId
-  const pathParts = location.split('/').filter(Boolean);
-  const clientId = pathParts[1]; // track/CLIENT_ID/...
-  const urlTrackingNumber = pathParts[2]; // track/CLIENT_ID/TRACKING_NUMBER
-  
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Extract user ID and tracking number from URL
   useEffect(() => {
-    if (urlTrackingNumber) {
-      setTrackingNumber(urlTrackingNumber);
-      setSearchedNumber(urlTrackingNumber);
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdParam = urlParams.get('user');
+    const trackingParam = urlParams.get('id');
+    
+    if (userIdParam) {
+      setUserId(userIdParam);
     }
-  }, [urlTrackingNumber]);
+    if (trackingParam) {
+      setTrackingNumber(trackingParam);
+      setSearchedNumber(trackingParam);
+    }
+  }, []);
 
   // Load client branding
-  const { data: branding } = useQuery({
-    queryKey: [`/api/branding/public/${clientId}`],
-    enabled: !!clientId,
+  const { data: brandingData } = useQuery({
+    queryKey: ['/api/branding/public', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const response = await apiRequest('GET', `/api/branding/public/${userId}`);
+      return response.json();
+    },
+    enabled: !!userId,
   });
 
   // Load tracking data
-  const { data: trackingData, isLoading: trackingLoading } = useQuery({
-    queryKey: [`/api/shipments/track/public/${searchedNumber}`],
+  const { data: trackingData, isLoading } = useQuery({
+    queryKey: ['/api/shipments', searchedNumber, 'track'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/shipments/${searchedNumber}/track`);
+      return response.json();
+    },
     enabled: !!searchedNumber,
   });
 
-  const handleSearch = () => {
+  const handleTrack = (e: React.FormEvent) => {
+    e.preventDefault();
     if (trackingNumber.trim()) {
       setSearchedNumber(trackingNumber.trim());
     }
   };
 
+  // Use client branding or fallback to ABLP defaults
+  const branding: BrandingData = brandingData || {
+    companyName: 'ABLP Logistics',
+    primaryColor: '#1E40AF',
+    secondaryColor: '#6B7280',
+    backgroundColor: '#FFFFFF',
+    textColor: '#000000',
+    trackingPageTitle: 'Track Your Shipment',
+    trackingPageDescription: 'Enter your tracking number to get real-time updates',
+    supportPhone: '(604) 392-3923',
+    supportEmail: 'support@ablplogistics.ca',
+    footerText: '© 2025 ABLP Logistics. All rights reserved.',
+  };
+
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status) {
       case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'in transit':
-        return 'bg-blue-100 text-blue-800';
-      case 'out for delivery':
-        return 'bg-orange-100 text-orange-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'shipped':
+      case 'in_transit':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'returned':
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const dynamicStyles = branding ? {
-    '--primary-color': branding.primaryColor,
-    '--secondary-color': branding.secondaryColor,
-    '--background-color': branding.backgroundColor,
-    '--text-color': branding.textColor,
-  } as React.CSSProperties : {};
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return CheckCircle;
+      case 'shipped':
+      case 'in_transit':
+        return Truck;
+      case 'processing':
+        return Package;
+      case 'returned':
+        return AlertCircle;
+      default:
+        return Clock;
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    return status.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  const formatAddress = (address: any) => {
+    if (typeof address === 'string') {
+      try {
+        address = JSON.parse(address);
+      } catch {
+        return 'Address not available';
+      }
+    }
+    
+    if (!address || typeof address !== 'object') {
+      return 'Address not available';
+    }
+
+    const parts = [
+      address.streetAddress,
+      address.city,
+      address.state,
+      address.postalCode,
+    ].filter(Boolean);
+    
+    return parts.join(', ') || 'Address not available';
+  };
+
+  const shipment = trackingData?.shipment;
 
   return (
     <div 
       className="min-h-screen"
-      style={{
-        backgroundColor: branding?.backgroundColor || '#ffffff',
-        color: branding?.textColor || '#000000',
-        ...dynamicStyles
+      style={{ 
+        backgroundColor: branding.backgroundColor,
+        color: branding.textColor 
       }}
     >
-      <div className="container mx-auto px-4 py-8">
-        {/* Header with branding */}
-        <div className="text-center mb-8">
-          {branding?.logoUrl && (
-            <img 
-              src={branding.logoUrl} 
-              alt={branding.companyName || 'Company Logo'} 
-              className="mx-auto mb-4 max-h-20 object-contain"
-            />
-          )}
-          
-          <h1 
-            className="text-4xl font-bold mb-2"
-            style={{ color: branding?.primaryColor || '#007bff' }}
-          >
-            {branding?.trackingPageTitle || 'Track Your Shipment'}
-          </h1>
-          
-          {branding?.trackingPageDescription && (
-            <p className="text-lg opacity-80 max-w-2xl mx-auto">
-              {branding.trackingPageDescription}
-            </p>
-          )}
-        </div>
-
-        {/* Search Section */}
-        <Card className="max-w-2xl mx-auto mb-8">
-          <CardContent className="pt-6">
-            <div className="flex gap-4">
-              <Input
-                placeholder="Enter tracking number"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1"
+      {/* Branded Header */}
+      <div 
+        className="shadow-sm border-b"
+        style={{ 
+          backgroundColor: branding.primaryColor,
+          color: '#FFFFFF'
+        }}
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center">
+            {branding.logoUrl ? (
+              <img 
+                src={branding.logoUrl} 
+                alt={branding.companyName}
+                className="h-12 mx-auto mb-4"
               />
-              <Button 
-                onClick={handleSearch}
-                disabled={!trackingNumber.trim()}
-                style={{ backgroundColor: branding?.primaryColor || '#007bff' }}
-              >
-                <Package className="w-4 h-4 mr-2" />
-                Track
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tracking Results */}
-        {searchedNumber && (
-          <div className="max-w-4xl mx-auto">
-            {trackingLoading ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin w-8 h-8 border-4 border-t-transparent rounded-full"
-                         style={{ borderColor: branding?.primaryColor || '#007bff' }} />
-                    <span className="ml-3">Loading tracking information...</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : trackingData ? (
-              <>
-                {/* Shipment Summary */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Tracking #{trackingData.trackingNumber}</span>
-                      <Badge className={getStatusColor(trackingData.status)}>
-                        {trackingData.status}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="flex items-center gap-3">
-                        <Truck className="w-5 h-5 opacity-60" />
-                        <div>
-                          <div className="font-medium">{trackingData.carrier}</div>
-                          <div className="text-sm opacity-60">{trackingData.service}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 opacity-60" />
-                        <div>
-                          <div className="font-medium">Origin</div>
-                          <div className="text-sm opacity-60">{trackingData.origin}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 opacity-60" />
-                        <div>
-                          <div className="font-medium">Destination</div>
-                          <div className="text-sm opacity-60">{trackingData.destination}</div>
-                        </div>
-                      </div>
-                      
-                      {trackingData.estimatedDelivery && (
-                        <div className="flex items-center gap-3">
-                          <Calendar className="w-5 h-5 opacity-60" />
-                          <div>
-                            <div className="font-medium">Est. Delivery</div>
-                            <div className="text-sm opacity-60">{trackingData.estimatedDelivery}</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Tracking Events */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Shipment History</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {trackingData.events.map((event, index) => (
-                        <div key={index} className="flex gap-4">
-                          <div className="flex flex-col items-center">
-                            <div 
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: branding?.primaryColor || '#007bff' }}
-                            />
-                            {index < trackingData.events.length - 1 && (
-                              <div className="w-px h-12 bg-gray-200 mt-2" />
-                            )}
-                          </div>
-                          <div className="flex-1 pb-4">
-                            <div className="flex items-center gap-4 mb-1">
-                              <span className="font-medium">{event.status}</span>
-                              <Badge variant="outline" className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {event.date}
-                              </Badge>
-                              <Badge variant="outline" className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {event.time}
-                              </Badge>
-                            </div>
-                            <div className="text-sm opacity-80 mb-1">{event.description}</div>
-                            <div className="text-sm opacity-60 flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {event.location}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
             ) : (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center py-8">
-                    <Package className="w-16 h-16 mx-auto opacity-40 mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Tracking number not found</h3>
-                    <p className="opacity-60 mb-4">
-                      Please check your tracking number and try again, or contact support if you need assistance.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-2xl font-bold mb-2">
+                {branding.companyName}
+              </div>
+            )}
+            <h1 className="text-xl font-semibold">{branding.trackingPageTitle}</h1>
+            {branding.trackingPageDescription && (
+              <p className="mt-2 opacity-90">{branding.trackingPageDescription}</p>
             )}
           </div>
-        )}
-
-        {/* Support Information */}
-        {branding && (branding.supportEmail || branding.supportPhone) && (
-          <div className="mt-12 pt-8 border-t">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-4">Need Help?</h3>
-              <div className="flex justify-center items-center gap-6 flex-wrap">
-                {branding.supportEmail && (
-                  <a 
-                    href={`mailto:${branding.supportEmail}`}
-                    className="flex items-center gap-2 hover:underline"
-                    style={{ color: branding.primaryColor }}
-                  >
-                    <Mail className="w-4 h-4" />
-                    {branding.supportEmail}
-                  </a>
-                )}
-                {branding.supportPhone && (
-                  <a 
-                    href={`tel:${branding.supportPhone}`}
-                    className="flex items-center gap-2 hover:underline"
-                    style={{ color: branding.primaryColor }}
-                  >
-                    <Phone className="w-4 h-4" />
-                    {branding.supportPhone}
-                  </a>
-                )}
+        </div>
+      </div>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tracking Form */}
+        <Card className="mb-8" style={{ borderColor: branding.secondaryColor }}>
+          <CardHeader>
+            <CardTitle style={{ color: branding.primaryColor }}>Track Package</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleTrack} className="space-y-4">
+              <div>
+                <label 
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: branding.textColor }}
+                >
+                  Tracking Number
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter tracking number"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  className="text-lg"
+                />
               </div>
-            </div>
-          </div>
-        )}
+              <Button 
+                type="submit" 
+                className="w-full text-lg py-3"
+                style={{ 
+                  backgroundColor: branding.primaryColor,
+                  color: '#FFFFFF'
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Tracking...' : 'Track Package'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Tracking Results */}
+        {shipment && (
+          <div className="space-y-6">
+            {/* Shipment Overview */}
+            <Card style={{ borderColor: branding.secondaryColor }}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle 
+                    className="flex items-center"
+                    style={{ color: branding.primaryColor }}
+                  >
+                    <Package className="w-5 h-5 mr-2" />
+                    Tracking Results
+                  </CardTitle>
+                  <Badge className={getStatusColor(shipment.status)}>
+                    {React.createElement(getStatusIcon(shipment.status), { className: "w-4 h-4 mr-1" })}
+                    {formatStatus(shipment.status)}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 
+                      className="font-semibold mb-2"
+                      style={{ color: branding.textColor }}
+                    >
+                      Shipment Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span style={{ color: branding.secondaryColor }}>Tracking Number:</span>
+                        <span className="font-medium">{shipment.trackingNumber || `TRACK-${shipment.id.slice(-8)}`}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: branding.secondaryColor }}>Carrier:</span>
+                        <span className="font-medium">{shipment.carrierName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: branding.secondaryColor }}>Service:</span>
+                        <span className="font-medium">{shipment.serviceName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: branding.secondaryColor }}>Cost:</span>
+                        <span className="font-medium">${parseFloat(shipment.totalCost || '0').toFixed(2)} CAD</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: branding.secondaryColor }}>Created:</span>
+                        <span className="font-medium">{format(new Date(shipment.createdAt), 'MMM dd, yyyy h:mm a')}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 
+                      className="font-semibold mb-2"
+                      style={{ color: branding.textColor }}
+                    >
+                      Addresses
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p 
+                          className="font-medium flex items-center mb-1"
+                          style={{ color: branding.secondaryColor }}
+                        >
+                          <MapPin className="w-3 h-3 mr-1" style={{ color: branding.primaryColor }} />
+                          From:
+                        </p>
+                        <p className="ml-4" style={{ color: branding.textColor }}>{formatAddress(shipment.fromAddress)}</p>
+                      </div>
+                      <div>
+                        <p 
+                          className="font-medium flex items-center mb-1"
+                          style={{ color: branding.secondaryColor }}
+                        >
+                          <MapPin className="w-3 h-3 mr-1" style={{ color: branding.primaryColor }} />
+                          To:
+                        </p>
+                        <p className="ml-4" style={{ color: branding.textColor }}>{formatAddress(shipment.toAddress)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Footer */}
-        {branding?.footerText && (
-          <footer className="mt-8 pt-6 border-t text-center">
-            <p className="text-sm opacity-60">{branding.footerText}</p>
-          </footer>
+            {/* Branded Footer */}
+            <Card 
+              style={{ 
+                backgroundColor: `${branding.primaryColor}10`,
+                borderColor: branding.primaryColor
+              }}
+            >
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-4">
+                  {branding.logoUrl ? (
+                    <img 
+                      src={branding.logoUrl} 
+                      alt={branding.companyName}
+                      className="h-8"
+                    />
+                  ) : (
+                    <span 
+                      className="text-xl font-bold"
+                      style={{ color: branding.primaryColor }}
+                    >
+                      {branding.companyName}
+                    </span>
+                  )}
+                </div>
+                <p 
+                  className="mb-4"
+                  style={{ color: branding.secondaryColor }}
+                >
+                  Thank you for choosing {branding.companyName} for your shipping needs.
+                </p>
+                <div 
+                  className="flex justify-center space-x-4 text-sm"
+                  style={{ color: branding.secondaryColor }}
+                >
+                  {branding.supportPhone && (
+                    <span>📞 {branding.supportPhone}</span>
+                  )}
+                  {branding.supportEmail && (
+                    <span>✉️ {branding.supportEmail}</span>
+                  )}
+                </div>
+                {branding.footerText && (
+                  <p 
+                    className="mt-4 text-xs"
+                    style={{ color: branding.secondaryColor }}
+                  >
+                    {branding.footerText}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>

@@ -35,7 +35,7 @@ export default function ClientBranding() {
 
   // Load branding data into form
   useEffect(() => {
-    if (branding?.branding) {
+    if (branding && branding.branding) {
       const brandingData = branding.branding;
       setFormData({
         companyName: brandingData.companyName || '',
@@ -55,7 +55,7 @@ export default function ClientBranding() {
   // Save branding settings
   const saveBrandingMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return await apiRequest('/api/branding', 'POST', data);
+      return await apiRequest('POST', '/api/branding', data);
     },
     onSuccess: () => {
       toast({

@@ -40,6 +40,7 @@ function Router() {
         </>
       )}
       <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
+      <Route path="/branded-track" component={React.lazy(() => import("@/pages/branded-tracking"))} />
       <Route component={NotFound} />
     </Switch>
   );

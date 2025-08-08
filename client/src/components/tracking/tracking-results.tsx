@@ -309,7 +309,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
         </CardContent>
       </Card>
 
-      {/* Branded Footer */}
+      {/* ABLP Branded Footer */}
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center mb-4">
@@ -323,7 +323,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
           </p>
           <div className="flex justify-center space-x-4 text-sm text-gray-600">
             <span>📍 44322 Yale Rd #3, Chilliwack, BC</span>
-            <span>📞 1-800-225-7564</span>
+            <span>📞 (604) 392-3923</span>
             <span>✉️ support@ablplogistics.ca</span>
           </div>
         </CardContent>

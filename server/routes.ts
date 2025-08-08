@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { shiptimeService } from "./services/shiptime";
 import { stripeService } from "./services/stripe-service";
+import { emailService } from "./services/email-service";
 import { requireAuth, requireAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
 import multer from "multer";
@@ -408,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         shiptimeShipment = await shiptimeService.createShipment(shipmentRequest);
       } catch (shiptimeError) {
-        console.log('ShipTime API unavailable, creating demo shipment:', shiptimeError.message);
+        console.log('ShipTime API unavailable, creating demo shipment:', (shiptimeError as Error).message);
         // Provide demo response when ShipTime API is unavailable
         shiptimeShipment = {
           id: `demo_${Date.now()}`,
@@ -450,6 +451,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalCost: totalCost.toString(),
         stripeChargeId: paymentIntent.id,
       });
+
+      // Send shipment creation notification email
+      try {
+        const user = await storage.getUser(userId);
+        if (user?.email) {
+          await emailService.sendShipmentNotification({
+            shipmentId: shipment.id,
+            trackingNumber: (shipment.trackingNumber || shiptimeShipment.trackingNumber) || '',
+            status: shipment.status || 'processing',
+            carrierName: shipment.carrierName,
+            serviceName: shipment.serviceName,
+            customerEmail: user.email,
+            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.lastName,
+            fromAddress: shipment.fromAddress,
+            toAddress: shipment.toAddress,
+            totalCost: shipment.totalCost,
+            createdAt: shipment.createdAt,
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send shipment notification email:", emailError);
+        // Don't fail the shipment creation if email fails
+      }
 
       res.json({ 
         shipment,
@@ -543,6 +567,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update shipment status in database
       const cancelledShipment = await storage.updateShipmentStatus(id, 'cancelled');
+
+      // Send cancellation notification email
+      try {
+        const user = await storage.getUser(userId);
+        if (user?.email) {
+          await emailService.sendShipmentNotification({
+            shipmentId: cancelledShipment.id,
+            trackingNumber: cancelledShipment.trackingNumber || `ABLP-${cancelledShipment.id.slice(-8)}`,
+            status: 'cancelled',
+            carrierName: cancelledShipment.carrierName,
+            serviceName: cancelledShipment.serviceName,
+            customerEmail: user.email,
+            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.lastName,
+            fromAddress: cancelledShipment.fromAddress,
+            toAddress: cancelledShipment.toAddress,
+            totalCost: cancelledShipment.totalCost,
+            createdAt: cancelledShipment.createdAt,
+            updatedAt: cancelledShipment.updatedAt,
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send cancellation notification email:", emailError);
+        // Don't fail the cancellation if email fails
+      }
 
       res.json({ 
         message: "Shipment cancelled successfully",
