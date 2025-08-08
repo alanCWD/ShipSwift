@@ -20,10 +20,18 @@ declare global {
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Debug session
+    console.log('Session check:', {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      sessionExists: !!req.session
+    });
+    
     // Check for user ID in session
     const userId = req.session?.userId;
     
     if (!userId) {
+      console.log('No userId in session');
       return res.status(401).json({ message: 'Authentication required' });
     }
 
