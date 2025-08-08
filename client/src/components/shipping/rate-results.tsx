@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ShipmentForm from './shipment-form';
+import PickupOptions from './pickup-options';
 import { Clock, Truck } from 'lucide-react';
 
 interface RateResultsProps {
@@ -11,6 +12,8 @@ interface RateResultsProps {
 
 export default function RateResults({ rates }: RateResultsProps) {
   const [selectedRate, setSelectedRate] = useState(null);
+  const [showPickupOptions, setShowPickupOptions] = useState(false);
+  const [pickupDetails, setPickupDetails] = useState(null);
 
   const getCarrierColor = (carrierName: string) => {
     const colors: Record<string, string> = {
@@ -73,8 +76,45 @@ export default function RateResults({ rates }: RateResultsProps) {
     return null;
   }
 
-  if (selectedRate) {
-    return <ShipmentForm rate={selectedRate} onBack={() => setSelectedRate(null)} />;
+  const handleRateSelection = (rate: any) => {
+    setSelectedRate(rate);
+    setShowPickupOptions(true);
+  };
+
+  const handlePickupDetailsComplete = (details: any) => {
+    setPickupDetails(details);
+    setShowPickupOptions(false);
+  };
+
+  const handleBackFromPickup = () => {
+    setShowPickupOptions(false);
+    setSelectedRate(null);
+  };
+
+  const handleBackFromShipment = () => {
+    setShowPickupOptions(true);
+  };
+
+  // Show pickup options after rate selection
+  if (selectedRate && showPickupOptions) {
+    return (
+      <PickupOptions 
+        rate={selectedRate}
+        onPickupDetailsComplete={handlePickupDetailsComplete}
+        onBack={handleBackFromPickup}
+      />
+    );
+  }
+
+  // Show shipment form after pickup details are complete
+  if (selectedRate && pickupDetails && !showPickupOptions) {
+    return (
+      <ShipmentForm 
+        rate={selectedRate} 
+        pickupDetails={pickupDetails}
+        onBack={handleBackFromShipment} 
+      />
+    );
   }
 
   return (
@@ -126,7 +166,7 @@ export default function RateResults({ rates }: RateResultsProps) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Button 
-                          onClick={() => setSelectedRate(rate)}
+                          onClick={() => handleRateSelection(rate)}
                           className="bg-blue-600 text-white hover:bg-blue-700"
                           size="sm"
                         >

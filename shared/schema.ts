@@ -54,6 +54,7 @@ export const shipments = pgTable("shipments", {
   fromAddress: jsonb("from_address").notNull(), // Store complete address object
   toAddress: jsonb("to_address").notNull(),
   packageDetails: jsonb("package_details").notNull(), // dimensions, weight, etc.
+  pickupDetails: jsonb("pickup_details"), // pickup scheduling, contact, location, times
   baseCost: decimal("base_cost", { precision: 10, scale: 2 }).notNull(),
   markupCost: decimal("markup_cost", { precision: 10, scale: 2 }).notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),

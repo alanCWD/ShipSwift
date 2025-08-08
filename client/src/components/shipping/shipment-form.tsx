@@ -16,6 +16,7 @@ const stripePromise = getStripe();
 
 interface ShipmentFormProps {
   rate: any;
+  pickupDetails?: any;
   onBack: () => void;
 }
 
@@ -102,7 +103,7 @@ function PaymentForm({ clientSecret, onPaymentSuccess }: { clientSecret: string;
   );
 }
 
-export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
+export default function ShipmentForm({ rate, pickupDetails, onBack }: ShipmentFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
