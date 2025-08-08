@@ -8,6 +8,7 @@ import { requireAuth, requireAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -22,6 +23,21 @@ const upload = multer({
   },
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
+// Configure multer for CSV uploads
+const csvUpload = multer({
+  dest: 'uploads/',
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only CSV files are allowed.'));
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit for CSV files
   },
 });
 
@@ -567,6 +583,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Public branding error:", error);
       res.status(500).json({ message: "Failed to get branding" });
+    }
+  });
+
+  // CSV Import endpoint
+  app.post("/api/shipments/import-csv", requireAuth, csvUpload.single('csv'), async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "No CSV file provided" });
+      }
+
+      // Read and parse CSV file
+      const csvContent = fs.readFileSync(file.path, 'utf-8');
+      const lines = csvContent.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        // Clean up uploaded file
+        fs.unlinkSync(file.path);
+        return res.status(400).json({ message: "CSV file must contain at least a header and one data row" });
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const dataRows = lines.slice(1);
+
+      // Expected CSV format headers
+      const requiredHeaders = ['fromAddress', 'toAddress', 'packageLength', 'packageWidth', 'packageHeight', 'packageWeight'];
+      const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+      
+      if (missingHeaders.length > 0) {
+        // Clean up uploaded file
+        fs.unlinkSync(file.path);
+        return res.status(400).json({ 
+          message: `Missing required columns: ${missingHeaders.join(', ')}`,
+          expectedHeaders: requiredHeaders
+        });
+      }
+
+      const successfulImports = [];
+      const failedImports = [];
+
+      // Process each row
+      for (let i = 0; i < dataRows.length; i++) {
+        try {
+          const row = dataRows[i];
+          const values = row.split(',').map(v => v.trim().replace(/"/g, ''));
+          
+          if (values.length !== headers.length) {
+            failedImports.push({ row: i + 2, error: 'Column count mismatch' });
+            continue;
+          }
+
+          const rowData: any = {};
+          headers.forEach((header, index) => {
+            rowData[header] = values[index];
+          });
+
+          // Parse addresses (assuming they're in "City, Province" format)
+          const parseAddress = (addressStr: string) => {
+            const parts = addressStr.split(',').map(p => p.trim());
+            return {
+              city: parts[0] || '',
+              state: parts[1] || 'BC',
+              postalCode: rowData.fromPostalCode || 'V2R4H1',
+              countryCode: 'CA'
+            };
+          };
+
+          const fromAddress = parseAddress(rowData.fromAddress || 'Chilliwack, BC');
+          const toAddress = parseAddress(rowData.toAddress);
+          
+          const packageDetails = {
+            length: parseFloat(rowData.packageLength) || 30,
+            width: parseFloat(rowData.packageWidth) || 20,
+            height: parseFloat(rowData.packageHeight) || 10,
+            weight: parseFloat(rowData.packageWeight) || 1
+          };
+
+          // Create shipment with sample data
+          const shipmentData = {
+            userId,
+            fromAddress: JSON.stringify(fromAddress),
+            toAddress: JSON.stringify(toAddress),
+            packageDetails: JSON.stringify(packageDetails),
+            carrierName: rowData.carrier || 'Canada Post',
+            serviceName: rowData.service || 'Regular',
+            trackingNumber: rowData.trackingNumber || `ABLP-CSV-${Date.now()}-${i}`,
+            totalCost: rowData.totalCost || '25.99',
+            markupCost: rowData.markupCost || '3.90',
+            labelUrl: null,
+            status: 'processing'
+          };
+
+          const shipment = await storage.createShipment(shipmentData);
+          successfulImports.push({ row: i + 2, shipmentId: shipment.id });
+
+        } catch (error: any) {
+          failedImports.push({ row: i + 2, error: error.message || 'Unknown error' });
+        }
+      }
+
+      // Clean up uploaded file
+      fs.unlinkSync(file.path);
+
+      res.json({
+        message: "CSV import completed",
+        imported: successfulImports.length,
+        failed: failedImports.length,
+        successfulImports,
+        failedImports
+      });
+
+    } catch (error: any) {
+      console.error("CSV import error:", error);
+      // Clean up file if it exists
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch {}
+      }
+      res.status(500).json({ message: "Failed to import CSV", error: error.message });
     }
   });
 

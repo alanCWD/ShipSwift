@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ interface RecentShipmentsProps {
 export default function RecentShipments({ shipments }: RecentShipmentsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const cancelMutation = useMutation({
     mutationFn: async (shipmentId: string) => {
@@ -45,12 +46,70 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
     },
   });
 
+  const csvImportMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('csv', file);
+      const response = await fetch('/api/shipments/import-csv', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'CSV import failed');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "CSV Import Successful",
+        description: `Successfully imported ${data.imported || 0} shipments.`,
+      });
+      // Invalidate queries to refresh the shipments list
+      queryClient.invalidateQueries({ queryKey: ['/api/shipments'] });
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "CSV Import Failed",
+        description: error.message || "Failed to import CSV file",
+        variant: "destructive",
+      });
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+  });
+
   const handleCancelShipment = async (shipmentId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (window.confirm('Are you sure you want to cancel this shipment? This action cannot be undone.')) {
       cancelMutation.mutate(shipmentId);
+    }
+  };
+
+  const handleCSVImport = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select a CSV file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      csvImportMutation.mutate(file);
     }
   };
   const getStatusColor = (status: string) => {
@@ -137,9 +196,13 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Recent Shipments</CardTitle>
-            <Button variant="outline">
+            <Button 
+              variant="outline" 
+              onClick={handleCSVImport}
+              disabled={csvImportMutation.isPending}
+            >
               <Upload className="w-4 h-4 mr-2" />
-              Import CSV
+              {csvImportMutation.isPending ? 'Importing...' : 'Import CSV'}
             </Button>
           </div>
         </CardHeader>
@@ -174,9 +237,13 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                 Create Shipment
               </Button>
             </Link>
-            <Button variant="outline">
+            <Button 
+              variant="outline" 
+              onClick={handleCSVImport}
+              disabled={csvImportMutation.isPending}
+            >
               <Upload className="w-4 h-4 mr-2" />
-              Import CSV
+              {csvImportMutation.isPending ? 'Importing...' : 'Import CSV'}
             </Button>
           </div>
         </div>
@@ -268,6 +335,15 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Hidden file input for CSV upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
     </Card>
   );
 }
