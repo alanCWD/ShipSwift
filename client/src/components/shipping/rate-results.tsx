@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import ShipmentForm from './shipment-form';
 import PickupOptions from './pickup-options';
-import { Clock, Truck } from 'lucide-react';
+import InsuranceModal from './insurance-modal';
+import { Clock, Truck, Shield, Edit } from 'lucide-react';
 
 interface RateResultsProps {
   rates: any[];
@@ -14,6 +17,9 @@ export default function RateResults({ rates }: RateResultsProps) {
   const [selectedRate, setSelectedRate] = useState(null);
   const [showPickupOptions, setShowPickupOptions] = useState(false);
   const [pickupDetails, setPickupDetails] = useState(null);
+  const [insuranceEnabled, setInsuranceEnabled] = useState(true); // Default to enabled
+  const [insuranceData, setInsuranceData] = useState<any>(null);
+  const [showInsuranceModal, setShowInsuranceModal] = useState(false);
 
   const getCarrierColor = (carrierName: string) => {
     const colors: Record<string, string> = {
@@ -95,14 +101,41 @@ export default function RateResults({ rates }: RateResultsProps) {
     setShowPickupOptions(true);
   };
 
+  const handleInsuranceToggle = (enabled: boolean) => {
+    setInsuranceEnabled(enabled);
+    if (enabled && !insuranceData) {
+      // Set default insurance data when first enabled
+      setInsuranceData({
+        totalValue: '100',
+        currency: 'CAD',
+        insuranceType: 'shipswift',
+        signatureType: 'signature_required',
+        termsAccepted: false,
+        carrierTermsAccepted: false,
+      });
+    }
+  };
+
+  const handleInsuranceSave = (data: any) => {
+    setInsuranceData(data);
+  };
+
   // Show pickup options after rate selection
   if (selectedRate && showPickupOptions) {
     return (
-      <PickupOptions 
-        rate={selectedRate}
-        onPickupDetailsComplete={handlePickupDetailsComplete}
-        onBack={handleBackFromPickup}
-      />
+      <>
+        <PickupOptions 
+          rate={selectedRate}
+          onPickupDetailsComplete={handlePickupDetailsComplete}
+          onBack={handleBackFromPickup}
+        />
+        <InsuranceModal
+          isOpen={showInsuranceModal}
+          onClose={() => setShowInsuranceModal(false)}
+          onSave={handleInsuranceSave}
+          initialData={insuranceData}
+        />
+      </>
     );
   }
 
@@ -180,7 +213,76 @@ export default function RateResults({ rates }: RateResultsProps) {
             </table>
           </div>
         </div>
+
+        {/* Insurance Section */}
+        <div className="bg-white rounded-lg shadow mt-6">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5 text-blue-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Insurance</h3>
+                  <p className="text-sm text-gray-600">Protect your shipment with additional coverage</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                {insuranceEnabled && insuranceData && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowInsuranceModal(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit Insurance
+                  </Button>
+                )}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="insurance"
+                    checked={insuranceEnabled}
+                    onCheckedChange={handleInsuranceToggle}
+                  />
+                  <Label htmlFor="insurance">Add Insurance</Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {insuranceEnabled && insuranceData && (
+            <div className="p-6 bg-blue-50">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Coverage Value</Label>
+                  <p className="text-lg font-semibold">${insuranceData.totalValue} {insuranceData.currency}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Insurance Type</Label>
+                  <p className="text-lg font-semibold capitalize">{insuranceData.insuranceType}</p>
+                </div>
+                {insuranceData.insuranceType === 'shipswift' && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Signature</Label>
+                    <p className="text-sm">
+                      {insuranceData.signatureType === 'adult_signature_required' 
+                        ? 'Adult Signature Required' 
+                        : 'Signature Required'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Insurance Modal */}
+      <InsuranceModal
+        isOpen={showInsuranceModal}
+        onClose={() => setShowInsuranceModal(false)}
+        onSave={handleInsuranceSave}
+        initialData={insuranceData}
+      />
     </div>
   );
 }
