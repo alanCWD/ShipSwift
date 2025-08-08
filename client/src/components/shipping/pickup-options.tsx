@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CalendarIcon, Clock, MapPin, Phone, User, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -122,33 +123,62 @@ export default function PickupOptions({ onPickupDetailsComplete, onBack, rate }:
           <CardContent className="space-y-6">
             {/* Pickup Options */}
             <div>
-              <RadioGroup
-                value={pickupOption}
-                onValueChange={(value: any) => setValue('pickupOption', value)}
-                className="flex flex-col space-y-4"
-              >
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="schedule_now" id="schedule_now" />
-                  <label htmlFor="schedule_now" className="flex items-center gap-2 cursor-pointer">
-                    <span className="font-medium">Schedule pickup now</span>
-                    <AlertCircle className="w-4 h-4 text-blue-500" />
-                  </label>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="schedule_later" id="schedule_later" />
-                  <label htmlFor="schedule_later" className="flex items-center gap-2 cursor-pointer">
-                    <span className="font-medium">Schedule pickup later</span>
-                    <AlertCircle className="w-4 h-4 text-blue-500" />
-                  </label>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <RadioGroupItem value="drop_off" id="drop_off" />
-                  <label htmlFor="drop_off" className="flex items-center gap-2 cursor-pointer">
-                    <span className="font-medium">I will drop off the package</span>
-                    <AlertCircle className="w-4 h-4 text-blue-500" />
-                  </label>
-                </div>
-              </RadioGroup>
+              <TooltipProvider>
+                <RadioGroup
+                  value={pickupOption}
+                  onValueChange={(value: any) => setValue('pickupOption', value)}
+                  className="flex flex-col space-y-4"
+                >
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="schedule_now" id="schedule_now" />
+                    <label htmlFor="schedule_now" className="flex items-center gap-2 cursor-pointer">
+                      <span className="font-medium">Schedule pickup now</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertCircle className="w-4 h-4 text-blue-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            Schedule an immediate pickup for today. The carrier will be notified right away and will attempt pickup during normal business hours.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="schedule_later" id="schedule_later" />
+                    <label htmlFor="schedule_later" className="flex items-center gap-2 cursor-pointer">
+                      <span className="font-medium">Schedule pickup later</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertCircle className="w-4 h-4 text-blue-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            Choose a future date for pickup. Select the date, time window, and provide contact details for the scheduled pickup.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="drop_off" id="drop_off" />
+                    <label htmlFor="drop_off" className="flex items-center gap-2 cursor-pointer">
+                      <span className="font-medium">I will drop off the package</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertCircle className="w-4 h-4 text-blue-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            You will bring the package to a carrier drop-off location or service center. No pickup will be scheduled.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </label>
+                  </div>
+                </RadioGroup>
+              </TooltipProvider>
               
               <p className="text-sm text-gray-600 mt-3">
                 Please note that carrier pickups are not guaranteed.
