@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Settings, LogOut, Package } from 'lucide-react';
+import { User, Settings, LogOut, Package, Palette } from 'lucide-react';
 
 interface NavbarProps {
   onLogin?: () => void;
@@ -116,10 +116,18 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                       </Link>
                     </DropdownMenuItem>
                   ) : (
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/branding" className="flex w-full">
+                          <Palette className="mr-2 h-4 w-4" />
+                          Branding
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
