@@ -10,6 +10,7 @@ import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } fr
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import Stripe from "stripe";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -474,6 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save shipment to database
       const shipment = await storage.createShipment({
         ...shipmentData,
+        baseCost: shipmentData.baseCost || '0',
         shiptimeShipmentId: shiptimeShipment.id,
         trackingNumber: shiptimeShipment.trackingNumber,
         labelUrl: shiptimeShipment.labelUrl,
@@ -698,13 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logoUrl: branding.logoUrl,
         primaryColor: branding.primaryColor,
         secondaryColor: branding.secondaryColor,
-        backgroundColor: branding.backgroundColor,
-        textColor: branding.textColor,
-        trackingPageTitle: branding.trackingPageTitle,
-        trackingPageDescription: branding.trackingPageDescription,
-        footerText: branding.footerText,
         supportEmail: branding.supportEmail,
-        supportPhone: branding.supportPhone,
       };
       
       res.json(publicBranding);
