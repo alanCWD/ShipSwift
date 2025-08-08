@@ -8,7 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Palette, Eye } from 'lucide-react';
+import { Palette, Eye, Upload, Image as ImageIcon } from 'lucide-react';
+import type { ClientBranding } from '@shared/schema';
+
+interface BrandingResponse {
+  branding?: ClientBranding | null;
+}
 
 export default function ClientBranding() {
   const { user } = useAuth();
@@ -27,15 +32,19 @@ export default function ClientBranding() {
     supportEmail: '',
     supportPhone: '',
   });
+  
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
 
   // Load current branding
-  const { data: branding, isLoading } = useQuery({
+  const { data: branding, isLoading } = useQuery<BrandingResponse>({
     queryKey: ['/api/branding'],
   });
 
   // Load branding data into form
   useEffect(() => {
-    if (branding && branding.branding) {
+    if (branding?.branding) {
       const brandingData = branding.branding;
       setFormData({
         companyName: brandingData.companyName || '',
@@ -49,6 +58,7 @@ export default function ClientBranding() {
         supportEmail: brandingData.supportEmail || '',
         supportPhone: brandingData.supportPhone || '',
       });
+      setCurrentLogoUrl(brandingData.logoUrl || null);
     }
   }, [branding]);
 
@@ -73,12 +83,68 @@ export default function ClientBranding() {
     },
   });
 
+  // Upload logo
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      const response = await fetch('/api/branding/logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: "Logo uploaded successfully",
+      });
+      setCurrentLogoUrl(data.logoUrl);
+      setLogoFile(null);
+      setLogoPreview(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/branding'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload logo",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveBranding = () => {
     saveBrandingMutation.mutate(formData);
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadLogo = () => {
+    if (logoFile) {
+      uploadLogoMutation.mutate(logoFile);
+    }
   };
 
   if (!user) {
@@ -130,6 +196,60 @@ export default function ClientBranding() {
                 placeholder="Your Company Name"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Logo Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5" />
+              Company Logo
+            </CardTitle>
+            <CardDescription>Upload your company logo for the tracking interface</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Current Logo Preview */}
+            {(currentLogoUrl || logoPreview) && (
+              <div className="space-y-2">
+                <Label>Current Logo</Label>
+                <div className="flex items-center justify-center p-4 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+                  <img 
+                    src={logoPreview || currentLogoUrl || ''} 
+                    alt="Company Logo" 
+                    className="max-h-24 max-w-full object-contain"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Logo Upload Input */}
+            <div className="space-y-2">
+              <Label htmlFor="logo">Upload New Logo</Label>
+              <Input
+                id="logo"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-gray-500">
+                Recommended: PNG or JPG, max 2MB, square format works best
+              </p>
+            </div>
+            
+            {/* Upload Button */}
+            {logoFile && (
+              <Button 
+                onClick={handleUploadLogo}
+                disabled={uploadLogoMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploadLogoMutation.isPending ? 'Uploading...' : 'Upload Logo'}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -273,12 +393,30 @@ export default function ClientBranding() {
             }}
           >
             <div className="text-center space-y-4">
+              {/* Logo in preview */}
+              {(logoPreview || currentLogoUrl) && (
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src={logoPreview || currentLogoUrl || ''} 
+                    alt="Company Logo" 
+                    className="h-12 object-contain"
+                  />
+                </div>
+              )}
+              
               <h2 
                 className="text-2xl font-bold"
                 style={{ color: formData.primaryColor }}
               >
-                {formData.trackingPageTitle}
+                {formData.companyName || 'Your Company'}
               </h2>
+              
+              <h3 
+                className="text-xl font-semibold"
+                style={{ color: formData.primaryColor }}
+              >
+                {formData.trackingPageTitle}
+              </h3>
               
               {formData.trackingPageDescription && (
                 <p className="text-sm opacity-80">
