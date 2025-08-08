@@ -1034,6 +1034,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SendGrid credentials
+  app.post("/api/admin/settings/sendgrid-credentials", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { apiKey, fromEmail, fromName } = req.body;
+
+      if (!apiKey || !fromEmail || !fromName) {
+        return res.status(400).json({ message: "All SendGrid fields are required" });
+      }
+
+      if (!apiKey.startsWith('SG.')) {
+        return res.status(400).json({ message: "Invalid API key format (must start with SG.)" });
+      }
+
+      await storage.setSetting('SENDGRID_API_KEY', apiKey, userId);
+      await storage.setSetting('SENDGRID_FROM_EMAIL', fromEmail, userId);
+      await storage.setSetting('SENDGRID_FROM_NAME', fromName, userId);
+
+      res.json({ message: "SendGrid credentials saved successfully" });
+    } catch (error) {
+      console.error("Error saving SendGrid credentials:", error);
+      res.status(500).json({ message: "Failed to save SendGrid credentials" });
+    }
+  });
+
   app.get("/api/admin/rate-markups", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
@@ -1169,6 +1200,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: `Stripe API connection failed: ${error.message}`,
             error: error.type || 'unknown_error'
           });
+        }
+      } else if (service === 'sendgrid') {
+        try {
+          // Get SendGrid credentials from database
+          const apiKey = await storage.getSetting('SENDGRID_API_KEY');
+          const fromEmail = await storage.getSetting('SENDGRID_FROM_EMAIL');
+          const fromName = await storage.getSetting('SENDGRID_FROM_NAME');
+          
+          if (!apiKey || !fromEmail || !fromName) {
+            return res.status(400).json({ message: "SendGrid credentials not configured" });
+          }
+
+          // Test SendGrid connection by sending a test email
+          const { MailService } = require('@sendgrid/mail');
+          const testMailService = new MailService();
+          testMailService.setApiKey(apiKey);
+
+          // Send a test email to verify the API key works
+          await testMailService.send({
+            to: fromEmail, // Send test email to the configured from email
+            from: {
+              email: fromEmail,
+              name: fromName
+            },
+            subject: 'ABLP Logistics - SendGrid API Test',
+            text: 'This is a test email to verify your SendGrid API configuration.',
+            html: '<p>This is a test email to verify your SendGrid API configuration.</p><p>If you received this email, your SendGrid API is working correctly.</p>'
+          });
+          
+          res.json({ message: "SendGrid API connection successful - test email sent", status: "connected" });
+        } catch (error: any) {
+          console.error("SendGrid connection test failed:", error);
+          res.status(400).json({ message: `SendGrid API connection failed: ${error.message}` });
         }
       } else {
         res.status(400).json({ message: "Unknown service" });

@@ -34,6 +34,13 @@ export default function SettingsPanel() {
     environment: 'test',
   });
 
+  // SendGrid API Settings
+  const [sendgridSettings, setSendgridSettings] = useState({
+    apiKey: '',
+    fromEmail: 'noreply@ablplogistics.ca',
+    fromName: 'ABLP Logistics',
+  });
+
   // Company Settings
   const [companySettings, setCompanySettings] = useState({
     companyName: 'ABLP Logistics',
@@ -74,6 +81,12 @@ export default function SettingsPanel() {
         publishableKey: settingsMap.STRIPE_PUBLISHABLE_KEY || '',
         secretKey: settingsMap.STRIPE_SECRET_KEY || '',
         environment: settingsMap.STRIPE_ENVIRONMENT || 'test',
+      });
+
+      setSendgridSettings({
+        apiKey: settingsMap.SENDGRID_API_KEY || '',
+        fromEmail: settingsMap.SENDGRID_FROM_EMAIL || 'noreply@ablplogistics.ca',
+        fromName: settingsMap.SENDGRID_FROM_NAME || 'ABLP Logistics',
       });
 
       setCompanySettings({
@@ -150,6 +163,26 @@ export default function SettingsPanel() {
     },
   });
 
+  const saveSendGridSettings = useMutation({
+    mutationFn: async (credentials: { apiKey: string; fromEmail: string; fromName: string }) => {
+      const response = await apiRequest('POST', '/api/admin/settings/sendgrid-credentials', credentials);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "SendGrid Credentials Saved",
+        description: "Email API credentials have been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save SendGrid credentials.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const saveCompanySettings = useMutation({
     mutationFn: async (settings: any) => {
       const promises = Object.entries(settings).map(([key, value]) => {
@@ -192,6 +225,14 @@ export default function SettingsPanel() {
     });
   };
 
+  const handleSaveSendGridSettings = () => {
+    saveSendGridSettings.mutate({
+      apiKey: sendgridSettings.apiKey,
+      fromEmail: sendgridSettings.fromEmail,
+      fromName: sendgridSettings.fromName,
+    });
+  };
+
   const handleSaveCompanySettings = () => {
     saveCompanySettings.mutate(companySettings);
   };
@@ -218,7 +259,7 @@ export default function SettingsPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="shiptime">
             <Truck className="w-4 h-4 mr-2" />
             ShipTime API
@@ -230,6 +271,10 @@ export default function SettingsPanel() {
           <TabsTrigger value="stripe">
             <CreditCard className="w-4 h-4 mr-2" />
             Payment Processing
+          </TabsTrigger>
+          <TabsTrigger value="sendgrid">
+            <Mail className="w-4 h-4 mr-2" />
+            Email API
           </TabsTrigger>
           <TabsTrigger value="company">
             <Building className="w-4 h-4 mr-2" />
@@ -443,6 +488,129 @@ export default function SettingsPanel() {
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Security:</strong> API keys are encrypted and stored securely in the database. Never share your secret key.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sendgrid">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Mail className="w-5 h-5 mr-2" />
+                SendGrid Email Configuration
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Configure SendGrid API credentials for automated email notifications
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Email Notifications:</strong> Configure SendGrid to send shipment notifications and system emails to customers.
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="sendgridApiKey">SendGrid API Key</Label>
+                    <Input
+                      id="sendgridApiKey"
+                      type="password"
+                      value={sendgridSettings.apiKey}
+                      onChange={(e) => setSendgridSettings({...sendgridSettings, apiKey: e.target.value})}
+                      placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Your SendGrid API Key (starts with SG.)
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="fromEmail">From Email Address</Label>
+                    <Input
+                      id="fromEmail"
+                      type="email"
+                      value={sendgridSettings.fromEmail}
+                      onChange={(e) => setSendgridSettings({...sendgridSettings, fromEmail: e.target.value})}
+                      placeholder="noreply@ablplogistics.ca"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email address for outgoing notifications
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="fromName">From Name</Label>
+                    <Input
+                      id="fromName"
+                      value={sendgridSettings.fromName}
+                      onChange={(e) => setSendgridSettings({...sendgridSettings, fromName: e.target.value})}
+                      placeholder="ABLP Logistics"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Display name for outgoing emails
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-gray-50 border rounded-lg p-4">
+                    <h4 className="font-medium text-gray-800 mb-2">Email Features</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• Shipment creation notifications</p>
+                      <p>• Status update emails</p>
+                      <p>• Delivery confirmations</p>
+                      <p>• Tracking information</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 mb-2">Getting Your SendGrid API Key</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p>1. Log into your SendGrid account</p>
+                      <p>2. Go to Settings → API Keys</p>
+                      <p>3. Create a new API key</p>
+                      <p>4. Grant "Full Access" permissions</p>
+                      <p>5. Copy the generated key (SG.xxx...)</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h4 className="font-medium text-yellow-800 mb-2">Domain Verification</h4>
+                    <div className="text-sm text-yellow-700 space-y-1">
+                      <p>• Verify your sender domain in SendGrid</p>
+                      <p>• Add DNS records for better deliverability</p>
+                      <p>• Set up SPF and DKIM authentication</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <Button 
+                  onClick={handleSaveSendGridSettings}
+                  disabled={saveSendGridSettings.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {saveSendGridSettings.isPending ? 'Saving...' : 'Save SendGrid Credentials'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleTestConnection('sendgrid')}
+                  disabled={testingConnection}
+                >
+                  {testingConnection ? 'Testing...' : 'Test Email Sending'}
+                </Button>
+              </div>
+
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Security:</strong> API keys are encrypted and stored securely. Never share your SendGrid API key.
                 </AlertDescription>
               </Alert>
             </CardContent>

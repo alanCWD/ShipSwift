@@ -116,18 +116,12 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                       </Link>
                     </DropdownMenuItem>
                   ) : (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/branding" className="flex w-full">
-                          <Palette className="mr-2 h-4 w-4" />
-                          Branding
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </DropdownMenuItem>
-                    </>
+                    <DropdownMenuItem asChild>
+                      <Link href="/branding" className="flex w-full">
+                        <Palette className="mr-2 h-4 w-4" />
+                        Branding
+                      </Link>
+                    </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
