@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Package, Eye, Upload, Image as ImageIcon } from 'lucide-react';
 import type { ClientBranding } from '@shared/schema';
+import Navbar from '../components/layout/navbar';
+import Footer from '../components/layout/footer';
 
 interface BrandingResponse {
   branding?: ClientBranding | null;
@@ -158,14 +160,17 @@ export default function ClientBranding() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Package className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">White-Label Shipping Labels</h1>
-          <p className="text-muted-foreground">Customize how your company branding appears on shipping labels sent to your end customers</p>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Package className="w-8 h-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">White-Label Shipping Labels</h1>
+            <p className="text-muted-foreground">Customize how your company branding appears on shipping labels sent to your end customers</p>
+          </div>
         </div>
-      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Company Information */}
@@ -397,6 +402,9 @@ export default function ClientBranding() {
           {saveBrandingMutation.isPending ? 'Saving...' : 'Save Label Settings'}
         </Button>
       </div>
+      </div>
+      
+      <Footer />
     </div>
   );
 }
