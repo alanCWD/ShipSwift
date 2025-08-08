@@ -365,7 +365,7 @@ export default function SettingsPanel() {
                       type="text"
                       value={stripeSettings.publishableKey}
                       onChange={(e) => setStripeSettings({...stripeSettings, publishableKey: e.target.value})}
-                      placeholder="pk_test_... or pk_live_..."
+                      placeholder="pk_test_51JxYz2L3qK4m5nO6PqR8sT9uVwXyZ1AbCdEfGhIjKlMnOpQrStUvWxYz234567890"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Safe to use on frontend (starts with pk_)
@@ -379,7 +379,7 @@ export default function SettingsPanel() {
                       type="password"
                       value={stripeSettings.secretKey}
                       onChange={(e) => setStripeSettings({...stripeSettings, secretKey: e.target.value})}
-                      placeholder="sk_test_... or sk_live_..."
+                      placeholder="sk_test_51JxYz2L3qK4m5nO6AbCdEfGhIjKlMnOpQrStUvWxYz1234567890987654321"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Keep secret - used for server-side processing
