@@ -113,6 +113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.createUser(userData);
+      
+      // Automatically log in the user after registration
+      req.session.userId = user.id;
+      
       res.json({ user: { ...user, role: user.role } });
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -136,11 +140,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // For demo: accept any non-empty password (in production, verify against hashed password)
+      // Set session
+      req.session.userId = user.id;
+      
       res.json({ user: { ...user, role: user.role } });
     } catch (error: any) {
       console.error("Login error:", error);
       res.status(401).json({ message: "Login failed" });
     }
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Failed to logout" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
   });
 
   // Get current user data

@@ -12,31 +12,13 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Get user from localStorage (Zustand persist storage)
-  const authData = localStorage.getItem('ablp-auth');
-  let userId = null;
-  
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData);
-      userId = parsed.state?.user?.id;
-    } catch (e) {
-      console.error('Error parsing auth data:', e);
-    }
-  }
-
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
-  // Add user ID header if available
-  if (userId) {
-    headers['x-user-id'] = userId;
-  }
 
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // Sessions will be handled automatically via cookies
   });
 
   await throwIfResNotOk(res);
@@ -49,29 +31,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get user from localStorage (Zustand persist storage)
-    const authData = localStorage.getItem('ablp-auth');
-    let userId = null;
-    
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData);
-        userId = parsed.state?.user?.id;
-      } catch (e) {
-        console.error('Error parsing auth data:', e);
-      }
-    }
-
-    const headers: Record<string, string> = {};
-    
-    // Add user ID header if available
-    if (userId) {
-      headers['x-user-id'] = userId;
-    }
-
     const res = await fetch(queryKey.join("/") as string, {
-      headers,
-      credentials: "include",
+      credentials: "include", // Sessions will be handled automatically via cookies
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

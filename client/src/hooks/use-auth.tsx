@@ -12,19 +12,18 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setUser: (user: User) => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       isLoading: false,
       
       login: async (email: string, password: string) => {
@@ -33,6 +32,7 @@ export const useAuth = create<AuthState>()(
           const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // Include cookies for sessions
             body: JSON.stringify({ email, password }),
           });
 
@@ -43,8 +43,7 @@ export const useAuth = create<AuthState>()(
 
           const data = await response.json();
           set({ 
-            user: data.user, 
-            token: data.token,
+            user: data.user,
             isLoading: false 
           });
         } catch (error) {
@@ -59,6 +58,7 @@ export const useAuth = create<AuthState>()(
           const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', // Include cookies for sessions
             body: JSON.stringify(userData),
           });
 
@@ -69,8 +69,7 @@ export const useAuth = create<AuthState>()(
 
           const data = await response.json();
           set({ 
-            user: data.user, 
-            token: data.token,
+            user: data.user,
             isLoading: false 
           });
         } catch (error) {
@@ -79,12 +78,40 @@ export const useAuth = create<AuthState>()(
         }
       },
 
-      logout: () => {
-        set({ user: null, token: null });
+      logout: async () => {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include', // Include cookies for sessions
+          });
+        } catch (error) {
+          console.error('Logout error:', error);
+        } finally {
+          set({ user: null });
+        }
       },
 
       setUser: (user: User) => {
         set({ user });
+      },
+
+      checkAuth: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await fetch('/api/auth/user', {
+            credentials: 'include', // Include cookies for sessions
+          });
+
+          if (response.ok) {
+            const user = await response.json();
+            set({ user, isLoading: false });
+          } else {
+            set({ user: null, isLoading: false });
+          }
+        } catch (error) {
+          console.error('Auth check error:', error);
+          set({ user: null, isLoading: false });
+        }
       },
     }),
     {

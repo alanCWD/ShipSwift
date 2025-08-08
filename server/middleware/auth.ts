@@ -12,14 +12,16 @@ declare global {
         lastName?: string;
       };
     }
+    interface Session {
+      userId?: string;
+    }
   }
 }
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // In a real application, you'd validate JWT tokens here
-    // For this demo, we'll use a simple user ID in headers
-    const userId = req.headers['x-user-id'] as string;
+    // Check for user ID in session
+    const userId = req.session?.userId;
     
     if (!userId) {
       return res.status(401).json({ message: 'Authentication required' });
@@ -27,6 +29,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     const user = await storage.getUser(userId);
     if (!user || !user.isActive) {
+      // Clear invalid session
+      req.session.userId = undefined;
       return res.status(401).json({ message: 'Invalid or inactive user' });
     }
 

@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "./hooks/use-auth";
+import { useEffect } from "react";
 import Home from "./pages/home";
 import Dashboard from "./pages/dashboard";
 import CreateShipment from "./pages/create-shipment";
@@ -14,7 +15,12 @@ import Profile from "./pages/profile";
 import NotFound from "./pages/not-found";
 
 function Router() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, checkAuth } = useAuth();
+
+  useEffect(() => {
+    // Check if user is already authenticated when app loads
+    checkAuth();
+  }, [checkAuth]);
 
   if (isLoading) {
     return (
