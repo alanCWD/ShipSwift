@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { useAuth } from '../hooks/use-auth';
 import Navbar from '../components/layout/navbar';
 import Footer from '../components/layout/footer';
 import SettingsPanel from '../components/admin/settings-panel';
@@ -7,6 +9,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('settings');
+  const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    // If not loading and user is not admin, redirect to home
+    if (!isLoading && (!user || user.role !== 'admin')) {
+      setLocation('/');
+    }
+  }, [user, isLoading, setLocation]);
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // Don't render admin panel if not authorized (will redirect)
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
