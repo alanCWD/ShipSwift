@@ -71,9 +71,9 @@ export default function BrandedTracking() {
     }
   };
 
-  // Use client branding or fallback to ABLP defaults
+  // Use client branding or fallback to SwiftShip defaults
   const branding: BrandingData = brandingData || {
-    companyName: 'ABLP Logistics',
+    companyName: 'SwiftShip',
     primaryColor: '#1E40AF',
     secondaryColor: '#6B7280',
     backgroundColor: '#FFFFFF',
@@ -82,7 +82,7 @@ export default function BrandedTracking() {
     trackingPageDescription: 'Enter your tracking number to get real-time updates',
     supportPhone: '(604) 392-3923',
     supportEmail: 'support@ablplogistics.ca',
-    footerText: '© 2025 ABLP Logistics. All rights reserved.',
+    footerText: '© 2025 SwiftShip - Subsidiary of ABLP Logistics. All rights reserved.',
   };
 
   const getStatusColor = (status: string) => {

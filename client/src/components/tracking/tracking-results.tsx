@@ -87,7 +87,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
     const events = [
       {
         status: 'Label Created',
-        location: 'ABLP Logistics - Chilliwack, BC',
+        location: 'SwiftShip - Chilliwack, BC',
         timestamp: shipment.createdAt,
         description: 'Shipping label created and payment processed',
         isCompleted: true,
@@ -149,7 +149,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
       // If very new, add expected pickup
       events.push({
         status: 'Awaiting Pickup',
-        location: 'ABLP Logistics - Chilliwack, BC',
+        location: 'SwiftShip - Chilliwack, BC',
         timestamp: null,
         description: 'Package ready for carrier pickup',
         isCompleted: false,
@@ -205,7 +205,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tracking Number:</span>
-                  <span className="font-medium">{shipment.trackingNumber || `ABLP-${shipment.id.slice(-8)}`}</span>
+                  <span className="font-medium">{shipment.trackingNumber || `SW-${shipment.id.slice(-8)}`}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Carrier:</span>
@@ -309,17 +309,17 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
         </CardContent>
       </Card>
 
-      {/* ABLP Branded Footer */}
+      {/* SwiftShip Branded Footer */
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
-              ABLP
+              SwiftShip
             </div>
             <span className="ml-3 text-2xl font-bold text-gray-900">Logistics</span>
           </div>
           <p className="text-gray-600 mb-4">
-            Thank you for choosing ABLP Logistics for your shipping needs.
+            Thank you for choosing SwiftShip for your shipping needs.
           </p>
           <div className="flex justify-center space-x-4 text-sm text-gray-600">
             <span>📍 44322 Yale Rd #3, Chilliwack, BC</span>

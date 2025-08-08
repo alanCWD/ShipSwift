@@ -39,7 +39,7 @@ export const paymentElementOptions = {
   layout: 'tabs' as const,
   paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
   business: {
-    name: 'ABLP Logistics',
+    name: 'SwiftShip',
   },
   fields: {
     billingDetails: {
@@ -158,11 +158,11 @@ export const calculateCanadianTax = (subtotal: number, province: string): number
   return subtotal * (rates.gst + rates.pst);
 };
 
-// Stripe Elements appearance customization for ABLP branding
+// Stripe Elements appearance customization for SwiftShip branding
 export const stripeElementsAppearance = {
   theme: 'stripe' as const,
   variables: {
-    colorPrimary: '#1E40AF', // ABLP blue
+    colorPrimary: '#1E40AF', // SwiftShip blue
     colorBackground: '#ffffff',
     colorText: '#1f2937',
     colorDanger: '#ef4444',

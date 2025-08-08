@@ -1,6 +1,6 @@
 # Overview
 
-This is a Canadian shipping platform called "ABLP Logistics" that provides multi-carrier rate comparison, shipment management, and branded tracking experiences. The application allows users to compare shipping rates from major Canadian carriers (Canada Post, Purolator, UPS, FedEx, DHL), create shipments with payment processing, and track packages through a white-labeled interface. It features role-based access with customer and admin portals, where admins can configure rate markups and system settings.
+This is a Canadian shipping platform called "SwiftShip" (a subsidiary of ABLP Logistics) that provides multi-carrier rate comparison, shipment management, and branded tracking experiences. The application allows users to compare shipping rates from major Canadian carriers (Canada Post, Purolator, UPS, FedEx, DHL), create shipments with payment processing, and track packages through a white-labeled interface. It features role-based access with customer and admin portals, where admins can configure rate markups and system settings.
 
 ## Recent Changes (January 2025)
 - Updated footer to 2025 copyright and new phone number (604) 392-3923

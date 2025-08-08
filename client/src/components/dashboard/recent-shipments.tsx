@@ -262,7 +262,7 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">
-                      {shipment.trackingNumber || `ABLP-${shipment.id.slice(-8)}`}
+                      {shipment.trackingNumber || `SW-${shipment.id.slice(-8)}`}
                     </p>
                     <p className="text-sm text-gray-600">
                       {formatFromAddress(shipment.fromAddress)} → {formatDestination(shipment.toAddress)}

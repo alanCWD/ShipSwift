@@ -68,7 +68,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
       });
       
       toast({
-        title: "Welcome to ABLP Logistics!",
+        title: "Welcome to SwiftShip!",
         description: "Your account has been created successfully.",
       });
       onClose();

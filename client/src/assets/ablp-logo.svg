@@ -1,26 +1,15 @@
 <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- ABLP Logo based on uploaded images -->
+  <!-- SwiftShip Logo -->
   <rect width="120" height="60" rx="8" fill="#1E40AF"/>
   
-  <!-- Letter A -->
-  <path d="M8 45 L14 25 L20 45 M10 38 L18 38" 
-        stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- SwiftShip Text -->
+  <text x="8" y="35" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="white">
+    SwiftShip
+  </text>
   
-  <!-- Letter B -->
-  <path d="M26 25 L26 45 M26 25 L34 25 Q38 25 38 30 Q38 35 34 35 L26 35 M26 35 L36 35 Q40 35 40 40 Q40 45 36 45 L26 45" 
-        stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  
-  <!-- Letter L -->
-  <path d="M46 25 L46 45 L56 45" 
-        stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  
-  <!-- Letter P -->
-  <path d="M62 25 L62 45 M62 25 L70 25 Q74 25 74 30 Q74 35 70 35 L62 35" 
-        stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  
-  <!-- Logistics Text -->
-  <text x="8" y="58" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">
-    LOGISTICS
+  <!-- Tagline Text -->
+  <text x="8" y="50" font-family="Inter, sans-serif" font-size="8" font-weight="400" fill="white" opacity="0.9">
+    Subsidiary of ABLP Logistics
   </text>
   
   <!-- Decorative shipping icon -->

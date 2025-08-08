@@ -26,15 +26,15 @@
   --ring: hsl(222, 84%, 42%);
   --radius: 0.75rem;
   
-  /* ABLP Logistics Brand Colors - HSL Format */
-  --ablp-blue: hsl(222, 84%, 42%);
-  --ablp-light-blue: hsl(215, 97%, 62%);
-  --ablp-dark-blue: hsl(224, 76%, 22%);
-  --ablp-gray-50: hsl(210, 40%, 98%);
-  --ablp-gray-100: hsl(210, 40%, 96%);
-  --ablp-gray-200: hsl(214, 32%, 91%);
-  --ablp-gray-600: hsl(215, 13%, 45%);
-  --ablp-gray-900: hsl(222, 84%, 4%);
+  /* SwiftShip Brand Colors - HSL Format */
+  --swiftship-blue: hsl(222, 84%, 42%);
+  --swiftship-light-blue: hsl(215, 97%, 62%);
+  --swiftship-dark-blue: hsl(224, 76%, 22%);
+  --swiftship-gray-50: hsl(210, 40%, 98%);
+  --swiftship-gray-100: hsl(210, 40%, 96%);
+  --swiftship-gray-200: hsl(214, 32%, 91%);
+  --swiftship-gray-600: hsl(215, 13%, 45%);
+  --swiftship-gray-900: hsl(222, 84%, 4%);
 }
 
 .dark {
@@ -70,18 +70,18 @@
 }
 
 @layer components {
-  /* ABLP Logistics Brand Components */
-  .ablp-logo {
-    background-color: var(--ablp-blue);
+  /* SwiftShip Brand Components */
+  .swiftship-logo {
+    background-color: var(--swiftship-blue);
     @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
   }
   
-  .ablp-gradient {
-    background: linear-gradient(135deg, var(--ablp-blue) 0%, var(--ablp-dark-blue) 100%);
+  .swiftship-gradient {
+    background: linear-gradient(135deg, var(--swiftship-blue) 0%, var(--swiftship-dark-blue) 100%);
   }
   
-  .ablp-gradient-light {
-    background: linear-gradient(135deg, var(--ablp-light-blue) 0%, var(--ablp-blue) 100%);
+  .swiftship-gradient-light {
+    background: linear-gradient(135deg, var(--swiftship-light-blue) 0%, var(--swiftship-blue) 100%);
   }
 
   /* Hero Section - Matches Design Reference Exactly */
@@ -302,7 +302,7 @@
   }
 
   .navbar-logo {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
     @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
   }
 
@@ -718,7 +718,7 @@
   }
 
   .footer-logo {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
     @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
   }
 
@@ -935,7 +935,7 @@
   }
 
   .admin-tab.active {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
     @apply text-white;
   }
 
@@ -962,7 +962,7 @@
   /* Loading States */
   .loading-spinner {
     @apply animate-spin w-8 h-8 border-4 border-t-transparent rounded-full;
-    border-color: var(--ablp-blue);
+    border-color: var(--swiftship-blue);
     border-top-color: transparent;
   }
 
@@ -1026,44 +1026,44 @@
 
   /* Color utilities with HSL */
   .text-ablp-blue {
-    color: var(--ablp-blue);
+    color: var(--swiftship-blue);
   }
 
   .bg-ablp-blue {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
   }
 
   .border-ablp-blue {
-    border-color: var(--ablp-blue);
+    border-color: var(--swiftship-blue);
   }
 
   .hover\:bg-ablp-blue:hover {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
   }
 
   .hover\:text-ablp-blue:hover {
-    color: var(--ablp-blue);
+    color: var(--swiftship-blue);
   }
 
   .bg-ablp-dark-blue {
-    background-color: var(--ablp-dark-blue);
+    background-color: var(--swiftship-dark-blue);
   }
 
   .hover\:bg-ablp-dark-blue:hover {
-    background-color: var(--ablp-dark-blue);
+    background-color: var(--swiftship-dark-blue);
   }
 
   .focus\:ring-ablp-blue:focus {
-    --tw-ring-color: var(--ablp-blue);
+    --tw-ring-color: var(--swiftship-blue);
   }
 
   .focus\:border-ablp-blue:focus {
-    border-color: var(--ablp-blue);
+    border-color: var(--swiftship-blue);
   }
 
   /* Buttons - Exact Match to Design */
   .btn-primary {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
     @apply text-white hover:bg-ablp-dark-blue focus:ring-2 focus:ring-ablp-blue focus:ring-offset-2 transition-colors;
   }
 
@@ -1107,16 +1107,16 @@
   /* Focus Management for Accessibility */
   .focus-visible {
     @apply outline-none ring-2 ring-offset-2;
-    ring-color: var(--ablp-blue);
+    ring-color: var(--swiftship-blue);
   }
 
-  /* Branded Elements Specific to ABLP */
+  /* Branded Elements Specific to SwiftShip */
   .branded-header {
     @apply flex items-center space-x-3;
   }
 
   .branded-header .logo {
-    background-color: var(--ablp-blue);
+    background-color: var(--swiftship-blue);
     @apply text-white px-3 py-2 rounded-lg font-bold text-xl;
   }
 
@@ -1290,23 +1290,23 @@
 
 /* Font loading moved to top of file */
 
-/* ABLP Logistics specific styling overrides for perfect design match */
-.hero-gradient-ablp {
+/* SwiftShip specific styling overrides for perfect design match */
+.hero-gradient-swiftship {
   background: linear-gradient(135deg, hsl(215, 97%, 62%) 0%, hsl(224, 76%, 22%) 100%);
 }
 
 /* Ensure buttons match the exact blue from design reference */
-.btn-ablp-primary {
+.btn-swiftship-primary {
   background-color: hsl(222, 84%, 42%);
   @apply text-white hover:bg-opacity-90 transition-all duration-200;
 }
 
-.btn-ablp-primary:hover {
+.btn-swiftship-primary:hover {
   background-color: hsl(224, 76%, 22%);
 }
 
 /* Ensure consistent spacing throughout */
-.page-header-ablp {
+.page-header-swiftship {
   @apply mb-8;
 }
 

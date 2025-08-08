@@ -51,9 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
         <rect width="400" height="600" fill="white" stroke="black" stroke-width="2"/>
         
-        <!-- ABLP Logo Area -->
+        <!-- SwiftShip Logo Area -->
         <rect x="20" y="20" width="360" height="80" fill="#1E40AF" rx="8"/>
-        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">ABLP LOGISTICS</text>
+        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">SWIFTSHIP</text>
         <text x="200" y="75" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Canadian Shipping Solutions</text>
         
         <!-- Demo Label Notice -->
@@ -63,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         <!-- From Address -->
         <text x="30" y="190" fill="black" font-family="Arial, sans-serif" font-size="14" font-weight="bold">FROM:</text>
-        <text x="30" y="210" fill="black" font-family="Arial, sans-serif" font-size="12">ABLP Logistics</text>
+        <text x="30" y="210" fill="black" font-family="Arial, sans-serif" font-size="12">SwiftShip</text>
         <text x="30" y="225" fill="black" font-family="Arial, sans-serif" font-size="12">44322 Yale Rd #3</text>
         <text x="30" y="240" fill="black" font-family="Arial, sans-serif" font-size="12">Chilliwack, BC V2R 4H1</text>
         <text x="30" y="255" fill="black" font-family="Arial, sans-serif" font-size="12">Canada</text>
@@ -606,7 +606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (user?.email) {
           await emailService.sendShipmentNotification({
             shipmentId: cancelledShipment.id,
-            trackingNumber: cancelledShipment.trackingNumber || `ABLP-${cancelledShipment.id.slice(-8)}`,
+            trackingNumber: cancelledShipment.trackingNumber || `SW-${cancelledShipment.id.slice(-8)}`,
             status: 'cancelled',
             carrierName: cancelledShipment.carrierName,
             serviceName: cancelledShipment.serviceName,
@@ -794,7 +794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             packageDetails: JSON.stringify(packageDetails),
             carrierName: rowData.carrier || 'Canada Post',
             serviceName: rowData.service || 'Regular',
-            trackingNumber: rowData.trackingNumber || `ABLP-CSV-${Date.now()}-${i}`,
+            trackingNumber: rowData.trackingNumber || `SW-CSV-${Date.now()}-${i}`,
             totalCost: rowData.totalCost || '25.99',
             markupCost: rowData.markupCost || '3.90',
             labelUrl: null,
@@ -1220,7 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               email: fromEmail,
               name: fromName
             },
-            subject: 'ABLP Logistics - SendGrid API Test',
+            subject: 'SwiftShip - SendGrid API Test',
             text: 'This is a test email to verify your SendGrid API configuration.',
             html: '<p>This is a test email to verify your SendGrid API configuration.</p><p>If you received this email, your SendGrid API is working correctly.</p>'
           });
