@@ -121,6 +121,7 @@ export const calculateRateTotal = (rate: ShipTimeRate): number => {
   return total;
 };
 
+// Legacy function for backward compatibility
 export const getCarrierLogo = (carrierName: string): string => {
   const logoMap: Record<string, string> = {
     'Canada Post': '🇨🇦',
@@ -135,6 +136,17 @@ export const getCarrierLogo = (carrierName: string): string => {
   };
   
   return logoMap[carrierName] || '📦';
+};
+
+// Helper function to check if carrier has a proper logo
+export const hasCarrierLogo = (carrierName: string): boolean => {
+  const supportedCarriers = [
+    'Canada Post', 'Purolator', 'UPS', 'FedEx', 'DHL',
+    'Canpar', 'Loomis', 'GLS', 'Nationex'
+  ];
+  return supportedCarriers.some(carrier => 
+    carrierName.toLowerCase().includes(carrier.toLowerCase())
+  );
 };
 
 export const getEstimatedDeliveryDate = (deliveryDays?: number): Date | null => {

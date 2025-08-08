@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import ShipmentForm from './shipment-form';
 import PickupOptions from './pickup-options';
 import InsuranceModal from './insurance-modal';
+import { CarrierLogo } from '@/components/ui/carrier-logo';
 import { Clock, Truck, Shield, Edit } from 'lucide-react';
 
 interface RateResultsProps {
@@ -21,27 +22,7 @@ export default function RateResults({ rates }: RateResultsProps) {
   const [insuranceData, setInsuranceData] = useState<any>(null);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
 
-  const getCarrierColor = (carrierName: string) => {
-    const colors: Record<string, string> = {
-      'Canada Post': 'bg-red-600',
-      'Purolator': 'bg-blue-800',
-      'UPS': 'bg-amber-600',
-      'FedEx': 'bg-purple-600',
-      'DHL': 'bg-yellow-500',
-    };
-    return colors[carrierName] || 'bg-gray-600';
-  };
 
-  const getCarrierInitials = (carrierName: string) => {
-    const initials: Record<string, string> = {
-      'Canada Post': 'CP',
-      'Purolator': 'PUR',
-      'UPS': 'UPS',
-      'FedEx': 'FDX',
-      'DHL': 'DHL',
-    };
-    return initials[carrierName] || carrierName.slice(0, 3).toUpperCase();
-  };
 
   const calculateTotal = (rate: any) => {
     // Handle sample rates format (has totalCharge or price as string)
@@ -177,10 +158,8 @@ export default function RateResults({ rates }: RateResultsProps) {
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className={`w-10 h-8 ${getCarrierColor(carrierName)} rounded flex items-center justify-center mr-3`}>
-                            <span className="text-white font-bold text-xs">
-                              {getCarrierInitials(carrierName)}
-                            </span>
+                          <div className="mr-3">
+                            <CarrierLogo carrierName={carrierName} className="w-10 h-8" />
                           </div>
                           <div className="text-sm font-medium text-gray-900">{carrierName}</div>
                         </div>
