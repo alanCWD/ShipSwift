@@ -27,6 +27,13 @@ export default function SettingsPanel() {
     environment: 'production',
   });
 
+  // Stripe API Settings
+  const [stripeSettings, setStripeSettings] = useState({
+    publishableKey: '',
+    secretKey: '',
+    environment: 'test',
+  });
+
   // Company Settings
   const [companySettings, setCompanySettings] = useState({
     companyName: 'ABLP Logistics',
@@ -65,6 +72,12 @@ export default function SettingsPanel() {
         environment: settingsMap.SHIPTIME_ENVIRONMENT || 'production',
       });
 
+      setStripeSettings({
+        publishableKey: settingsMap.STRIPE_PUBLISHABLE_KEY || '',
+        secretKey: settingsMap.STRIPE_SECRET_KEY || '',
+        environment: settingsMap.STRIPE_ENVIRONMENT || 'test',
+      });
+
       setCompanySettings({
         companyName: settingsMap.COMPANY_NAME || 'ABLP Logistics',
         businessNumber: settingsMap.BUSINESS_NUMBER || '',
@@ -96,6 +109,26 @@ export default function SettingsPanel() {
       toast({
         title: "Save Failed",
         description: error.message || "Failed to save ShipTime credentials.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const saveStripeSettings = useMutation({
+    mutationFn: async (credentials: { publishableKey: string; secretKey: string; environment: string }) => {
+      const response = await apiRequest('POST', '/api/admin/settings/stripe-credentials', credentials);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Stripe Credentials Saved",
+        description: "Stripe API credentials have been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save Stripe credentials.",
         variant: "destructive",
       });
     },
@@ -152,6 +185,14 @@ export default function SettingsPanel() {
       username: shiptimeSettings.username,
       password: shiptimeSettings.password,
       environment: shiptimeSettings.environment,
+    });
+  };
+
+  const handleSaveStripeSettings = () => {
+    saveStripeSettings.mutate({
+      publishableKey: stripeSettings.publishableKey,
+      secretKey: stripeSettings.secretKey,
+      environment: stripeSettings.environment,
     });
   };
 
@@ -304,33 +345,110 @@ export default function SettingsPanel() {
                 Stripe Payment Configuration
               </CardTitle>
               <p className="text-sm text-gray-600">
-                Payment processing is already configured through environment variables
+                Configure Stripe API credentials for payment processing. These settings apply to all clients using this platform.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert>
-                <CheckCircle className="h-4 w-4" />
+                <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Stripe payment processing is active and working. API keys are securely stored in environment variables.
+                  <strong>Client Payment Processing:</strong> Configure Stripe API keys for the current client. These keys will be used for all payment processing.
                 </AlertDescription>
               </Alert>
 
-              <div className="bg-gray-50 border rounded-lg p-4">
-                <h4 className="font-medium text-gray-800 mb-2">Current Configuration</h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>• Environment: Test Mode (Sandbox)</p>
-                  <p>• Supported Methods: Card, Apple Pay, Google Pay</p>
-                  <p>• Currency: CAD (Canadian Dollar)</p>
-                  <p>• 3D Secure: Enabled</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="stripePublishableKey">Publishable Key</Label>
+                    <Input
+                      id="stripePublishableKey"
+                      type="text"
+                      value={stripeSettings.publishableKey}
+                      onChange={(e) => setStripeSettings({...stripeSettings, publishableKey: e.target.value})}
+                      placeholder="pk_test_... or pk_live_..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Safe to use on frontend (starts with pk_)
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="stripeSecretKey">Secret Key</Label>
+                    <Input
+                      id="stripeSecretKey"
+                      type="password"
+                      value={stripeSettings.secretKey}
+                      onChange={(e) => setStripeSettings({...stripeSettings, secretKey: e.target.value})}
+                      placeholder="sk_test_... or sk_live_..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Keep secret - used for server-side processing
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label>Environment</Label>
+                    <Select 
+                      value={stripeSettings.environment}
+                      onValueChange={(value) => setStripeSettings({...stripeSettings, environment: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="test">Test Mode (Sandbox)</SelectItem>
+                        <SelectItem value="live">Live Mode (Production)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="bg-gray-50 border rounded-lg p-4">
+                    <h4 className="font-medium text-gray-800 mb-2">Payment Features</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• Currency: CAD (Canadian Dollar)</p>
+                      <p>• Payment Methods: Card, Apple Pay, Google Pay</p>
+                      <p>• 3D Secure: Enabled</p>
+                      <p>• Refunds: Supported</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 mb-2">Getting Your Stripe Keys</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p>1. Log into your Stripe Dashboard</p>
+                      <p>2. Go to Developers → API Keys</p>
+                      <p>3. Copy Publishable key (pk_...)</p>
+                      <p>4. Reveal and copy Secret key (sk_...)</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Production Setup</h4>
-                <p className="text-sm text-blue-700">
-                  To enable live payments, update the Stripe API keys in the environment variables and restart the application.
-                </p>
+              <div className="flex space-x-4">
+                <Button 
+                  onClick={handleSaveStripeSettings}
+                  disabled={saveStripeSettings.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {saveStripeSettings.isPending ? 'Saving...' : 'Save Stripe Credentials'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleTestConnection('stripe')}
+                  disabled={testingConnection}
+                >
+                  {testingConnection ? 'Testing...' : 'Test Connection'}
+                </Button>
               </div>
+
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Security:</strong> API keys are encrypted and stored securely in the database. Never share your secret key.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>

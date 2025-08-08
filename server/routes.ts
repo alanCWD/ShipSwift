@@ -733,6 +733,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/settings/stripe-credentials", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { publishableKey, secretKey, environment = 'test' } = req.body;
+      
+      if (!publishableKey || !secretKey) {
+        return res.status(400).json({ message: "Publishable key and secret key are required" });
+      }
+
+      // Validate key formats
+      if (!publishableKey.startsWith('pk_')) {
+        return res.status(400).json({ message: "Invalid publishable key format (must start with pk_)" });
+      }
+
+      if (!secretKey.startsWith('sk_')) {
+        return res.status(400).json({ message: "Invalid secret key format (must start with sk_)" });
+      }
+
+      await storage.setSetting('STRIPE_PUBLISHABLE_KEY', publishableKey, userId);
+      await storage.setSetting('STRIPE_SECRET_KEY', secretKey, userId);
+      await storage.setSetting('STRIPE_ENVIRONMENT', environment, userId);
+
+      res.json({ message: "Stripe credentials saved successfully" });
+    } catch (error) {
+      console.error("Error saving Stripe credentials:", error);
+      res.status(500).json({ message: "Failed to save Stripe credentials" });
+    }
+  });
+
   app.get("/api/admin/rate-markups", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
@@ -830,6 +865,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error: any) {
           console.error("ShipTime connection test failed:", error);
           res.status(400).json({ message: `ShipTime API connection failed: ${error.message}` });
+        }
+      } else if (service === 'stripe') {
+        try {
+          // Get Stripe credentials from database
+          const publishableKey = await storage.getSetting('STRIPE_PUBLISHABLE_KEY');
+          const secretKey = await storage.getSetting('STRIPE_SECRET_KEY');
+          
+          if (!publishableKey || !secretKey) {
+            return res.status(400).json({ message: "Stripe credentials not configured" });
+          }
+
+          // Test Stripe connection by creating a test payment intent
+          const testStripe = new Stripe(secretKey, { apiVersion: "2023-10-16" });
+          
+          // Create a minimal payment intent to test the connection
+          const paymentIntent = await testStripe.paymentIntents.create({
+            amount: 100, // $1.00 CAD in cents
+            currency: 'cad',
+            payment_method_types: ['card'],
+            metadata: {
+              test: 'connection_test'
+            }
+          });
+
+          // Immediately cancel the test payment intent
+          await testStripe.paymentIntents.cancel(paymentIntent.id);
+          
+          res.json({ 
+            message: "Stripe API connection successful", 
+            status: "connected",
+            environment: secretKey.includes('_test_') ? 'test' : 'live'
+          });
+        } catch (error: any) {
+          console.error("Stripe connection test failed:", error);
+          res.status(400).json({ 
+            message: `Stripe API connection failed: ${error.message}`,
+            error: error.type || 'unknown_error'
+          });
         }
       } else {
         res.status(400).json({ message: "Unknown service" });
