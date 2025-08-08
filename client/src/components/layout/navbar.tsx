@@ -102,13 +102,11 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Package className="mr-2 h-4 w-4" />
-                    My Shipments
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex w-full">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
                   {user.role === 'admin' ? (
                     <DropdownMenuItem asChild>

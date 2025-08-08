@@ -142,6 +142,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current user data
+  app.get("/api/auth/user", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error: any) {
+      console.error("Get user error:", error);
+      res.status(500).json({ message: "Failed to get user data" });
+    }
+  });
+
+  // Update user profile
+  app.put("/api/auth/profile", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { firstName, lastName, email, companyName } = req.body;
+      
+      // Validate required fields
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Check if email is already taken by another user
+      if (email !== req.user!.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Email is already taken" });
+        }
+      }
+      
+      const updatedUser = await storage.updateUser(userId, {
+        firstName: firstName || null,
+        lastName: lastName || null, 
+        email,
+        companyName: companyName || null,
+      });
+      
+      res.json({ user: updatedUser });
+    } catch (error: any) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Shipping rates
   app.post("/api/shipping/rates", async (req, res) => {
     const {

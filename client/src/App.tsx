@@ -10,6 +10,7 @@ import Dashboard from "./pages/dashboard";
 import CreateShipment from "./pages/create-shipment";
 import TrackShipment from "./pages/track-shipment";
 import Admin from "./pages/admin";
+import Profile from "./pages/profile";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/create-shipment" component={CreateShipment} />
       <Route path="/track" component={TrackShipment} />
+      <Route path="/profile" component={Profile} />
       <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
       <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
       {user?.role === 'admin' && (
