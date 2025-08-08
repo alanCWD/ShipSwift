@@ -459,12 +459,12 @@ export default function AdvancedMarkupConfig() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="destinationProvince">Destination Province</Label>
-                      <Select value={formData.destinationProvince || ''} onValueChange={(value) => setFormData({...formData, destinationProvince: value || undefined})}>
+                      <Select value={formData.destinationProvince || 'any'} onValueChange={(value) => setFormData({...formData, destinationProvince: value === 'any' ? undefined : value})}>
                         <SelectTrigger>
                           <SelectValue placeholder="Any province" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any Province</SelectItem>
+                          <SelectItem value="any">Any Province</SelectItem>
                           {provinces.map(province => (
                             <SelectItem key={province} value={province}>{province}</SelectItem>
                           ))}
@@ -473,12 +473,12 @@ export default function AdvancedMarkupConfig() {
                     </div>
                     <div>
                       <Label htmlFor="destinationCountry">Destination Country</Label>
-                      <Select value={formData.destinationCountry || ''} onValueChange={(value) => setFormData({...formData, destinationCountry: value || undefined})}>
+                      <Select value={formData.destinationCountry || 'any'} onValueChange={(value) => setFormData({...formData, destinationCountry: value === 'any' ? undefined : value})}>
                         <SelectTrigger>
                           <SelectValue placeholder="Any country" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any Country</SelectItem>
+                          <SelectItem value="any">Any Country</SelectItem>
                           {countries.map(country => (
                             <SelectItem key={country} value={country}>{country}</SelectItem>
                           ))}
