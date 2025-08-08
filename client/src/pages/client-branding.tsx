@@ -50,13 +50,13 @@ export default function ClientBranding() {
         companyName: brandingData.companyName || '',
         primaryColor: brandingData.primaryColor || '#007bff',
         secondaryColor: brandingData.secondaryColor || '#6c757d',
-        backgroundColor: brandingData.backgroundColor || '#ffffff',
-        textColor: brandingData.textColor || '#000000',
-        trackingPageTitle: brandingData.trackingPageTitle || 'Track Your Shipment',
-        trackingPageDescription: brandingData.trackingPageDescription || '',
-        footerText: brandingData.footerText || '',
+        backgroundColor: '#ffffff', // Default since not in schema yet
+        textColor: '#000000', // Default since not in schema yet
+        trackingPageTitle: 'Track Your Shipment', // Default since not in schema yet
+        trackingPageDescription: '', // Default since not in schema yet
+        footerText: '', // Default since not in schema yet
         supportEmail: brandingData.supportEmail || '',
-        supportPhone: brandingData.supportPhone || '',
+        supportPhone: '', // Default since not in schema yet
       });
       setCurrentLogoUrl(brandingData.logoUrl || null);
     }
