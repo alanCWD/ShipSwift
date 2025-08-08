@@ -14,7 +14,7 @@ export default function Footer() {
               <span className="ml-3 text-2xl font-bold">Logistics</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Streamlined Canadian shipping solutions with programmable rates, comprehensive carrier comparison, and branded customer experiences.
+              Canadian shipping platform for ABLP Logistics.
             </p>
             <div className="space-y-2 text-gray-300">
               <div className="flex items-center">
@@ -33,24 +33,21 @@ export default function Footer() {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Services</h3>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-gray-300">
-              <li><Link href="#" className="hover:text-white transition-colors">Rate Comparison</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Label Printing</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Shipment Tracking</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">LTL Freight</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">International Shipping</Link></li>
+              <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
+              <li><Link href="/create-shipment" className="hover:text-white transition-colors">Create Shipment</Link></li>
+              <li><Link href="/track" className="hover:text-white transition-colors">Track Package</Link></li>
+              <li><Link href="/shipments" className="hover:text-white transition-colors">All Shipments</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-gray-300">
-              <li><Link href="#" className="hover:text-white transition-colors">Help Centre</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">API Documentation</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Integration Guide</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Contact Support</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Status Page</Link></li>
+              <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
+              <li><Link href="/branding" className="hover:text-white transition-colors">Branding</Link></li>
+              <li><a href="mailto:support@ablplogistics.ca" className="hover:text-white transition-colors">Contact Support</a></li>
             </ul>
           </div>
         </div>

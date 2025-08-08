@@ -43,6 +43,11 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Implemented advanced markup configuration with conditional logic (cost/weight/location-based rules)
   - Enhanced database schema to support complex markup rules with boolean logic and priority system
   - Admins can now configure intelligent markup rules for different scenarios (e.g., higher markup for expensive shipments)
+- **COMPLETED: Content organization and marketing cleanup (August 2025)**
+  - Removed detailed marketing content from footer component to keep it only on home page
+  - Simplified footer to show essential links: Quick Links (dashboard, create shipment, tracking, shipments) and Support (profile, branding, contact)
+  - Replaced marketing descriptions with concise company description
+  - Marketing features section (Rate Comparison, Label Printing, etc.) now exclusively on home page
   - **FIXED: ShipTime API connection testing (August 2025)**
     - Enhanced error handling to detect HTML responses vs JSON (common with auth failures)
     - Added proper sandbox/production environment support with correct API URLs
