@@ -63,74 +63,109 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
     }
 
     const parts = [
-      address.street,
+      address.streetAddress,
       address.city,
-      address.province || address.state,
-      address.postalCode || address.zipCode,
-      address.country
+      address.state,
+      address.postalCode,
     ].filter(Boolean);
-
+    
     return parts.join(', ') || 'Address not available';
   };
 
+  // Generate realistic tracking events based on shipment status and timing
   const generateTrackingEvents = () => {
-    const events = [];
-    const statusDate = new Date(shipment.createdAt);
+    const createdTime = new Date(shipment.createdAt);
+    const now = new Date();
+    const hoursSinceCreated = Math.floor((now.getTime() - createdTime.getTime()) / (1000 * 60 * 60));
     
-    // Always add initial processing event
-    events.push({
-      status: 'Order Processed',
-      location: 'SwiftShip Facility, Canada',
-      timestamp: statusDate.toISOString(),
-      description: 'Package received and processed for shipping',
-      isCompleted: true,
-    });
+    // Determine shipment progress based on age and status
+    const isOld = hoursSinceCreated > 24;
+    const isDelivered = shipment.status === 'delivered';
+    const isShipped = shipment.status === 'shipped' || shipment.status === 'in_transit' || isDelivered;
+    const isProcessed = isShipped || isOld;
+    
+    const events = [
+      {
+        status: 'Label Created',
+        location: 'SwiftShip - Chilliwack, BC',
+        timestamp: shipment.createdAt,
+        description: 'Shipping label created and payment processed',
+        isCompleted: true,
+      },
+    ];
 
-    // Add pickup event if shipped
-    if (['shipped', 'in_transit', 'delivered'].includes(shipment.status)) {
-      const pickupDate = new Date(statusDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+    // Add pickup event if processed
+    if (isProcessed) {
       events.push({
-        status: 'Picked Up',
-        location: 'Origin Facility',
-        timestamp: pickupDate.toISOString(),
+        status: 'Package Picked Up',
+        location: 'Chilliwack, BC V2R 4H1',
+        timestamp: new Date(createdTime.getTime() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours later
         description: `Package picked up by ${shipment.carrierName || 'carrier'}`,
         isCompleted: true,
       });
     }
 
-    // Add in transit events
-    if (['shipped', 'in_transit', 'delivered'].includes(shipment.status)) {
-      const transitDate = new Date(statusDate.getTime() + 6 * 60 * 60 * 1000); // 6 hours later
+    // Add sorting events if shipped
+    if (isShipped) {
+      events.push({
+        status: 'Package Processed',
+        location: 'Vancouver Sorting Facility, BC',
+        timestamp: new Date(createdTime.getTime() + 6 * 60 * 60 * 1000).toISOString(), // 6 hours later
+        description: 'Package processed at sorting facility',
+        isCompleted: true,
+      });
+      
       events.push({
         status: 'In Transit',
-        location: 'Sorting Facility',
-        timestamp: transitDate.toISOString(),
-        description: 'Package is being transported',
-        isCompleted: shipment.status !== 'shipped',
+        location: 'Richmond Distribution Center, BC',
+        timestamp: new Date(createdTime.getTime() + 12 * 60 * 60 * 1000).toISOString(), // 12 hours later
+        description: 'Package in transit to destination',
+        isCompleted: true,
       });
     }
 
-    // Add out for delivery if delivered
-    if (shipment.status === 'delivered') {
-      const deliveryDate = new Date(statusDate.getTime() + 24 * 60 * 60 * 1000); // 1 day later
+    // Add out for delivery if old enough or delivered
+    if ((hoursSinceCreated > 24 && isShipped) || isDelivered) {
+      const destinationCity = shipment.toAddress?.city || 'destination city';
       events.push({
         status: 'Out for Delivery',
-        location: 'Local Delivery Hub',
-        timestamp: deliveryDate.toISOString(),
-        description: 'Package is out for delivery',
-        isCompleted: true,
+        location: `${destinationCity} Local Facility`,
+        timestamp: new Date(createdTime.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours later
+        description: 'Package out for delivery',
+        isCompleted: isDelivered,
       });
+    }
 
+    // Add delivery if delivered
+    if (isDelivered) {
       events.push({
         status: 'Delivered',
-        location: 'Destination Address',
-        timestamp: new Date(deliveryDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
-        description: 'Package successfully delivered',
+        location: formatAddress(shipment.toAddress),
+        timestamp: shipment.updatedAt || new Date(createdTime.getTime() + 26 * 60 * 60 * 1000).toISOString(),
+        description: 'Package delivered successfully',
         isCompleted: true,
       });
+    } else if (hoursSinceCreated < 2) {
+      // If very new, add expected pickup
+      events.push({
+        status: 'Awaiting Pickup',
+        location: 'SwiftShip - Chilliwack, BC',
+        timestamp: null,
+        description: 'Package ready for carrier pickup',
+        isCompleted: false,
+      });
+    } else if (!isShipped) {
+      // Add processing event if not yet shipped
+      events.push({
+        status: 'Processing',
+        location: 'Carrier Facility',
+        timestamp: null,
+        description: 'Package being processed by carrier',
+        isCompleted: false,
+      });
     } else {
-      // Add expected delivery for non-delivered packages
-      const destinationCity = shipment.toAddress?.city || 'Destination';
+      // Add next expected event
+      const destinationCity = shipment.toAddress?.city || 'destination';
       events.push({
         status: 'Expected Delivery',
         location: destinationCity,
@@ -274,7 +309,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
         </CardContent>
       </Card>
 
-      {/* SwiftShip Branded Footer */}
+      {/* SwiftShip Branded Footer */
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center mb-4">
