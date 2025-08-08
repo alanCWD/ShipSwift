@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Plus, Edit, Trash2, Settings, TrendingUp, Target, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, TrendingUp, Target, Globe, Sliders } from 'lucide-react';
 
 interface MarkupRule {
   id?: string;
@@ -66,6 +66,13 @@ export default function AdvancedMarkupConfig() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Default markup strategy settings
+  const [defaultMarkupSettings, setDefaultMarkupSettings] = useState({
+    defaultMarkup: '15.0',
+    markupStrategy: 'percentage',
+    fallbackStrategy: 'default'
+  });
+
   const { data: markupsData, isLoading } = useQuery({
     queryKey: ['/api/admin/rate-markups'],
     queryFn: async () => {
@@ -73,6 +80,31 @@ export default function AdvancedMarkupConfig() {
       return response.json();
     },
   });
+
+  // Fetch existing settings for default markup
+  const { data: existingSettings } = useQuery({
+    queryKey: ['/api/admin/settings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/settings');
+      return response.json();
+    },
+  });
+
+  // Load existing default markup settings
+  useEffect(() => {
+    if (existingSettings) {
+      const settingsMap = existingSettings.reduce((acc: any, setting: any) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+
+      setDefaultMarkupSettings({
+        defaultMarkup: settingsMap.DEFAULT_MARKUP || '15.0',
+        markupStrategy: settingsMap.MARKUP_STRATEGY || 'percentage',
+        fallbackStrategy: settingsMap.FALLBACK_STRATEGY || 'default'
+      });
+    }
+  }, [existingSettings]);
 
   const createMarkupMutation = useMutation({
     mutationFn: async (ruleData: MarkupRule) => {
@@ -119,6 +151,33 @@ export default function AdvancedMarkupConfig() {
     },
   });
 
+  const saveDefaultMarkupSettings = useMutation({
+    mutationFn: async (settings: any) => {
+      const promises = Object.entries(settings).map(([key, value]) => {
+        const settingKey = key.replace(/([A-Z])/g, '_$1').toUpperCase();
+        return apiRequest('POST', '/api/admin/settings', {
+          key: settingKey,
+          value: value?.toString() || '',
+        });
+      });
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/settings'] });
+      toast({
+        title: 'Default Markup Settings Saved',
+        description: 'Default markup strategy has been updated successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Save Failed',
+        description: error.message || 'Failed to save default markup settings.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const resetForm = () => {
     setFormData(defaultRule);
     setEditingRule(null);
@@ -149,6 +208,10 @@ export default function AdvancedMarkupConfig() {
     }
   };
 
+  const handleSaveDefaultMarkup = () => {
+    saveDefaultMarkupSettings.mutate(defaultMarkupSettings);
+  };
+
   const formatConditions = (rule: MarkupRule) => {
     const conditions = [];
     if (rule.minCost || rule.maxCost) {
@@ -170,16 +233,107 @@ export default function AdvancedMarkupConfig() {
 
   return (
     <div className="space-y-6">
+      {/* Default Markup Strategy Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sliders className="w-5 h-5 mr-2" />
+            Default Markup Strategy
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Configure the base markup strategy that applies when no specific rules match
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <Label htmlFor="markupStrategy">Markup Strategy</Label>
+              <Select
+                value={defaultMarkupSettings.markupStrategy}
+                onValueChange={(value) => setDefaultMarkupSettings({...defaultMarkupSettings, markupStrategy: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentage-based</SelectItem>
+                  <SelectItem value="fixed">Fixed amount</SelectItem>
+                  <SelectItem value="advanced">Advanced rules only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="defaultMarkup">
+                Default Value {defaultMarkupSettings.markupStrategy === 'percentage' ? '(%)' : '($)'}
+              </Label>
+              <Input
+                id="defaultMarkup"
+                type="number"
+                step="0.1"
+                min="0"
+                value={defaultMarkupSettings.defaultMarkup}
+                onChange={(e) => setDefaultMarkupSettings({...defaultMarkupSettings, defaultMarkup: e.target.value})}
+                placeholder={defaultMarkupSettings.markupStrategy === 'percentage' ? '15.0' : '5.00'}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {defaultMarkupSettings.markupStrategy === 'percentage' 
+                  ? 'Percentage markup (e.g., 15.0 for 15%)' 
+                  : 'Fixed dollar amount (e.g., 5.00)'}
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="fallbackStrategy">Fallback Strategy</Label>
+              <Select
+                value={defaultMarkupSettings.fallbackStrategy}
+                onValueChange={(value) => setDefaultMarkupSettings({...defaultMarkupSettings, fallbackStrategy: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Use default markup</SelectItem>
+                  <SelectItem value="none">No markup</SelectItem>
+                  <SelectItem value="minimum">Minimum 5% markup</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Applied when no advanced rules match
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 mb-2">Markup Strategy Overview</h4>
+            <div className="text-sm text-blue-700 space-y-1">
+              <p><strong>Percentage-based:</strong> Applies {defaultMarkupSettings.defaultMarkup}% markup to all rates</p>
+              <p><strong>Fixed amount:</strong> Adds ${defaultMarkupSettings.defaultMarkup} to all rates</p>
+              <p><strong>Advanced rules only:</strong> Uses only the specific rules defined below</p>
+              <p><strong>Priority:</strong> Advanced rules override default strategy when conditions match</p>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleSaveDefaultMarkup}
+            disabled={saveDefaultMarkupSettings.isPending}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {saveDefaultMarkupSettings.isPending ? 'Saving...' : 'Save Default Markup Strategy'}
+          </Button>
+        </CardContent>
+      </Card>
+      {/* Advanced Rules Configuration */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2" />
-                Advanced Markup Configuration
+                Advanced Markup Rules
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Create intelligent markup rules with conditional logic for different scenarios
+                Create intelligent markup rules with conditional logic that override the default strategy
               </p>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

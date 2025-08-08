@@ -42,8 +42,6 @@ export default function SettingsPanel() {
     phoneNumber: '(604) 392-3923',
     address: '44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada',
     website: 'https://ablplogistics.ca',
-    defaultMarkup: '15.0',
-    markupStrategy: 'percentage',
     autoNotifications: true,
     trackingPageBranding: true,
     allowClientBranding: true,
@@ -85,8 +83,6 @@ export default function SettingsPanel() {
         phoneNumber: settingsMap.PHONE_NUMBER || '(604) 392-3923',
         address: settingsMap.COMPANY_ADDRESS || '44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada',
         website: settingsMap.COMPANY_WEBSITE || 'https://ablplogistics.ca',
-        defaultMarkup: settingsMap.DEFAULT_MARKUP || '15.0',
-        markupStrategy: settingsMap.MARKUP_STRATEGY || 'percentage',
         autoNotifications: settingsMap.AUTO_NOTIFICATIONS === 'true',
         trackingPageBranding: settingsMap.TRACKING_PAGE_BRANDING === 'true',
         allowClientBranding: settingsMap.ALLOW_CLIENT_BRANDING === 'true',
@@ -526,37 +522,6 @@ export default function SettingsPanel() {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="defaultMarkup">Default Markup (%)</Label>
-                    <Input
-                      id="defaultMarkup"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={companySettings.defaultMarkup}
-                      onChange={(e) => setCompanySettings({...companySettings, defaultMarkup: e.target.value})}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Default markup percentage (overridden by advanced rules)
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="markupStrategy">Markup Strategy</Label>
-                    <Select
-                      value={companySettings.markupStrategy}
-                      onValueChange={(value) => setCompanySettings({...companySettings, markupStrategy: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percentage">Percentage-based</SelectItem>
-                        <SelectItem value="fixed">Fixed amount</SelectItem>
-                        <SelectItem value="advanced">Advanced rules only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
               </div>
 
