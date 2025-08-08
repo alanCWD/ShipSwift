@@ -26,21 +26,91 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
   });
   
   const [hasRates, setHasRates] = useState(false);
+  const [units, setUnits] = useState<'metric' | 'imperial'>('metric'); // cm/kg or in/lbs
 
   const { toast } = useToast();
 
+  // Unit conversion functions
+  const convertToMetric = (value: string, fromUnit: 'length' | 'weight') => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '';
+    
+    if (fromUnit === 'length') {
+      // Convert inches to cm
+      return (num * 2.54).toFixed(1);
+    } else {
+      // Convert lbs to kg
+      return (num / 2.205).toFixed(1);
+    }
+  };
+
+  const convertToImperial = (value: string, toUnit: 'length' | 'weight') => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '';
+    
+    if (toUnit === 'length') {
+      // Convert cm to inches
+      return (num / 2.54).toFixed(1);
+    } else {
+      // Convert kg to lbs
+      return (num * 2.205).toFixed(1);
+    }
+  };
+
+  const handleUnitChange = (newUnits: 'metric' | 'imperial') => {
+    if (newUnits === units) return; // No change needed
+    
+    setUnits(newUnits);
+    setHasRates(false); // Reset rates when units change
+    
+    // Convert existing values
+    setFormData(prev => {
+      const newData = { ...prev };
+      
+      if (newUnits === 'imperial') {
+        // Converting from metric to imperial
+        newData.length = convertToImperial(prev.length, 'length');
+        newData.width = convertToImperial(prev.width, 'length');
+        newData.height = convertToImperial(prev.height, 'length');
+        newData.weight = convertToImperial(prev.weight, 'weight');
+      } else {
+        // Converting from imperial to metric
+        newData.length = convertToMetric(prev.length, 'length');
+        newData.width = convertToMetric(prev.width, 'length');
+        newData.height = convertToMetric(prev.height, 'length');
+        newData.weight = convertToMetric(prev.weight, 'weight');
+      }
+      
+      return newData;
+    });
+  };
+
   const ratesMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Convert to metric units for API (if needed)
+      let apiLength = parseFloat(data.length);
+      let apiWidth = parseFloat(data.width);
+      let apiHeight = parseFloat(data.height);
+      let apiWeight = parseFloat(data.weight);
+      
+      if (units === 'imperial') {
+        // Convert from imperial to metric for API
+        apiLength = parseFloat(convertToMetric(data.length, 'length'));
+        apiWidth = parseFloat(convertToMetric(data.width, 'length'));
+        apiHeight = parseFloat(convertToMetric(data.height, 'length'));
+        apiWeight = parseFloat(convertToMetric(data.weight, 'weight'));
+      }
+      
       const response = await apiRequest('POST', '/api/shipping/rates', {
         fromCountry: data.fromCountry,
         fromPostalCode: data.fromPostalCode,
         toCountry: data.toCountry,
         toPostalCode: data.toPostalCode,
         packageDetails: {
-          length: parseFloat(data.length),
-          width: parseFloat(data.width),
-          height: parseFloat(data.height),
-          weight: parseFloat(data.weight),
+          length: apiLength,
+          width: apiWidth,
+          height: apiHeight,
+          weight: apiWeight,
         }
       });
       return response.json();
@@ -203,13 +273,32 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
 
           {/* Package Details */}
           <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Package className="w-5 h-5 mr-2 text-blue-600" />
-              Package Details
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Package className="w-5 h-5 mr-2 text-blue-600" />
+                Package Details
+              </h3>
+              
+              {/* Unit Selector */}
+              <div className="flex items-center space-x-2">
+                <Label className="text-sm text-gray-600">Units:</Label>
+                <Select value={units} onValueChange={handleUnitChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="metric">cm / kg</SelectItem>
+                    <SelectItem value="imperial">in / lbs</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="length">Length (cm)</Label>
+                <Label htmlFor="length">
+                  Length ({units === 'metric' ? 'cm' : 'in'})
+                </Label>
                 <Input
                   id="length"
                   type="number"
@@ -221,7 +310,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 />
               </div>
               <div>
-                <Label htmlFor="width">Width (cm)</Label>
+                <Label htmlFor="width">
+                  Width ({units === 'metric' ? 'cm' : 'in'})
+                </Label>
                 <Input
                   id="width"
                   type="number"
@@ -233,7 +324,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 />
               </div>
               <div>
-                <Label htmlFor="height">Height (cm)</Label>
+                <Label htmlFor="height">
+                  Height ({units === 'metric' ? 'cm' : 'in'})
+                </Label>
                 <Input
                   id="height"
                   type="number"
@@ -245,7 +338,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 />
               </div>
               <div>
-                <Label htmlFor="weight">Weight (kg)</Label>
+                <Label htmlFor="weight">
+                  Weight ({units === 'metric' ? 'kg' : 'lbs'})
+                </Label>
                 <Input
                   id="weight"
                   type="number"

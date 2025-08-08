@@ -65,6 +65,17 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
         - Sandbox shipments are automatically cancelled immediately after creation
         - Prevents any charges or fees from ShipTime for test shipments
         - Logs cancellation status for debugging and verification
+- **COMPLETED: Pickup options and unit conversion system (August 2025)**
+  - Added comprehensive pickup scheduling section after rate selection based on Freightcom interface
+  - Implemented three pickup options: schedule now, schedule later, drop-off with informative tooltips
+  - Created pickup form with date picker, contact details, location, time windows, and special instructions
+  - Updated database schema to store pickup details in shipments table
+  - Integrated pickup flow between rate selection and payment processing
+  - **NEW: Package unit conversion system (cm/kg ↔ in/lbs)**
+    - Added unit selector dropdown in package details section
+    - Automatic conversion between metric and imperial units with real-time value updates
+    - API automatically receives metric units regardless of user's input preference
+    - Conversion rates: 1 inch = 2.54 cm, 1 pound = 0.453 kg
 
 # User Preferences
 
