@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Palette, Eye, Upload, Image as ImageIcon } from 'lucide-react';
+import { Package, Eye, Upload, Image as ImageIcon } from 'lucide-react';
 import type { ClientBranding } from '@shared/schema';
 
 interface BrandingResponse {
@@ -24,13 +24,7 @@ export default function ClientBranding() {
     companyName: '',
     primaryColor: '#007bff',
     secondaryColor: '#6c757d',
-    backgroundColor: '#ffffff',
-    textColor: '#000000',
-    trackingPageTitle: 'Track Your Shipment',
-    trackingPageDescription: '',
-    footerText: '',
     supportEmail: '',
-    supportPhone: '',
   });
   
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -50,13 +44,7 @@ export default function ClientBranding() {
         companyName: brandingData.companyName || '',
         primaryColor: brandingData.primaryColor || '#007bff',
         secondaryColor: brandingData.secondaryColor || '#6c757d',
-        backgroundColor: '#ffffff', // Default since not in schema yet
-        textColor: '#000000', // Default since not in schema yet
-        trackingPageTitle: 'Track Your Shipment', // Default since not in schema yet
-        trackingPageDescription: '', // Default since not in schema yet
-        footerText: '', // Default since not in schema yet
         supportEmail: brandingData.supportEmail || '',
-        supportPhone: '', // Default since not in schema yet
       });
       setCurrentLogoUrl(brandingData.logoUrl || null);
     }
@@ -172,10 +160,10 @@ export default function ClientBranding() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <Palette className="w-8 h-8 text-primary" />
+        <Package className="w-8 h-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold">Brand Customization</h1>
-          <p className="text-muted-foreground">Customize your shipping interface branding for your customers</p>
+          <h1 className="text-3xl font-bold">White-Label Shipping Labels</h1>
+          <p className="text-muted-foreground">Customize how your company branding appears on shipping labels sent to your end customers</p>
         </div>
       </div>
 
@@ -184,7 +172,7 @@ export default function ClientBranding() {
         <Card>
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
-            <CardDescription>Basic company details for your branded interface</CardDescription>
+            <CardDescription>Company details that appear on shipping labels</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -195,6 +183,9 @@ export default function ClientBranding() {
                 onChange={(e) => handleInputChange('companyName', e.target.value)}
                 placeholder="Your Company Name"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                This will appear as the sender on shipping labels
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -206,7 +197,7 @@ export default function ClientBranding() {
               <ImageIcon className="w-5 h-5" />
               Company Logo
             </CardTitle>
-            <CardDescription>Upload your company logo for the tracking interface</CardDescription>
+            <CardDescription>Upload your company logo to appear on shipping labels</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Current Logo Preview */}
@@ -256,19 +247,22 @@ export default function ClientBranding() {
         {/* Color Scheme */}
         <Card>
           <CardHeader>
-            <CardTitle>Color Scheme</CardTitle>
-            <CardDescription>Customize colors to match your brand</CardDescription>
+            <CardTitle>Label Colors</CardTitle>
+            <CardDescription>Colors for branded elements on shipping labels</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="primaryColor">Primary Color</Label>
+                <Label htmlFor="primaryColor">Primary Brand Color</Label>
                 <Input
                   id="primaryColor"
                   type="color"
                   value={formData.primaryColor}
                   onChange={(e) => handleInputChange('primaryColor', e.target.value)}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used for header and accent elements
+                </p>
               </div>
               
               <div>
@@ -279,57 +273,10 @@ export default function ClientBranding() {
                   value={formData.secondaryColor}
                   onChange={(e) => handleInputChange('secondaryColor', e.target.value)}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used for borders and subtle elements
+                </p>
               </div>
-              
-              <div>
-                <Label htmlFor="backgroundColor">Background Color</Label>
-                <Input
-                  id="backgroundColor"
-                  type="color"
-                  value={formData.backgroundColor}
-                  onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="textColor">Text Color</Label>
-                <Input
-                  id="textColor"
-                  type="color"
-                  value={formData.textColor}
-                  onChange={(e) => handleInputChange('textColor', e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tracking Page Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tracking Page Content</CardTitle>
-            <CardDescription>Customize the content on your tracking pages</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="trackingPageTitle">Page Title</Label>
-              <Input
-                id="trackingPageTitle"
-                value={formData.trackingPageTitle}
-                onChange={(e) => handleInputChange('trackingPageTitle', e.target.value)}
-                placeholder="Track Your Shipment"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="trackingPageDescription">Page Description (Optional)</Label>
-              <Textarea
-                id="trackingPageDescription"
-                value={formData.trackingPageDescription}
-                onChange={(e) => handleInputChange('trackingPageDescription', e.target.value)}
-                placeholder="Enter your tracking number to see the latest updates..."
-                rows={3}
-              />
             </div>
           </CardContent>
         </Card>
@@ -337,8 +284,8 @@ export default function ClientBranding() {
         {/* Support Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Support Information</CardTitle>
-            <CardDescription>Contact details displayed on tracking pages</CardDescription>
+            <CardTitle>Support Contact</CardTitle>
+            <CardDescription>Contact information displayed on shipping labels</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -350,29 +297,13 @@ export default function ClientBranding() {
                 onChange={(e) => handleInputChange('supportEmail', e.target.value)}
                 placeholder="support@yourcompany.com"
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="supportPhone">Support Phone</Label>
-              <Input
-                id="supportPhone"
-                value={formData.supportPhone}
-                onChange={(e) => handleInputChange('supportPhone', e.target.value)}
-                placeholder="1-800-123-4567"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="footerText">Footer Text (Optional)</Label>
-              <Input
-                id="footerText"
-                value={formData.footerText}
-                onChange={(e) => handleInputChange('footerText', e.target.value)}
-                placeholder="© 2025 Your Company"
-              />
+              <p className="text-xs text-gray-500 mt-1">
+                Customers can contact this email for shipping inquiries
+              </p>
             </div>
           </CardContent>
         </Card>
+
       </div>
 
       {/* Preview Section */}
@@ -382,68 +313,76 @@ export default function ClientBranding() {
             <Eye className="w-5 h-5" />
             Preview
           </CardTitle>
-          <CardDescription>Preview how your branding will look to customers</CardDescription>
+          <CardDescription>Preview how your branding will appear on shipping labels</CardDescription>
         </CardHeader>
         <CardContent>
-          <div 
-            className="p-6 border rounded-lg"
-            style={{
-              backgroundColor: formData.backgroundColor,
-              color: formData.textColor,
-            }}
-          >
-            <div className="text-center space-y-4">
-              {/* Logo in preview */}
-              {(logoPreview || currentLogoUrl) && (
-                <div className="flex justify-center mb-4">
-                  <img 
-                    src={logoPreview || currentLogoUrl || ''} 
-                    alt="Company Logo" 
-                    className="h-12 object-contain"
-                  />
-                </div>
-              )}
-              
-              <h2 
-                className="text-2xl font-bold"
-                style={{ color: formData.primaryColor }}
-              >
-                {formData.companyName || 'Your Company'}
-              </h2>
-              
-              <h3 
-                className="text-xl font-semibold"
-                style={{ color: formData.primaryColor }}
-              >
-                {formData.trackingPageTitle}
-              </h3>
-              
-              {formData.trackingPageDescription && (
-                <p className="text-sm opacity-80">
-                  {formData.trackingPageDescription}
-                </p>
-              )}
-              
+          <div className="bg-white border rounded-lg p-6 shadow-sm">
+            {/* Shipping Label Preview */}
+            <div className="border-2 border-gray-300 bg-white p-4 max-w-md mx-auto" style={{ aspectRatio: '4/6' }}>
+              {/* Header with logo and company */}
               <div 
-                className="inline-block px-4 py-2 rounded"
-                style={{ backgroundColor: formData.primaryColor, color: '#ffffff' }}
+                className="border-b-2 pb-3 mb-4 text-center"
+                style={{ borderColor: formData.primaryColor }}
               >
-                Track Package
+                {(logoPreview || currentLogoUrl) && (
+                  <div className="flex justify-center mb-2">
+                    <img 
+                      src={logoPreview || currentLogoUrl || ''} 
+                      alt="Company Logo" 
+                      className="h-8 object-contain"
+                    />
+                  </div>
+                )}
+                <div 
+                  className="font-bold text-lg"
+                  style={{ color: formData.primaryColor }}
+                >
+                  {formData.companyName || 'Your Company'}
+                </div>
+                <div className="text-xs text-gray-600">SHIPPING LABEL</div>
               </div>
               
-              <div className="mt-6 pt-4 border-t text-sm opacity-60">
+              {/* Sample shipping info */}
+              <div className="space-y-3 text-xs">
+                <div>
+                  <div className="font-semibold text-gray-700">FROM:</div>
+                  <div className="text-gray-600">
+                    {formData.companyName || 'Your Company'}<br/>
+                    123 Business St<br/>
+                    Vancouver, BC V6B 1A1
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="font-semibold text-gray-700">TO:</div>
+                  <div className="text-gray-600">
+                    Customer Name<br/>
+                    456 Customer Ave<br/>
+                    Toronto, ON M5V 2H1
+                  </div>
+                </div>
+                
+                <div 
+                  className="border-t pt-2 mt-3"
+                  style={{ borderColor: formData.secondaryColor }}
+                >
+                  <div className="font-semibold text-gray-700">TRACKING: CP123456789CA</div>
+                  <div className="text-gray-600">Service: Expedited Parcel</div>
+                </div>
+                
                 {formData.supportEmail && (
-                  <span>Email: {formData.supportEmail}</span>
-                )}
-                {formData.supportEmail && formData.supportPhone && ' | '}
-                {formData.supportPhone && (
-                  <span>Phone: {formData.supportPhone}</span>
-                )}
-                {formData.footerText && (
-                  <div className="mt-2">{formData.footerText}</div>
+                  <div className="border-t pt-2 mt-3 text-center" style={{ borderColor: formData.secondaryColor }}>
+                    <div className="text-gray-600">
+                      Questions? {formData.supportEmail}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
+            
+            <p className="text-center text-sm text-gray-500 mt-4">
+              This is how your white-label shipping labels will appear to your end customers
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -455,7 +394,7 @@ export default function ClientBranding() {
           disabled={saveBrandingMutation.isPending}
           size="lg"
         >
-          {saveBrandingMutation.isPending ? 'Saving...' : 'Save Branding Settings'}
+          {saveBrandingMutation.isPending ? 'Saving...' : 'Save Label Settings'}
         </Button>
       </div>
     </div>
