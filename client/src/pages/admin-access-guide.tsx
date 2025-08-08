@@ -16,10 +16,10 @@ export default function AdminAccessGuide() {
         <div className="mb-8">
           <div className="flex items-center mb-4">
             <Shield className="w-8 h-8 text-blue-600 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-900">SwiftShip Admin Access Guide</h1>
+            <h1 className="text-3xl font-bold text-gray-900">ShipSwift Admin Access Guide</h1>
           </div>
           <p className="text-gray-600 text-lg">
-            Complete guide to accessing and using the SwiftShip admin control center
+            Complete guide to accessing and using the ShipSwift admin control center
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function AdminAccessGuide() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>SwiftShip Internal Use Only:</strong> Admin access is restricted to SwiftShip staff and authorized personnel only.
+                  <strong>ShipSwift Internal Use Only:</strong> Admin access is restricted to ShipSwift staff and authorized personnel only.
                 </AlertDescription>
               </Alert>
 
@@ -48,7 +48,7 @@ export default function AdminAccessGuide() {
                   </div>
                   <ul className="text-sm text-green-700 space-y-1">
                     <li>• User account with <Badge variant="outline">admin</Badge> role</li>
-                    <li>• Valid SwiftShip employee status</li>
+                    <li>• Valid ShipSwift employee status</li>
                     <li>• Platform management authorization</li>
                   </ul>
                 </div>
@@ -90,7 +90,7 @@ export default function AdminAccessGuide() {
                   <div className="flex items-start">
                     <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-3 mt-0.5">2</div>
                     <div>
-                      <p className="font-medium">Look for "SwiftShip Admin" Button</p>
+                      <p className="font-medium">Look for "ShipSwift Admin" Button</p>
                       <p className="text-sm text-gray-600">Orange button appears in the navigation bar for admin users only</p>
                     </div>
                   </div>
@@ -98,7 +98,7 @@ export default function AdminAccessGuide() {
                   <div className="flex items-start">
                     <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-3 mt-0.5">3</div>
                     <div>
-                      <p className="font-medium">Click "SwiftShip Admin"</p>
+                      <p className="font-medium">Click "ShipSwift Admin"</p>
                       <p className="text-sm text-gray-600">Redirects to /admin with full platform controls</p>
                     </div>
                   </div>
@@ -108,7 +108,7 @@ export default function AdminAccessGuide() {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  If you don't see the "SwiftShip Admin" button, your account may not have admin permissions. Contact system administrator.
+                  If you don't see the "ShipSwift Admin" button, your account may not have admin permissions. Contact system administrator.
                 </AlertDescription>
               </Alert>
             </CardContent>

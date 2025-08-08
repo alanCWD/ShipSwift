@@ -38,12 +38,12 @@ export default function SettingsPanel() {
   const [sendgridSettings, setSendgridSettings] = useState({
     apiKey: '',
     fromEmail: 'noreply@ablplogistics.ca',
-    fromName: 'SwiftShip',
+    fromName: 'ShipSwift',
   });
 
   // Company Settings
   const [companySettings, setCompanySettings] = useState({
-    companyName: 'SwiftShip',
+    companyName: 'ShipSwift',
     businessNumber: '',
     supportEmail: 'support@ablplogistics.ca',
     phoneNumber: '(604) 392-3923',
@@ -86,11 +86,11 @@ export default function SettingsPanel() {
       setSendgridSettings({
         apiKey: settingsMap.SENDGRID_API_KEY || '',
         fromEmail: settingsMap.SENDGRID_FROM_EMAIL || 'noreply@ablplogistics.ca',
-        fromName: settingsMap.SENDGRID_FROM_NAME || 'SwiftShip',
+        fromName: settingsMap.SENDGRID_FROM_NAME || 'ShipSwift',
       });
 
       setCompanySettings({
-        companyName: settingsMap.COMPANY_NAME || 'SwiftShip',
+        companyName: settingsMap.COMPANY_NAME || 'ShipSwift',
         businessNumber: settingsMap.BUSINESS_NUMBER || '',
         supportEmail: settingsMap.SUPPORT_EMAIL || 'support@ablplogistics.ca',
         phoneNumber: settingsMap.PHONE_NUMBER || '(604) 392-3923',
@@ -251,10 +251,10 @@ export default function SettingsPanel() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <div className="flex items-center mb-4">
           <Shield className="w-6 h-6 text-blue-600 mr-2" />
-          <h2 className="text-2xl font-bold text-gray-900">SwiftShip Platform Configuration</h2>
+          <h2 className="text-2xl font-bold text-gray-900">ShipSwift Platform Configuration</h2>
         </div>
         <p className="text-gray-700">
-          Configure API integrations, company information, and system-wide settings. These settings are only visible to SwiftShip administrators and control the entire platform operation.
+          Configure API integrations, company information, and system-wide settings. These settings are only visible to ShipSwift administrators and control the entire platform operation.
         </p>
       </div>
 
@@ -549,7 +549,7 @@ export default function SettingsPanel() {
                       id="fromName"
                       value={sendgridSettings.fromName}
                       onChange={(e) => setSendgridSettings({...sendgridSettings, fromName: e.target.value})}
-                      placeholder="SwiftShip"
+                      placeholder="ShipSwift"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Display name for outgoing emails
@@ -622,7 +622,7 @@ export default function SettingsPanel() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Building className="w-5 h-5 mr-2" />
-                SwiftShip Company Settings
+                ShipSwift Company Settings
               </CardTitle>
               <p className="text-sm text-gray-600">
                 Configure company information and platform-wide settings
@@ -712,7 +712,7 @@ export default function SettingsPanel() {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Tracking Page Branding</Label>
-                      <p className="text-sm text-gray-500">Show SwiftShip branding on tracking pages</p>
+                      <p className="text-sm text-gray-500">Show ShipSwift branding on tracking pages</p>
                     </div>
                     <Switch
                       checked={companySettings.trackingPageBranding}

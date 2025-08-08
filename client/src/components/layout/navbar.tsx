@@ -30,7 +30,7 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
           <div className="flex items-center">
             <Link href="/home" className="flex items-center hover:opacity-80 transition-opacity">
               <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
-                SwiftShip
+                ShipSwift
               </div>
               <span className="ml-3 text-2xl font-bold text-gray-900">Logistics</span>
             </Link>

@@ -295,7 +295,7 @@ export default function ShipmentForm({ rate, onBack }: ShipmentFormProps) {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <MapPin className="w-4 h-4 mr-2 text-blue-600" />
-                        Ship From (SwiftShip)
+                        Ship From (ShipSwift)
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

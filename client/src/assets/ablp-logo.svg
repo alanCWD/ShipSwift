@@ -1,10 +1,10 @@
 <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- SwiftShip Logo -->
+  <!-- ShipSwift Logo -->
   <rect width="120" height="60" rx="8" fill="#1E40AF"/>
   
-  <!-- SwiftShip Text -->
+  <!-- ShipSwift Text -->
   <text x="8" y="35" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="white">
-    SwiftShip
+    ShipSwift
   </text>
   
   <!-- Tagline Text -->

@@ -126,7 +126,7 @@ class EmailService {
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin: 0; font-size: 24px;">SwiftShip</h1>
+            <h1 style="margin: 0; font-size: 24px;">ShipSwift</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Subsidiary of ABLP Logistics</p>
         </div>
         
@@ -188,7 +188,7 @@ class EmailService {
         </div>
         
         <div class="footer">
-            <p style="margin: 0 0 10px 0;"><strong>SwiftShip</strong></p>
+            <p style="margin: 0 0 10px 0;"><strong>ShipSwift</strong></p>
             <p style="margin: 0;">44322 Yale Rd #3, Chilliwack, BC V2R 4H1</p>
             <p style="margin: 5px 0 0 0;">Phone: (604) 392-3923 | Email: support@ablplogistics.ca</p>
         </div>
@@ -202,7 +202,7 @@ class EmailService {
     const statusMessage = this.getStatusMessage(data.status);
     
     return `
-SwiftShip - Shipment Update
+ShipSwift - Shipment Update
 
 Hello${data.customerName ? ` ${data.customerName}` : ''},
 
@@ -224,9 +224,9 @@ If you have any questions, please contact us:
 Phone: (604) 392-3923
 Email: support@ablplogistics.ca
 
-Thank you for choosing SwiftShip!
+Thank you for choosing ShipSwift!
 
-SwiftShip
+ShipSwift
 Subsidiary of ABLP Logistics
 44322 Yale Rd #3, Chilliwack, BC V2R 4H1
     `;

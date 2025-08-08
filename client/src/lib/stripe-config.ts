@@ -39,7 +39,7 @@ export const paymentElementOptions = {
   layout: 'tabs' as const,
   paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
   business: {
-    name: 'SwiftShip',
+    name: 'ShipSwift',
   },
   fields: {
     billingDetails: {
@@ -158,11 +158,11 @@ export const calculateCanadianTax = (subtotal: number, province: string): number
   return subtotal * (rates.gst + rates.pst);
 };
 
-// Stripe Elements appearance customization for SwiftShip branding
+// Stripe Elements appearance customization for ShipSwift branding
 export const stripeElementsAppearance = {
   theme: 'stripe' as const,
   variables: {
-    colorPrimary: '#1E40AF', // SwiftShip blue
+    colorPrimary: '#1E40AF', // ShipSwift blue
     colorBackground: '#ffffff',
     colorText: '#1f2937',
     colorDanger: '#ef4444',

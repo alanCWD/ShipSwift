@@ -68,7 +68,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
       });
       
       toast({
-        title: "Welcome to SwiftShip!",
+        title: "Welcome to ShipSwift!",
         description: "Your account has been created successfully.",
       });
       onClose();
