@@ -894,31 +894,31 @@ function CreateUserForm({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="email">Email *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className={errors.email ? 'border-red-500' : ''}
-          />
-          {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-        </div>
-        <div>
-          <Label htmlFor="role">Role *</Label>
-          <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="customer">Customer</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="ablp_admin">ABLP Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <Label htmlFor="email">Email *</Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className={errors.email ? 'border-red-500' : ''}
+          placeholder="user@company.com"
+        />
+        {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="role">Role *</Label>
+        <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="customer">Customer</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="ablp_admin">ABLP Admin</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
