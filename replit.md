@@ -46,14 +46,22 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Created Cookie Policy with cookie types, management, and third-party integrations
   - All policies are generic templates referencing only ABLP Logistics (no ShipSwift mentions)
   - Added proper routing and footer links for easy access to all legal documents
-- **COMPLETED: Multi-modal shipping options implementation (August 2025)**
-  - Added comprehensive shipping solution categories: Small Package, LTL Freight, and Pallet Shipping
-  - Small Package Courier: Existing functionality with instant quotes and online label creation
-  - LTL Freight Services: Contact-based quotes for 150-15,000 lbs shipments with professional handling
-  - Pallet Shipping: Specialized pallet handling service with forklift equipment and warehouse delivery
-  - Created contact modal system for custom quotes with multiple contact options (phone, email, live chat)
-  - Integrated multi-modal section into home page between rate calculator and features section
-  - Added detailed service specifications, weight ranges, and handling requirements for each service type
+- **COMPLETED: UI improvements for shipment workflow (August 2025)**
+  - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
+  - Added automatic redirect to dashboard after successful payment completion
+  - Replaced 3-dot dropdown menu with direct "Track" and "Label" buttons in Recent Shipments
+  - Created comprehensive /shipments page to replace 404 error with full shipment management
+  - Fixed tracking page auto-fill functionality when accessed from shipment links
+  - Replaced broken demo label placeholder with proper SVG-based shipping labels
+- **COMPLETED: Content organization and marketing cleanup (August 2025)**
+  - Removed detailed marketing content from footer component to keep it only on home page
+  - Simplified footer to show essential links: Quick Links (dashboard, create shipment, tracking, shipments) and Support (profile, branding, contact)
+  - Replaced marketing descriptions with concise company description
+  - Marketing features section (Rate Comparison, Label Printing, etc.) now exclusively on home page
+  - **UPDATED: Streamlined to 3 core features: Rate Comparison, Shipment Management, Branded Customization**
+  - Removed Multi-Modal Shipping and Returns Management sections for focused messaging
+  - Consolidated label printing functionality into Shipment Management section
+  - Enhanced Branded Customization to encompass full white-label solutions
 - **COMPLETED: UI improvements for shipment workflow (August 2025)**
   - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
   - Added automatic redirect to dashboard after successful payment completion

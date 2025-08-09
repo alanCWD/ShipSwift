@@ -5,10 +5,10 @@ import LoginModal from '../components/auth/login-modal';
 import RegisterModal from '../components/auth/register-modal';
 import RateCalculator from '../components/shipping/rate-calculator';
 import RateResults from '../components/shipping/rate-results';
-import MultiModalOptions from '../components/shipping/multi-modal-options';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, Truck, Globe, RotateCcw, BarChart3, Settings } from 'lucide-react';
+import { Settings, BarChart3, Palette } from 'lucide-react';
 
 export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -72,9 +72,6 @@ export default function Home() {
         <RateResults rates={rateResults} />
       )}
 
-      {/* Multi-Modal Shipping Options */}
-      <MultiModalOptions />
-
       {/* Features Section */}
       <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +84,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-8">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
@@ -114,31 +111,7 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
-                  <Package className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Label Printing</h3>
-                <p className="text-gray-600 mb-4">
-                  Generate and print professional shipping labels with customs documentation for international shipments.
-                </p>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Thermal printer compatible
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Customs forms included
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Bulk printing support
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-8">
@@ -147,12 +120,12 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Shipment Management</h3>
                 <p className="text-gray-600 mb-4">
-                  Unified dashboard to track and manage all your domestic and international shipments with comprehensive reporting.
+                  Comprehensive shipment tracking and management tools with automated notifications, label printing, and reporting.
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2">
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Real-time tracking
+                    Professional label printing
                   </li>
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
@@ -160,59 +133,7 @@ export default function Home() {
                   </li>
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Performance analytics
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
-                  <Globe className="w-6 h-6 text-orange-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Branded Tracking Pages</h3>
-                <p className="text-gray-600 mb-4">
-                  Provide your customers with branded tracking experiences featuring your logo, colours, and social media links.
-                </p>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Custom branding
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Social media integration
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Enhanced customer experience
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-6">
-                  <Truck className="w-6 h-6 text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Multi-Modal Shipping</h3>
-                <p className="text-gray-600 mb-4">
-                  Support for various shipping needs from small packages to Less-Than-Truckload (LTL) freight for larger shipments.
-                </p>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Small package courier
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    LTL freight services
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Pallet shipping
+                    Delivery confirmations
                   </li>
                 </ul>
               </CardContent>
@@ -221,24 +142,24 @@ export default function Home() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-8">
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-6">
-                  <RotateCcw className="w-6 h-6 text-indigo-600" />
+                  <Palette className="w-6 h-6 text-indigo-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Returns Management</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Branded Customization</h3>
                 <p className="text-gray-600 mb-4">
-                  User-friendly system for handling shipment returns with automated return label generation and tracking.
+                  Customizable branding options that allow your customers to track shipments under your company brand with full white-label solutions.
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2">
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Automated return labels
+                    Custom branding
                   </li>
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Customer portal
+                    Branded tracking pages
                   </li>
                   <li className="flex items-center">
                     <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    Return tracking
+                    Logo customization
                   </li>
                 </ul>
               </CardContent>
