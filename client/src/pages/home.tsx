@@ -5,6 +5,7 @@ import LoginModal from '../components/auth/login-modal';
 import RegisterModal from '../components/auth/register-modal';
 import RateCalculator from '../components/shipping/rate-calculator';
 import RateResults from '../components/shipping/rate-results';
+import MultiModalOptions from '../components/shipping/multi-modal-options';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package, Truck, Globe, RotateCcw, BarChart3, Settings } from 'lucide-react';
@@ -70,6 +71,9 @@ export default function Home() {
       {rateResults && (
         <RateResults rates={rateResults} />
       )}
+
+      {/* Multi-Modal Shipping Options */}
+      <MultiModalOptions />
 
       {/* Features Section */}
       <div className="py-20 bg-white">
