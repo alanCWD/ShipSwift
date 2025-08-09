@@ -118,6 +118,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Automatically log in the user after registration
       req.session.userId = user.id;
       
+      // Update login stats
+      await storage.updateUser(user.id, {
+        lastLoginAt: new Date(),
+        loginCount: (user.loginCount || 0) + 1
+      });
+      
+      // Log registration activity
+      await storage.logUserActivity({
+        userId: user.id,
+        activityType: 'registration',
+        activityData: { method: 'web_form' },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
       res.json({ user: { ...user, role: user.role } });
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -141,6 +156,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // For demo: accept any non-empty password (in production, verify against hashed password)
+      // Update login stats
+      await storage.updateUser(user.id, {
+        lastLoginAt: new Date(),
+        loginCount: (user.loginCount || 0) + 1
+      });
+      
+      // Log login activity
+      await storage.logUserActivity({
+        userId: user.id,
+        activityType: 'login',
+        activityData: { method: 'email_password' },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
       // Set session
       console.log('Setting session for user:', user.id);
       req.session.userId = user.id;
@@ -484,6 +514,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeChargeId: paymentIntent.id,
       });
 
+      // Log shipment creation activity
+      await storage.logUserActivity({
+        userId,
+        activityType: 'shipment_created',
+        activityData: {
+          shipmentId: shipment.id,
+          carrierName: shipment.carrierName,
+          serviceName: shipment.serviceName,
+          totalCost: shipment.totalCost,
+          trackingNumber: shipment.trackingNumber
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
       // Send shipment creation notification email
       try {
         const user = await storage.getUser(userId);
@@ -801,7 +846,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: 'processing'
           };
 
-          const shipment = await storage.createShipment(shipmentData);
+          const shipment = await storage.createShipment({
+            ...shipmentData,
+            baseCost: shipmentData.totalCost || '0'
+          });
           successfulImports.push({ row: i + 2, shipmentId: shipment.id });
 
         } catch (error: any) {
@@ -1220,6 +1268,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error fetching user activity:", error);
       res.status(500).json({ message: "Failed to fetch user activity" });
+    }
+  });
+
+  app.get("/api/admin/users/:id/stats", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const stats = await storage.getUserDetailedStats(id);
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
     }
   });
 

@@ -43,9 +43,10 @@ import {
   Search,
   Filter,
   Calendar,
-  Activity,
-  UserPlus,
   Key,
+  Activity,
+  Plus,
+  UserPlus,
   Mail
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -269,6 +270,54 @@ export default function AdminUsers() {
         return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  // Component to display user statistics with real data
+  const UserStatsCell = ({ userId, field }: { userId: string; field: 'shipments' | 'totalSpent' | 'totalSaved' }) => {
+    const { data: stats, isLoading } = useQuery<{
+      shipmentsCount: number;
+      totalSpent: string;
+      totalSaved: string;
+      lastLoginAt: Date | null;
+      loginCount: number;
+    }>({
+      queryKey: [`/api/admin/users/${userId}/stats`],
+      enabled: !!userId,
+    });
+
+    if (isLoading) {
+      return <div className="text-sm text-gray-400">Loading...</div>;
+    }
+
+    if (!stats) {
+      return <div className="text-sm text-gray-400">--</div>;
+    }
+
+    switch (field) {
+      case 'shipments':
+        return (
+          <div className="flex items-center text-sm">
+            <Package className="w-4 h-4 mr-1 text-gray-400" />
+            {stats.shipmentsCount}
+          </div>
+        );
+      case 'totalSpent':
+        return (
+          <div className="flex items-center text-sm">
+            <DollarSign className="w-4 h-4 mr-1 text-gray-400" />
+            ${parseFloat(stats.totalSpent).toFixed(2)}
+          </div>
+        );
+      case 'totalSaved':
+        return (
+          <div className="flex items-center text-sm text-green-600">
+            <TrendingUp className="w-4 h-4 mr-1" />
+            ${parseFloat(stats.totalSaved).toFixed(2)}
+          </div>
+        );
+      default:
+        return <div className="text-sm text-gray-400">--</div>;
     }
   };
 
@@ -497,20 +546,13 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center text-sm">
-                          <Package className="w-4 h-4 mr-1 text-gray-400" />
-                          {user.shipmentsCount}
-                        </div>
+                        <UserStatsCell userId={user.id} field="shipments" />
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium text-green-600">
-                          ${parseFloat(user.totalSpent).toFixed(2)}
-                        </div>
+                        <UserStatsCell userId={user.id} field="totalSpent" />
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium text-blue-600">
-                          ${parseFloat(user.totalSaved).toFixed(2)}
-                        </div>
+                        <UserStatsCell userId={user.id} field="totalSaved" />
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">

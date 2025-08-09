@@ -73,6 +73,15 @@ export interface IStorage {
   
   // Additional shipment methods
   getShipmentByTrackingNumber(trackingNumber: string): Promise<Shipment | undefined>;
+  
+  // User statistics
+  getUserDetailedStats(userId: string): Promise<{
+    shipmentsCount: number;
+    totalSpent: string;
+    totalSaved: string;
+    lastLoginAt: Date | null;
+    loginCount: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -139,7 +148,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
 
-    return await query.orderBy(desc(users.createdAt));
+    return await query.orderBy(desc(users.createdAt)).execute();
   }
 
   async getUserStats(): Promise<{
@@ -221,7 +230,77 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .returning();
+
+    // Update user statistics
+    await this.updateUserShipmentStats(shipmentData.userId, shipmentData.totalCost, shipmentData.markupCost || '0.00');
+    
     return shipment;
+  }
+
+  // Helper method to update user shipment statistics
+  async updateUserShipmentStats(userId: string, totalCost: string, markupCost: string): Promise<void> {
+    const user = await this.getUser(userId);
+    if (user) {
+      const currentTotalSpent = parseFloat(user.totalSpent || '0.00');
+      const currentTotalSaved = parseFloat(user.totalSaved || '0.00');
+      const shipmentCost = parseFloat(totalCost || '0.00');
+      const markup = parseFloat(markupCost || '0.00');
+      
+      // Total spent is the amount the user paid
+      const newTotalSpent = currentTotalSpent + shipmentCost;
+      
+      // Total saved is an estimate of savings compared to standard rates
+      // For now, we'll estimate 15% savings (this could be more sophisticated)
+      const estimatedStandardRate = shipmentCost * 1.15;
+      const savings = estimatedStandardRate - shipmentCost;
+      const newTotalSaved = currentTotalSaved + savings;
+      
+      await this.updateUser(userId, {
+        totalSpent: newTotalSpent.toFixed(2),
+        totalSaved: newTotalSaved.toFixed(2),
+        shipmentsCount: (user.shipmentsCount || 0) + 1
+      });
+    }
+  }
+
+  // Get detailed user statistics with shipment counts and financial data
+  async getUserDetailedStats(userId: string): Promise<{
+    shipmentsCount: number;
+    totalSpent: string;
+    totalSaved: string;
+    lastLoginAt: Date | null;
+    loginCount: number;
+  }> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return {
+        shipmentsCount: 0,
+        totalSpent: '0.00',
+        totalSaved: '0.00',
+        lastLoginAt: null,
+        loginCount: 0
+      };
+    }
+
+    // Get actual shipment count from database
+    const [shipmentStats] = await db
+      .select({
+        count: count(),
+        totalSpent: sum(shipments.totalCost),
+      })
+      .from(shipments)
+      .where(eq(shipments.userId, userId));
+
+    const actualShipmentsCount = shipmentStats?.count || 0;
+    const actualTotalSpent = shipmentStats?.totalSpent || '0.00';
+
+    return {
+      shipmentsCount: actualShipmentsCount,
+      totalSpent: actualTotalSpent.toString(),
+      totalSaved: user.totalSaved || '0.00',
+      lastLoginAt: user.lastLoginAt,
+      loginCount: user.loginCount || 0
+    };
   }
 
   async updateShipment(id: string, updates: Partial<Shipment>): Promise<Shipment> {
