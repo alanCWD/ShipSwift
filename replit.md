@@ -29,6 +29,13 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Fixed frontend Stripe loading and payment form functionality
   - Complete shipment creation flow operational: rate selection → details → payment → label generation
   - Enhanced user experience with clearer success messages and label access instructions
+- **COMPLETED: Enhanced insurance system with comprehensive terms (August 2025)**
+  - Insurance toggle now defaults to OFF, with Edit Insurance button appearing only when enabled
+  - Updated insurance description to clarify protection beyond carrier liability
+  - Removed all Freightcom branding from insurance terms and conditions
+  - Created comprehensive Insurance Terms page with detailed coverage information and prohibited items list
+  - Added Insurance Terms link to footer Support section for easy access
+  - Linked terms acceptance checkbox to new Insurance Terms page
 - **COMPLETED: UI improvements for shipment workflow (August 2025)**
   - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
   - Added automatic redirect to dashboard after successful payment completion

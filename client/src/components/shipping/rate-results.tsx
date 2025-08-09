@@ -18,7 +18,7 @@ export default function RateResults({ rates }: RateResultsProps) {
   const [selectedRate, setSelectedRate] = useState(null);
   const [showPickupOptions, setShowPickupOptions] = useState(false);
   const [pickupDetails, setPickupDetails] = useState(null);
-  const [insuranceEnabled, setInsuranceEnabled] = useState(true); // Default to enabled
+  const [insuranceEnabled, setInsuranceEnabled] = useState(false); // Default to off
   const [insuranceData, setInsuranceData] = useState<any>(null);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
 
@@ -84,17 +84,7 @@ export default function RateResults({ rates }: RateResultsProps) {
 
   const handleInsuranceToggle = (enabled: boolean) => {
     setInsuranceEnabled(enabled);
-    if (enabled && !insuranceData) {
-      // Set default insurance data when first enabled
-      setInsuranceData({
-        totalValue: '100',
-        currency: 'CAD',
-        insuranceType: 'shipswift',
-        signatureType: 'signature_required',
-        termsAccepted: false,
-        carrierTermsAccepted: false,
-      });
-    }
+    // Don't auto-set insurance data - let user configure via modal
   };
 
   const handleInsuranceSave = (data: any) => {
@@ -201,11 +191,11 @@ export default function RateResults({ rates }: RateResultsProps) {
                 <Shield className="w-5 h-5 text-blue-600" />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Insurance</h3>
-                  <p className="text-sm text-gray-600">Protect your shipment with additional coverage</p>
+                  <p className="text-sm text-gray-600">Protect your shipment beyond the carrier's liability for any loss or damage to your Parcel Shipment with additional coverage.</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                {insuranceEnabled && insuranceData && (
+                {insuranceEnabled && (
                   <Button
                     variant="outline"
                     size="sm"

@@ -48,6 +48,7 @@ export default function Footer() {
               <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
               <li><Link href="/branding" className="hover:text-white transition-colors">Branding</Link></li>
               <li><a href="mailto:support@ablplogistics.ca" className="hover:text-white transition-colors">Contact Support</a></li>
+              <li><Link href="/insurance-terms" className="hover:text-white transition-colors">Insurance Terms</Link></li>
             </ul>
           </div>
         </div>
