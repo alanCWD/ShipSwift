@@ -640,48 +640,94 @@ function UserEditForm({
     notes: user.notes || '',
   });
 
+  // Update form data when user prop changes
+  useEffect(() => {
+    setFormData({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      companyName: user.companyName || '',
+      phone: user.phone || '',
+      role: user.role,
+      isActive: user.isActive,
+      notes: user.notes || '',
+    });
+  }, [user]);
+
+  const [errors, setErrors] = useState<any>({});
+
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!formData.firstName?.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName?.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.companyName?.trim()) newErrors.companyName = 'Company name is required - individual accounts are not allowed';
+    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(formData);
+    if (validateForm()) {
+      onUpdate(formData);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Business Rule Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <p className="text-sm text-blue-800">
+          <strong>Business Policy:</strong> All accounts must be associated with a company. Individual personal accounts are not permitted.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="firstName">First Name *</Label>
           <Input
             id="firstName"
             value={formData.firstName}
             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            className={errors.firstName ? 'border-red-500' : ''}
           />
+          {errors.firstName && <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>}
         </div>
         <div>
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="lastName">Last Name *</Label>
           <Input
             id="lastName"
             value={formData.lastName}
             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            className={errors.lastName ? 'border-red-500' : ''}
           />
+          {errors.lastName && <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>}
         </div>
       </div>
 
       <div>
-        <Label htmlFor="companyName">Company Name</Label>
+        <Label htmlFor="companyName">Company Name *</Label>
         <Input
           id="companyName"
           value={formData.companyName}
           onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+          className={errors.companyName ? 'border-red-500' : ''}
+          placeholder="Company name is required - no individual accounts allowed"
         />
+        {errors.companyName && <p className="text-sm text-red-500 mt-1">{errors.companyName}</p>}
       </div>
 
       <div>
-        <Label htmlFor="phone">Phone</Label>
+        <Label htmlFor="phone">Phone *</Label>
         <Input
           id="phone"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className={errors.phone ? 'border-red-500' : ''}
+          placeholder="e.g., +1 (604) 123-4567"
         />
+        {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -764,6 +810,11 @@ function CreateUserForm({
     if (!formData.email) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     
+    if (!formData.firstName?.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName?.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.companyName?.trim()) newErrors.companyName = 'Company name is required - individual accounts are not allowed';
+    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
+    
     if (!formData.password) newErrors.password = 'Password is required';
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     
@@ -794,6 +845,13 @@ function CreateUserForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Business Rule Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <p className="text-sm text-blue-800">
+          <strong>Business Policy:</strong> All accounts must be associated with a company. Individual personal accounts are not permitted.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="email">Email *</Label>
@@ -819,6 +877,53 @@ function CreateUserForm({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="firstName">First Name *</Label>
+          <Input
+            id="firstName"
+            value={formData.firstName}
+            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            className={errors.firstName ? 'border-red-500' : ''}
+          />
+          {errors.firstName && <p className="text-sm text-red-500">{errors.firstName}</p>}
+        </div>
+        <div>
+          <Label htmlFor="lastName">Last Name *</Label>
+          <Input
+            id="lastName"
+            value={formData.lastName}
+            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            className={errors.lastName ? 'border-red-500' : ''}
+          />
+          {errors.lastName && <p className="text-sm text-red-500">{errors.lastName}</p>}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="companyName">Company Name *</Label>
+        <Input
+          id="companyName"
+          value={formData.companyName}
+          onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+          className={errors.companyName ? 'border-red-500' : ''}
+          placeholder="Company name is required - no individual accounts allowed"
+        />
+        {errors.companyName && <p className="text-sm text-red-500">{errors.companyName}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="phone">Phone *</Label>
+        <Input
+          id="phone"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className={errors.phone ? 'border-red-500' : ''}
+          placeholder="e.g., +1 (604) 123-4567"
+        />
+        {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
