@@ -5,6 +5,7 @@ import Navbar from '../components/layout/navbar';
 import Footer from '../components/layout/footer';
 import SettingsPanel from '../components/admin/settings-panel';
 import AdvancedMarkupConfig from '../components/admin/advanced-markup-config';
+import AdminUsers from './admin/users';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Admin() {
@@ -44,9 +45,10 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="settings">API & System Settings</TabsTrigger>
             <TabsTrigger value="markups">Intelligent Markup Rules</TabsTrigger>
+            <TabsTrigger value="users">User Management</TabsTrigger>
           </TabsList>
           
           <TabsContent value="settings">
@@ -55,6 +57,10 @@ export default function Admin() {
           
           <TabsContent value="markups">
             <AdvancedMarkupConfig />
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <AdminUsers />
           </TabsContent>
         </Tabs>
       </div>

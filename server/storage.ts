@@ -1,5 +1,6 @@
 import {
   users,
+  userActivity,
   shipments,
   clientBranding,
   rateMarkups,
@@ -7,6 +8,8 @@ import {
   systemSettings,
   type User,
   type InsertUser,
+  type UserActivity,
+  type InsertUserActivity,
   type Shipment,
   type InsertShipment,
   type ClientBranding,
@@ -17,7 +20,7 @@ import {
   type InsertReturn,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, like, or, count, sum, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -25,6 +28,18 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
+  
+  // Admin user management operations
+  getAllUsers(filters?: { search?: string; role?: string; status?: string }): Promise<User[]>;
+  getUserStats(): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    newUsersToday: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+  }>;
+  getUserActivity(userId: string): Promise<UserActivity[]>;
+  logUserActivity(activity: InsertUserActivity): Promise<void>;
   
   // Shipment operations
   getShipment(id: string): Promise<Shipment | undefined>;
@@ -93,6 +108,95 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  // Admin user management operations
+  async getAllUsers(filters?: { search?: string; role?: string; status?: string }): Promise<User[]> {
+    let query = db.select().from(users);
+    const conditions: any[] = [];
+
+    if (filters?.search) {
+      const searchTerm = `%${filters.search}%`;
+      conditions.push(
+        or(
+          like(users.email, searchTerm),
+          like(users.firstName, searchTerm),
+          like(users.lastName, searchTerm),
+          like(users.companyName, searchTerm)
+        )
+      );
+    }
+
+    if (filters?.role && filters.role !== 'all') {
+      conditions.push(eq(users.role, filters.role));
+    }
+
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(users.isActive, filters.status === 'active'));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(users.createdAt));
+  }
+
+  async getUserStats(): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    newUsersToday: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+  }> {
+    // Get user counts
+    const [totalUsersResult] = await db.select({ count: count() }).from(users);
+    const [activeUsersResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.isActive, true));
+
+    // Get new users today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [newUsersTodayResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(sql`${users.createdAt} >= ${today}`);
+
+    // Get revenue stats from shipments
+    const [revenueResult] = await db
+      .select({
+        totalRevenue: sum(shipments.totalCost),
+        totalShipments: count(),
+      })
+      .from(shipments)
+      .where(eq(shipments.status, 'delivered'));
+
+    const totalRevenue = parseFloat(revenueResult?.totalRevenue?.toString() || '0');
+    const totalShipments = revenueResult?.totalShipments || 0;
+    const averageOrderValue = totalShipments > 0 ? totalRevenue / totalShipments : 0;
+
+    return {
+      totalUsers: totalUsersResult?.count || 0,
+      activeUsers: activeUsersResult?.count || 0,
+      newUsersToday: newUsersTodayResult?.count || 0,
+      totalRevenue,
+      averageOrderValue,
+    };
+  }
+
+  async getUserActivity(userId: string): Promise<UserActivity[]> {
+    return await db
+      .select()
+      .from(userActivity)
+      .where(eq(userActivity.userId, userId))
+      .orderBy(desc(userActivity.createdAt))
+      .limit(100); // Limit to last 100 activities
+  }
+
+  async logUserActivity(activity: InsertUserActivity): Promise<void> {
+    await db.insert(userActivity).values(activity);
   }
 
   // Shipment operations

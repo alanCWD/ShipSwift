@@ -1113,6 +1113,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Management API endpoints (Admin only)
+  app.get("/api/admin/users/stats", requireAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getUserStats();
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user statistics" });
+    }
+  });
+
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+    try {
+      const { search, role, status } = req.query;
+      const users = await storage.getAllUsers({
+        search: search as string,
+        role: role as string,
+        status: status as string,
+      });
+      res.json(users);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const user = await storage.updateUser(id, updates);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.get("/api/admin/users/:id/activity", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const activity = await storage.getUserActivity(id);
+      res.json(activity);
+    } catch (error: any) {
+      console.error("Error fetching user activity:", error);
+      res.status(500).json({ message: "Failed to fetch user activity" });
+    }
+  });
+
+  // Development endpoint to seed sample users (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    app.post("/api/admin/seed-users", requireAdmin, async (req, res) => {
+      try {
+        const sampleUsers = [
+          {
+            email: 'alice.johnson@acmecorp.com',
+            firstName: 'Alice',
+            lastName: 'Johnson',
+            companyName: 'Acme Corp',
+            phone: '604-555-0123',
+            role: 'customer',
+            totalSpent: '1250.75',
+            totalSaved: '89.25',
+            shipmentsCount: 12,
+            loginCount: 25,
+            lastLoginAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+            preferredCarrier: 'Canada Post'
+          },
+          {
+            email: 'bob.smith@techstart.io',
+            firstName: 'Bob',
+            lastName: 'Smith',
+            companyName: 'TechStart Inc',
+            phone: '416-555-0456',
+            role: 'customer',
+            totalSpent: '2840.50',
+            totalSaved: '184.30',
+            shipmentsCount: 28,
+            loginCount: 45,
+            lastLoginAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+            preferredCarrier: 'Purolator'
+          },
+          {
+            email: 'sarah.chen@logistics.com',
+            firstName: 'Sarah',
+            lastName: 'Chen',
+            companyName: 'Chen Logistics',
+            phone: '778-555-0789',
+            role: 'admin',
+            totalSpent: '580.25',
+            totalSaved: '45.60',
+            shipmentsCount: 8,
+            loginCount: 15,
+            lastLoginAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+            preferredCarrier: 'UPS'
+          },
+          {
+            email: 'mike.wilson@smallbiz.ca',
+            firstName: 'Mike',
+            lastName: 'Wilson',
+            companyName: 'Small Biz Solutions',
+            phone: '250-555-1234',
+            role: 'customer',
+            totalSpent: '450.00',
+            totalSaved: '32.15',
+            shipmentsCount: 6,
+            loginCount: 8,
+            lastLoginAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+            preferredCarrier: 'FedEx',
+            isActive: false,
+            notes: 'Account suspended due to payment issues'
+          },
+          {
+            email: 'jennifer.lee@ecommerce.net',
+            firstName: 'Jennifer',
+            lastName: 'Lee',
+            companyName: 'E-Commerce Plus',
+            phone: '604-555-9876',
+            role: 'customer',
+            totalSpent: '3200.80',
+            totalSaved: '245.70',
+            shipmentsCount: 42,
+            loginCount: 67,
+            lastLoginAt: new Date(), // Active now
+            preferredCarrier: 'DHL'
+          }
+        ];
+
+        const createdUsers = [];
+        
+        for (const userData of sampleUsers) {
+          try {
+            const existingUser = await storage.getUserByEmail(userData.email);
+            if (!existingUser) {
+              const user = await storage.createUser(userData);
+              
+              // Log some sample activity for each user
+              await storage.logUserActivity({
+                userId: user.id,
+                activityType: 'login',
+                ipAddress: '192.168.1.100',
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              });
+              
+              await storage.logUserActivity({
+                userId: user.id,
+                activityType: 'rate_quoted',
+                activityData: { carrier: userData.preferredCarrier, service: 'Express' },
+                ipAddress: '192.168.1.100',
+              });
+              
+              createdUsers.push(user.email);
+            }
+          } catch (error) {
+            console.error(`Failed to create user ${userData.email}:`, error);
+          }
+        }
+
+        res.json({ 
+          message: `Sample users created successfully`,
+          created: createdUsers.length,
+          users: createdUsers
+        });
+      } catch (error: any) {
+        console.error("Error seeding users:", error);
+        res.status(500).json({ message: "Failed to seed sample users" });
+      }
+    });
+  }
+
   // Test API connections
   app.post("/api/admin/test-connection/:service", requireAuth, async (req, res) => {
     try {

@@ -37,10 +37,28 @@ export const users = pgTable("users", {
   province: varchar("province"),
   postalCode: varchar("postal_code"),
   country: varchar("country").default('CA'),
-  role: varchar("role").default('customer'), // customer, admin
+  role: varchar("role").default('customer'), // customer, admin, ablp_admin
   isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  loginCount: integer("login_count").default(0),
+  totalSpent: decimal("total_spent", { precision: 12, scale: 2 }).default('0.00'),
+  totalSaved: decimal("total_saved", { precision: 12, scale: 2 }).default('0.00'),
+  shipmentsCount: integer("shipments_count").default(0),
+  preferredCarrier: varchar("preferred_carrier"),
+  notes: text("notes"), // Admin notes about the user
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User activity log for detailed tracking
+export const userActivity = pgTable("user_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  activityType: varchar("activity_type").notNull(), // login, logout, shipment_created, rate_quoted, etc.
+  activityData: jsonb("activity_data"), // Additional context data
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Shipments table
@@ -167,9 +185,16 @@ export const insertReturnSchema = createInsertSchema(returns).omit({
   updatedAt: true,
 });
 
+export const insertUserActivitySchema = createInsertSchema(userActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UserActivity = typeof userActivity.$inferSelect;
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type Shipment = typeof shipments.$inferSelect;
 export type InsertShipment = z.infer<typeof insertShipmentSchema>;
 export type ClientBranding = typeof clientBranding.$inferSelect;
