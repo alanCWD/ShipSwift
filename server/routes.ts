@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       
       // Automatically log in the user after registration
-      req.session.userId = user.id;
+      (req.session as any).userId = user.id;
       
       // Update login stats
       await storage.updateUser(user.id, {
@@ -173,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set session
       console.log('Setting session for user:', user.id);
-      req.session.userId = user.id;
+      (req.session as any).userId = user.id;
       
       // Explicitly save session to ensure it persists
       req.session.save((err) => {
@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         console.log('Session saved successfully:', {
           sessionId: req.sessionID,
-          userId: req.session.userId
+          userId: (req.session as any).userId
         });
         res.json({ user: { ...user, role: user.role } });
       });
@@ -540,11 +540,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             carrierName: shipment.carrierName,
             serviceName: shipment.serviceName,
             customerEmail: user.email,
-            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.lastName,
+            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
             fromAddress: shipment.fromAddress,
             toAddress: shipment.toAddress,
             totalCost: shipment.totalCost,
-            createdAt: shipment.createdAt,
+            createdAt: shipment.createdAt ? shipment.createdAt.toISOString() : new Date().toISOString(),
           });
         }
       } catch (emailError) {
@@ -656,12 +656,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             carrierName: cancelledShipment.carrierName,
             serviceName: cancelledShipment.serviceName,
             customerEmail: user.email,
-            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.lastName,
+            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
             fromAddress: cancelledShipment.fromAddress,
             toAddress: cancelledShipment.toAddress,
             totalCost: cancelledShipment.totalCost,
-            createdAt: cancelledShipment.createdAt,
-            updatedAt: cancelledShipment.updatedAt,
+            createdAt: cancelledShipment.createdAt ? cancelledShipment.createdAt.toISOString() : new Date().toISOString(),
+            updatedAt: cancelledShipment.updatedAt ? cancelledShipment.updatedAt.toISOString() : undefined,
           });
         }
       } catch (emailError) {
@@ -1502,7 +1502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Test Stripe connection by creating a test payment intent
-          const testStripe = new Stripe(secretKey, { apiVersion: "2023-10-16" });
+          const testStripe = new Stripe(secretKey, { apiVersion: "2025-07-30.basil" });
           
           // Create a minimal payment intent to test the connection
           const paymentIntent = await testStripe.paymentIntents.create({

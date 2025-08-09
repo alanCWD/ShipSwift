@@ -72,6 +72,10 @@ export const shipments = pgTable("shipments", {
   serviceName: varchar("service_name").notNull(),
   fromAddress: jsonb("from_address").notNull(), // Store complete address object
   toAddress: jsonb("to_address").notNull(),
+  fromCity: varchar("from_city"), // Legacy compatibility
+  fromProvince: varchar("from_province"), // Legacy compatibility
+  toCity: varchar("to_city"), // Legacy compatibility
+  toProvince: varchar("to_province"), // Legacy compatibility
   packageDetails: jsonb("package_details").notNull(), // dimensions, weight, etc.
   pickupDetails: jsonb("pickup_details"), // pickup scheduling, contact, location, times
   baseCost: decimal("base_cost", { precision: 10, scale: 2 }).notNull(),
