@@ -4,7 +4,7 @@ import purolatorLogo from '@assets/3_1754762768857.png';
 import canadaPostLogo from '@assets/4_1754762768858.png';
 import upsLogo from '@assets/5_1754762768858.png';
 import canparLogo from '@assets/6_1754762768858.png';
-import loomisLogo from '@assets/7_1754762768859.png';
+import loomisLogo from '@assets/7_1754763565800.png';
 
 interface CarrierLogoProps {
   carrierName: string;
@@ -12,19 +12,37 @@ interface CarrierLogoProps {
 }
 
 export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoProps) {
-  const normalizedName = carrierName.toLowerCase().replace(/\s+/g, '');
-  
-  const logoMap: Record<string, string> = {
-    'canadapost': canadaPostLogo,
-    'purolator': purolatorLogo,
-    'ups': upsLogo,
-    'fedex': fedexLogo,
-    'dhl': dhlLogo,
-    'canpar': canparLogo,
-    'loomis': loomisLogo,
+  // More flexible carrier name matching
+  const findCarrierLogo = (name: string): string | null => {
+    const lowerName = name.toLowerCase();
+    
+    // Direct matches
+    if (lowerName.includes('canada post') || lowerName.includes('canadapost')) {
+      return canadaPostLogo;
+    }
+    if (lowerName.includes('purolator')) {
+      return purolatorLogo;
+    }
+    if (lowerName.includes('ups')) {
+      return upsLogo;
+    }
+    if (lowerName.includes('fedex') || lowerName.includes('fed ex')) {
+      return fedexLogo;
+    }
+    if (lowerName.includes('dhl')) {
+      return dhlLogo;
+    }
+    if (lowerName.includes('canpar')) {
+      return canparLogo;
+    }
+    if (lowerName.includes('loomis')) {
+      return loomisLogo;
+    }
+    
+    return null;
   };
 
-  const logoSrc = logoMap[normalizedName];
+  const logoSrc = findCarrierLogo(carrierName);
 
   if (logoSrc) {
     return (
