@@ -1,7 +1,7 @@
 import fedexLogo from '@assets/1_1754762768856.png';
 import dhlLogo from '@assets/2_1754762768857.png';
 import purolatorLogo from '@assets/3_1754762768857.png';
-import canadaPostLogo from '@assets/4_1754762768858.png';
+import canadaPostLogo from '@assets/7_1754765746997.png'; // Corrected to use the proper Canada Post logo
 import upsLogo from '@assets/5_1754762768858.png';
 import canparLogo from '@assets/6_1754762768858.png';
 import loomisLogo from '@assets/7_1754763565800.png';
