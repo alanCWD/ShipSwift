@@ -1282,6 +1282,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rate comparison demonstration endpoint
+  app.post("/api/admin/rate-comparison", requireAdmin, async (req, res) => {
+    try {
+      const { fromAddress, toAddress, packageDetails } = req.body;
+      
+      // Import the rate comparison service
+      const { rateComparisonService } = await import('./services/rate-comparison');
+      
+      // Get rate comparisons
+      const comparisons = await rateComparisonService.compareRates({
+        fromAddress,
+        toAddress,
+        packageDetails
+      });
+
+      // Get both negotiated and standard rates separately for detailed view
+      const [negotiatedRates, standardRates] = await Promise.all([
+        rateComparisonService.getNegotiatedRates({ fromAddress, toAddress, packageDetails }),
+        rateComparisonService.getStandardRates({ fromAddress, toAddress, packageDetails })
+      ]);
+
+      res.json({
+        comparisons,
+        negotiatedRates,
+        standardRates,
+        summary: {
+          totalComparisons: comparisons.length,
+          averageSavings: comparisons.length > 0 ? 
+            comparisons.reduce((sum, comp) => sum + comp.savings, 0) / comparisons.length : 0,
+          averageSavingsPercentage: comparisons.length > 0 ?
+            comparisons.reduce((sum, comp) => sum + comp.savingsPercentage, 0) / comparisons.length : 0
+        }
+      });
+    } catch (error: any) {
+      console.error("Rate comparison error:", error);
+      res.status(500).json({ 
+        message: "Failed to compare rates",
+        error: error.message 
+      });
+    }
+  });
+
   // Development endpoint to seed sample users (remove in production)
   if (process.env.NODE_ENV === 'development') {
     app.post("/api/admin/seed-users", requireAdmin, async (req, res) => {

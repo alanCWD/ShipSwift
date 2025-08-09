@@ -231,29 +231,91 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
-    // Update user statistics
-    await this.updateUserShipmentStats(shipmentData.userId, shipmentData.totalCost, shipmentData.markupCost || '0.00');
+    // Update user statistics with accurate savings calculation
+    await this.updateUserShipmentStats(
+      shipmentData.userId, 
+      shipmentData.totalCost, 
+      shipmentData.markupCost || '0.00',
+      {
+        fromAddress: shipmentData.fromAddress,
+        toAddress: shipmentData.toAddress,
+        packageDetails: shipmentData.packageDetails,
+        carrierName: shipmentData.carrierName,
+        serviceName: shipmentData.serviceName
+      }
+    );
     
     return shipment;
   }
 
-  // Helper method to update user shipment statistics
-  async updateUserShipmentStats(userId: string, totalCost: string, markupCost: string): Promise<void> {
+  // Helper method to update user shipment statistics with accurate savings calculation
+  async updateUserShipmentStats(
+    userId: string, 
+    totalCost: string, 
+    markupCost: string,
+    shipmentData?: {
+      fromAddress: any;
+      toAddress: any;
+      packageDetails: any;
+      carrierName: string;
+      serviceName: string;
+    }
+  ): Promise<void> {
     const user = await this.getUser(userId);
     if (user) {
       const currentTotalSpent = parseFloat(user.totalSpent || '0.00');
       const currentTotalSaved = parseFloat(user.totalSaved || '0.00');
       const shipmentCost = parseFloat(totalCost || '0.00');
-      const markup = parseFloat(markupCost || '0.00');
       
       // Total spent is the amount the user paid
       const newTotalSpent = currentTotalSpent + shipmentCost;
       
-      // Total saved is an estimate of savings compared to standard rates
-      // For now, we'll estimate 15% savings (this could be more sophisticated)
-      const estimatedStandardRate = shipmentCost * 1.15;
-      const savings = estimatedStandardRate - shipmentCost;
-      const newTotalSaved = currentTotalSaved + savings;
+      let savings = 0;
+      
+      // Try to calculate accurate savings using real rate comparison
+      if (shipmentData) {
+        try {
+          const { rateComparisonService } = await import('../services/rate-comparison');
+          
+          const savingsData = await rateComparisonService.calculateAccurateSavings(
+            {
+              fromAddress: typeof shipmentData.fromAddress === 'string' 
+                ? JSON.parse(shipmentData.fromAddress) 
+                : shipmentData.fromAddress,
+              toAddress: typeof shipmentData.toAddress === 'string'
+                ? JSON.parse(shipmentData.toAddress)
+                : shipmentData.toAddress,
+              packageDetails: typeof shipmentData.packageDetails === 'string'
+                ? JSON.parse(shipmentData.packageDetails)
+                : shipmentData.packageDetails
+            },
+            shipmentCost,
+            shipmentData.carrierName,
+            shipmentData.serviceName
+          );
+          
+          savings = savingsData.savings;
+          
+          console.log('Real-time savings calculated:', {
+            actualCost: savingsData.actualCost,
+            standardRate: savingsData.standardRate,
+            savings: savingsData.savings,
+            savingsPercentage: savingsData.savingsPercentage.toFixed(1) + '%'
+          });
+          
+        } catch (error) {
+          console.log('Rate comparison failed, using fallback calculation:', error);
+          // Fallback to estimated savings
+          const estimatedStandardRate = shipmentCost * 1.25;
+          savings = estimatedStandardRate - shipmentCost;
+        }
+      } else {
+        // Fallback for legacy shipments without detailed data
+        const estimatedStandardRate = shipmentCost * 1.25;
+        savings = estimatedStandardRate - shipmentCost;
+      }
+      
+      const newTotalSaved = currentTotalSaved + Math.max(0, savings);
       
       await this.updateUser(userId, {
         totalSpent: newTotalSpent.toFixed(2),

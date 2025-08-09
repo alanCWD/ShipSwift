@@ -41,6 +41,7 @@ function Router() {
       <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
       <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin/rate-comparison" component={React.lazy(() => import("@/pages/admin/rate-comparison"))} />
       <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
       <Route path="/branded-track" component={React.lazy(() => import("@/pages/branded-tracking"))} />
       <Route path="/insurance-terms" component={React.lazy(() => import("@/pages/insurance-terms"))} />
