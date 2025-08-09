@@ -62,6 +62,11 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Removed Multi-Modal Shipping and Returns Management sections for focused messaging
   - Consolidated label printing functionality into Shipment Management section
   - Enhanced Branded Customization to encompass full white-label solutions
+  - **RE-ADDED: Additional shipping services section below core features (August 2025)**
+    - Small Package Courier: Links to rate calculator for instant quotes
+    - LTL Freight Services: Direct phone contact for custom freight quotes
+    - Pallet Shipping: Email contact for specialized pallet handling quotes
+    - Two-tiered layout: 3 core features + 3 additional shipping services
 - **COMPLETED: UI improvements for shipment workflow (August 2025)**
   - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
   - Added automatic redirect to dashboard after successful payment completion

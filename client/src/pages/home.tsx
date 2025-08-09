@@ -8,7 +8,7 @@ import RateResults from '../components/shipping/rate-results';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Settings, BarChart3, Palette } from 'lucide-react';
+import { Settings, BarChart3, Palette, Package, Truck, Warehouse, Phone, Mail } from 'lucide-react';
 
 export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -164,6 +164,75 @@ export default function Home() {
                 </ul>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Additional Shipping Services */}
+          <div className="mt-20">
+            <div className="text-center mb-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Additional Shipping Services</h3>
+              <p className="text-lg text-gray-600">Specialized solutions for all your shipping needs</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Small Package Courier */}
+              <Card className="hover:shadow-lg transition-shadow border-2">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <Package className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Small Package Courier</h4>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    Perfect for documents, small packages, and e-commerce shipments up to 70 lbs.
+                  </p>
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => document.getElementById('rate-calculator')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    Get Shipping Quote
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* LTL Freight Services */}
+              <Card className="hover:shadow-lg transition-shadow border-2 border-blue-200">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <Truck className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">LTL Freight Services</h4>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    Cost-effective solution for shipments 150-15,000 lbs with professional freight handling.
+                  </p>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => window.open('tel:6043923923', '_self')}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Contact Us
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Pallet Shipping */}
+              <Card className="hover:shadow-lg transition-shadow border-2 border-purple-200">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <Warehouse className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Pallet Shipping</h4>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    Specialized handling for palletized goods up to 4,000 lbs with forklift equipment.
+                  </p>
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={() => window.open('mailto:quotes@ablplogistics.ca?subject=Pallet Shipping Quote Request', '_blank')}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Contact Us
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
