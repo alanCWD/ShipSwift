@@ -6,6 +6,17 @@ import upsLogo from '@assets/5_1754762768858.png';
 import canparLogo from '@assets/6_1754762768858.png';
 import loomisLogo from '@assets/7_1754763565800.png';
 
+// Debug: Log all imported logos
+console.log('Logo imports:', {
+  fedex: fedexLogo,
+  dhl: dhlLogo,
+  purolator: purolatorLogo,
+  canadaPost: canadaPostLogo,
+  ups: upsLogo,
+  canpar: canparLogo,
+  loomis: loomisLogo
+});
+
 interface CarrierLogoProps {
   carrierName: string;
   className?: string;
@@ -16,9 +27,12 @@ export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoP
   const findCarrierLogo = (name: string): string | null => {
     const lowerName = name.toLowerCase();
     
-    // Direct matches
+    // Direct matches - Canada Post with extra logging
     if (lowerName.includes('canada post') || lowerName.includes('canadapost')) {
-      return canadaPostLogo;
+      console.log('Canada Post match found, logo src:', canadaPostLogo);
+      // Temporarily use DHL logo to test if it's a file-specific issue
+      console.log('Testing with DHL logo:', dhlLogo);
+      return dhlLogo; // Temporary test
     }
     if (lowerName.includes('purolator')) {
       return purolatorLogo;
@@ -51,6 +65,13 @@ export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoP
         alt={`${carrierName} logo`}
         className={className}
         style={{ objectFit: 'contain' }}
+        onError={(e) => {
+          console.error(`Failed to load logo for ${carrierName}:`, logoSrc);
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
+        onLoad={() => {
+          console.log(`Successfully loaded logo for ${carrierName}:`, logoSrc);
+        }}
       />
     );
   }
