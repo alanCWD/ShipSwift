@@ -160,7 +160,10 @@ export default function InsuranceModal({ isOpen, onClose, onSave, initialData }:
                   />
                   <label htmlFor="terms" className="text-sm leading-5">
                     By checking this box, I acknowledge that I have read and accepted the{' '}
-                    <a href="/insurance-terms" target="_blank" className="text-blue-600 hover:underline">
+                    <a href="/insurance-terms" className="text-blue-600 hover:underline" onClick={(e) => {
+                      e.preventDefault();
+                      window.open('/insurance-terms', '_blank');
+                    }}>
                       Additional Insurance Terms
                     </a>
                     , including the list of products that cannot be insured. I also acknowledge that if an accurate description of goods has not been provided, any insurance on the shipment will be void.
