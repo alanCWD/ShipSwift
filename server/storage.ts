@@ -20,7 +20,7 @@ import {
   type InsertReturn,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, like, or, count, sum, sql } from "drizzle-orm";
+import { eq, desc, and, like, or, count, sum, sql, ne } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -344,14 +344,14 @@ export class DatabaseStorage implements IStorage {
       };
     }
 
-    // Get actual shipment count from database
+    // Get actual shipment count from database (excluding cancelled shipments)
     const [shipmentStats] = await db
       .select({
         count: count(),
         totalSpent: sum(shipments.totalCost),
       })
       .from(shipments)
-      .where(eq(shipments.userId, userId));
+      .where(and(eq(shipments.userId, userId), ne(shipments.status, 'cancelled')));
 
     const actualShipmentsCount = shipmentStats?.count || 0;
     const actualTotalSpent = shipmentStats?.totalSpent || '0.00';
