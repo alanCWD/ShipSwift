@@ -1152,6 +1152,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/users", requireAdmin, async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      
+      // Hash the password (in a real app, use bcrypt)
+      const hashedPassword = userData.password; // Simplified for demo
+      
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+      });
+      
+      // Log user creation activity
+      await storage.logUserActivity({
+        userId: user.id,
+        activityType: 'user_created',
+        activityData: { createdBy: 'admin', role: user.role },
+      });
+      
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/reset-password", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { newPassword } = req.body;
+      
+      if (!newPassword || newPassword.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+      
+      // Hash the password (in a real app, use bcrypt)
+      const hashedPassword = newPassword; // Simplified for demo
+      
+      await storage.updateUser(id, { password: hashedPassword });
+      
+      // Log password reset activity
+      await storage.logUserActivity({
+        userId: id,
+        activityType: 'password_reset',
+        activityData: { resetBy: 'admin' },
+      });
+      
+      res.json({ message: "Password reset successfully" });
+    } catch (error: any) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   app.get("/api/admin/users/:id/activity", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;

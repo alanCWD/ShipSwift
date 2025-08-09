@@ -43,9 +43,11 @@ import {
   Search,
   Filter,
   Calendar,
-  Activity
+  Activity,
+  UserPlus,
+  Key,
+  Mail
 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 
 interface User {
@@ -91,6 +93,8 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -101,22 +105,71 @@ export default function AdminUsers() {
 
   // Fetch all users with filtering
   const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ['/api/admin/users', { search: searchTerm, role: roleFilter, status: statusFilter }],
+    queryKey: ['/api/admin/users', searchTerm, roleFilter, statusFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (roleFilter && roleFilter !== 'all') params.append('role', roleFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      
+      const url = `/api/admin/users${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    },
   });
 
   // Fetch user activity for selected user
   const { data: userActivity = [] } = useQuery<UserActivity[]>({
     queryKey: ['/api/admin/users', selectedUser?.id, 'activity'],
     enabled: !!selectedUser && showActivityModal,
+    queryFn: async () => {
+      if (!selectedUser?.id) return [];
+      const response = await fetch(`/api/admin/users/${selectedUser.id}/activity`);
+      if (!response.ok) throw new Error('Failed to fetch user activity');
+      return response.json();
+    },
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: any) => {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      if (!response.ok) throw new Error('Failed to create user');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Created",
+        description: "New user has been created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users/stats'] });
+      setShowCreateUserModal(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message || "Failed to create user.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<User> }) => {
-      return apiRequest(`/api/admin/users/${id}`, {
+      const response = await fetch(`/api/admin/users/${id}`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      if (!response.ok) throw new Error('Failed to update user');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -130,6 +183,33 @@ export default function AdminUsers() {
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Password reset mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ id, newPassword }: { id: string; newPassword: string }) => {
+      const response = await fetch(`/api/admin/users/${id}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+      if (!response.ok) throw new Error('Failed to reset password');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Reset",
+        description: "User password has been reset successfully.",
+      });
+      setShowPasswordResetModal(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Reset Failed",
+        description: error.message || "Failed to reset password.",
         variant: "destructive",
       });
     },
@@ -161,9 +241,24 @@ export default function AdminUsers() {
     }
   };
 
+  const handleCreateUser = (userData: any) => {
+    createUserMutation.mutate(userData);
+  };
+
+  const handlePasswordReset = (newPassword: string) => {
+    if (selectedUser) {
+      resetPasswordMutation.mutate({ id: selectedUser.id, newPassword });
+    }
+  };
+
   const handleViewActivity = (user: User) => {
     setSelectedUser(user);
     setShowActivityModal(true);
+  };
+
+  const handleResetPassword = (user: User) => {
+    setSelectedUser(user);
+    setShowPasswordResetModal(true);
   };
 
   const getRoleColor = (role: string) => {
@@ -191,6 +286,10 @@ export default function AdminUsers() {
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600">Manage all users and their access levels</p>
         </div>
+        <Button onClick={() => setShowCreateUserModal(true)} className="flex items-center gap-2">
+          <UserPlus className="w-4 h-4" />
+          Add User
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -419,6 +518,7 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleUserEdit(user)}
+                            title="Edit User"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -426,8 +526,17 @@ export default function AdminUsers() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleViewActivity(user)}
+                            title="View Activity"
                           >
                             <Activity className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResetPassword(user)}
+                            title="Reset Password"
+                          >
+                            <Key className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -460,6 +569,23 @@ export default function AdminUsers() {
         </DialogContent>
       </Dialog>
 
+      {/* Create User Modal */}
+      <Dialog open={showCreateUserModal} onOpenChange={setShowCreateUserModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Add a new user to the system with specified role and access level
+            </DialogDescription>
+          </DialogHeader>
+          
+          <CreateUserForm 
+            onCreate={handleCreateUser}
+            isCreating={createUserMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* User Activity Modal */}
       <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -471,6 +597,23 @@ export default function AdminUsers() {
           </DialogHeader>
           
           <UserActivityView activity={userActivity} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Modal */}
+      <Dialog open={showPasswordResetModal} onOpenChange={setShowPasswordResetModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Reset password for {selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <PasswordResetForm 
+            onReset={handlePasswordReset}
+            isResetting={resetPasswordMutation.isPending}
+          />
         </DialogContent>
       </Dialog>
     </div>
@@ -586,6 +729,270 @@ function UserEditForm({
       <div className="flex justify-end space-x-2 pt-4">
         <Button type="submit" disabled={isUpdating}>
           {isUpdating ? 'Updating...' : 'Update User'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Create User Form Component
+function CreateUserForm({ 
+  onCreate, 
+  isCreating 
+}: { 
+  onCreate: (userData: any) => void; 
+  isCreating: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    companyName: '',
+    phone: '',
+    role: 'customer',
+    password: '',
+    confirmPassword: '',
+    isActive: true,
+    notes: '',
+  });
+
+  const [errors, setErrors] = useState<any>({});
+
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+    
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      const { confirmPassword, ...userData } = formData;
+      onCreate(userData);
+    }
+  };
+
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData({ ...formData, password, confirmPassword: password });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="email">Email *</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className={errors.email ? 'border-red-500' : ''}
+          />
+          {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+        </div>
+        <div>
+          <Label htmlFor="role">Role *</Label>
+          <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="customer">Customer</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="ablp_admin">ABLP Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            value={formData.firstName}
+            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            value={formData.lastName}
+            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="companyName">Company Name</Label>
+          <Input
+            id="companyName"
+            value={formData.companyName}
+            onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="phone">Phone</Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="password">Password *</Label>
+        <div className="flex gap-2">
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className={errors.password ? 'border-red-500' : ''}
+          />
+          <Button type="button" variant="outline" onClick={generatePassword}>
+            Generate
+          </Button>
+        </div>
+        {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="confirmPassword">Confirm Password *</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          className={errors.confirmPassword ? 'border-red-500' : ''}
+        />
+        {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Admin Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          placeholder="Internal notes about this user..."
+          rows={3}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+          className="rounded"
+        />
+        <Label htmlFor="isActive">Active Account</Label>
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="submit" disabled={isCreating}>
+          {isCreating ? 'Creating...' : 'Create User'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Password Reset Form Component
+function PasswordResetForm({ 
+  onReset, 
+  isResetting 
+}: { 
+  onReset: (password: string) => void; 
+  isResetting: boolean;
+}) {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let newPassword = '';
+    for (let i = 0; i < 12; i++) {
+      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(newPassword);
+    setConfirmPassword(newPassword);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      setError('Password is required');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setError('');
+    onReset(password);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="password">New Password</Label>
+        <div className="flex gap-2">
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter new password..."
+          />
+          <Button type="button" variant="outline" onClick={generatePassword}>
+            Generate
+          </Button>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm new password..."
+        />
+      </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="submit" disabled={isResetting}>
+          {isResetting ? 'Resetting...' : 'Reset Password'}
         </Button>
       </div>
     </form>

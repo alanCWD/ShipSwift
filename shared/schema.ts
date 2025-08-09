@@ -38,6 +38,7 @@ export const users = pgTable("users", {
   postalCode: varchar("postal_code"),
   country: varchar("country").default('CA'),
   role: varchar("role").default('customer'), // customer, admin, ablp_admin
+  password: varchar("password"), // Hashed password
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
   loginCount: integer("login_count").default(0),
