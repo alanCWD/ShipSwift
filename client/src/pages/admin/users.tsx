@@ -613,7 +613,7 @@ export default function AdminUsers() {
 
       {/* Create User Modal */}
       <Dialog open={showCreateUserModal} onOpenChange={setShowCreateUserModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <DialogDescription>
