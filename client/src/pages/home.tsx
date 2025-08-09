@@ -36,7 +36,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
+                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-4"
                 onClick={() => document.getElementById('rate-calculator')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Get Instant Quote
@@ -44,9 +44,10 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white text-lg px-8 py-4"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-700 hover:text-white text-lg px-8 py-4"
+                onClick={() => window.open('https://meeting.calendarhero.com/meetingalan', '_blank')}
               >
-                Watch Demo
+                Schedule Demo
               </Button>
             </div>
           </div>

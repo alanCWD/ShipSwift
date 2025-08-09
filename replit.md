@@ -36,6 +36,10 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Created comprehensive Insurance Terms page with detailed coverage information and prohibited items list
   - Added Insurance Terms link to footer Support section for easy access
   - Linked terms acceptance checkbox to new Insurance Terms page
+- **COMPLETED: Home page demo button updates (August 2025)**
+  - Changed "Watch Demo" to "Schedule Demo" linking to Calendar Hero booking page
+  - Unified hover colors for consistent button styling - balanced blue tones between both buttons
+  - Added external link functionality to open calendar booking in new tab
 - **COMPLETED: UI improvements for shipment workflow (August 2025)**
   - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
   - Added automatic redirect to dashboard after successful payment completion
