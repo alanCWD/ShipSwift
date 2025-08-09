@@ -5,6 +5,7 @@ import canadaPostLogo from '@assets/4_1754762768858.png';
 import upsLogo from '@assets/5_1754762768858.png';
 import canparLogo from '@assets/6_1754762768858.png';
 import loomisLogo from '@assets/7_1754763565800.png';
+import glsLogo from '@assets/7_1754765376312.png';
 
 interface CarrierLogoProps {
   carrierName: string;
@@ -44,6 +45,9 @@ export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoP
     }
     if (lowerName.includes('loomis')) {
       return loomisLogo;
+    }
+    if (lowerName.includes('gls')) {
+      return glsLogo;
     }
     
     return null;

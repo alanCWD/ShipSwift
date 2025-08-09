@@ -50,11 +50,11 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Marketing features section (Rate Comparison, Label Printing, etc.) now exclusively on home page
 - **COMPLETED: Responsive carrier logo system implementation (August 2025)**
   - Implemented authentic carrier logos provided by user for professional visual presentation
-  - Added real carrier logos for major Canadian carriers: Canada Post, Purolator, UPS, FedEx, DHL, Canpar, Loomis
+  - Added real carrier logos for major Canadian carriers: Canada Post, Purolator, UPS, FedEx, DHL, Canpar, Loomis, GLS
   - Replaced emoji-based and SVG placeholder carrier identification with actual carrier branding
   - **Mobile-responsive design**: Logos hidden on mobile devices (< 768px) to save space and improve layout
   - Desktop/tablet displays show full carrier logos for enhanced visual recognition
-  - CarrierLogo component supports dynamic sizing with fallback text for carriers without uploaded logos
+  - CarrierLogo component supports dynamic sizing with fallback text for carriers without uploaded logos (Nationex)
   - Improved professional appearance and mobile usability of shipping rate comparison interface
   - **FIXED: ShipTime API connection testing (August 2025)**
     - Enhanced error handling to detect HTML responses vs JSON (common with auth failures)
