@@ -158,7 +158,7 @@ export default function RateResults({ rates }: RateResultsProps) {
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="mr-3">
+                          <div className="mr-3 hidden md:block">
                             <CarrierLogo carrierName={carrierName} className="w-10 h-8" />
                           </div>
                           <div className="text-sm font-medium text-gray-900">{carrierName}</div>
