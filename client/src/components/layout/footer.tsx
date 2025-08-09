@@ -57,9 +57,9 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300">&copy; 2025 ShipSwift - Subsidiary of ABLP Logistics. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>
-              <Link href="#" className="text-gray-300 hover:text-white transition-colors">Cookie Policy</Link>
+              <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms-of-service" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="/cookie-policy" className="text-gray-300 hover:text-white transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>

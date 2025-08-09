@@ -44,6 +44,9 @@ function Router() {
       <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
       <Route path="/branded-track" component={React.lazy(() => import("@/pages/branded-tracking"))} />
       <Route path="/insurance-terms" component={React.lazy(() => import("@/pages/insurance-terms"))} />
+      <Route path="/privacy-policy" component={React.lazy(() => import("@/pages/privacy-policy"))} />
+      <Route path="/terms-of-service" component={React.lazy(() => import("@/pages/terms-of-service"))} />
+      <Route path="/cookie-policy" component={React.lazy(() => import("@/pages/cookie-policy"))} />
       <Route component={NotFound} />
     </Switch>
   );

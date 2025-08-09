@@ -40,6 +40,12 @@ This is a Canadian shipping platform called "ShipSwift" (a subsidiary of ABLP Lo
   - Changed "Watch Demo" to "Schedule Demo" linking to Calendar Hero booking page
   - Unified hover colors for consistent button styling - balanced blue tones between both buttons
   - Added external link functionality to open calendar booking in new tab
+- **COMPLETED: Comprehensive legal policy pages (August 2025)**
+  - Created Privacy Policy with detailed data collection, usage, and rights information
+  - Created Terms of Service with shipping terms, liability, and user conduct guidelines
+  - Created Cookie Policy with cookie types, management, and third-party integrations
+  - All policies are generic templates referencing only ABLP Logistics (no ShipSwift mentions)
+  - Added proper routing and footer links for easy access to all legal documents
 - **COMPLETED: UI improvements for shipment workflow (August 2025)**
   - Moved "Continue to Payment" button below Total in Order Summary for better UX flow
   - Added automatic redirect to dashboard after successful payment completion
