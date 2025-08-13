@@ -47,6 +47,7 @@ Preferred communication style: Simple, everyday language.
 - **Carrier Logos**: Implementation of authentic, responsive carrier logos for major Canadian carriers.
 - **ShipTime API Integration**: Robust connection testing, proper sandbox/production environment support, and automatic cancellation of sandbox shipments.
 - **Pickup Options & Unit Conversion**: Integrated pickup scheduling, and automatic metric/imperial unit conversion for package dimensions.
+- **Iframe Embedding Support**: Full cross-origin iframe compatibility with CORS headers and session configuration optimized for embedding in third-party websites via shortcodes.
 
 # External Dependencies
 
