@@ -18,7 +18,7 @@ app.use(session({
   }),
   cookie: {
     secure: false, // Must be false in development for iframe testing
-    httpOnly: true,
+    httpOnly: false, // Allow client-side access for iframe compatibility
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'none' // Allow cross-origin iframe embedding (works in dev with secure: false)
   }
@@ -33,17 +33,23 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   
   // Allow embedding in iframes from any domain
-  res.header('X-Frame-Options', 'ALLOWALL');
   res.removeHeader('X-Frame-Options'); // Remove default frame restrictions
   
   // Set CORS headers for API requests
   const origin = req.headers.origin;
   if (origin) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback for iframe contexts where origin might be null
+    res.header('Access-Control-Allow-Origin', '*');
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
+  
+  // Additional headers for iframe compatibility
+  res.header('Cross-Origin-Embedder-Policy', 'cross-origin');
+  res.header('Cross-Origin-Opener-Policy', 'cross-origin');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {

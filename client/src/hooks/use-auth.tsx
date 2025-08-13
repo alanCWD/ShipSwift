@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { iframeAuthManager } from '@/lib/iframe-auth';
 
 interface User {
   id: string;
@@ -29,24 +30,43 @@ export const useAuth = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // Include cookies for sessions
-            body: JSON.stringify({ email, password }),
-          });
+          console.log('Login attempt - iframe context:', iframeAuthManager.isInIframe());
+          
+          let response: Response;
+          let data: any;
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Login failed');
+          if (iframeAuthManager.isInIframe()) {
+            // Use iframe authentication
+            const authState = await iframeAuthManager.iframeLogin(email, password);
+            if (authState && authState.isAuthenticated) {
+              data = { user: authState.userInfo };
+            } else {
+              throw new Error('Iframe login failed');
+            }
+          } else {
+            // Use regular session-based authentication
+            response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.message || 'Login failed');
+            }
+
+            data = await response.json();
           }
 
-          const data = await response.json();
+          console.log('Login successful:', data.user);
           set({ 
             user: data.user,
             isLoading: false 
           });
         } catch (error) {
+          console.error('Login error:', error);
           set({ isLoading: false });
           throw error;
         }
@@ -98,15 +118,30 @@ export const useAuth = create<AuthState>()(
       checkAuth: async () => {
         set({ isLoading: true });
         try {
-          const response = await fetch('/api/auth/user', {
-            credentials: 'include', // Include cookies for sessions
-          });
+          console.log('Checking auth - iframe context:', iframeAuthManager.isInIframe());
 
-          if (response.ok) {
-            const user = await response.json();
-            set({ user, isLoading: false });
+          if (iframeAuthManager.isInIframe()) {
+            // Check iframe authentication state
+            const authState = iframeAuthManager.getAuthState();
+            if (authState?.isAuthenticated && authState.userInfo) {
+              console.log('Found iframe auth state:', authState.userInfo);
+              set({ user: authState.userInfo, isLoading: false });
+            } else {
+              console.log('No iframe auth state found');
+              set({ user: null, isLoading: false });
+            }
           } else {
-            set({ user: null, isLoading: false });
+            // Use regular session-based authentication check
+            const response = await fetch('/api/auth/user', {
+              credentials: 'include',
+            });
+
+            if (response.ok) {
+              const user = await response.json();
+              set({ user, isLoading: false });
+            } else {
+              set({ user: null, isLoading: false });
+            }
           }
         } catch (error) {
           console.error('Auth check error:', error);

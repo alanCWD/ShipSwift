@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { iframeAuthManager } from '@/lib/iframe-auth';
 import {
   Select,
   SelectContent,
@@ -135,15 +136,40 @@ export default function AdminUsers() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-      if (!response.ok) throw new Error('Failed to create user');
+      console.log('Creating user with data:', userData);
+      console.log('Is iframe context:', iframeAuthManager.isInIframe());
+      
+      let response: Response;
+      
+      if (iframeAuthManager.isInIframe()) {
+        // Use iframe-compatible authentication
+        console.log('Using iframe authentication for user creation');
+        response = await iframeAuthManager.makeAuthenticatedRequest('/api/admin/users', {
+          method: 'POST',
+          body: JSON.stringify(userData),
+        });
+      } else {
+        // Use regular session-based authentication
+        response = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(userData),
+        });
+      }
+      
+      console.log('User creation response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('User creation failed:', errorText);
+        throw new Error(`Failed to create user: ${errorText}`);
+      }
+      
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('User created successfully:', data);
       toast({
         title: "User Created",
         description: "New user has been created successfully.",
@@ -153,6 +179,7 @@ export default function AdminUsers() {
       setShowCreateUserModal(false);
     },
     onError: (error) => {
+      console.error('User creation error:', error);
       toast({
         title: "Creation Failed",
         description: error.message || "Failed to create user.",

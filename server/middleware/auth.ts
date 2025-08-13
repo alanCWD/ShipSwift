@@ -20,19 +20,52 @@ declare global {
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Debug session
+    // Debug session and headers
     console.log('Session check:', {
       sessionId: req.sessionID,
       userId: req.session?.userId,
-      sessionExists: !!req.session
+      sessionExists: !!req.session,
+      headers: {
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        userAgent: req.headers['user-agent']?.substring(0, 50)
+      }
     });
     
-    // Check for user ID in session
-    const userId = req.session?.userId;
+    // Check for user ID in session first (preferred method)
+    let userId = req.session?.userId;
+    
+    // For iframe contexts, check for special headers
+    if (!userId && req.headers['x-iframe-auth'] === 'true') {
+      const iframeUserId = req.headers['x-iframe-user-id'] as string;
+      const iframeSessionId = req.headers['x-iframe-session-id'] as string;
+      
+      console.log('Iframe auth headers detected:', {
+        iframeUserId,
+        iframeSessionId: iframeSessionId?.substring(0, 10) + '...'
+      });
+      
+      if (iframeUserId) {
+        // Verify the user exists and is active
+        const user = await storage.getUser(iframeUserId);
+        if (user && user.isActive) {
+          userId = iframeUserId;
+          console.log('Iframe authentication successful for user:', userId);
+        }
+      }
+    }
     
     if (!userId) {
-      console.log('No userId in session');
-      return res.status(401).json({ message: 'Authentication required' });
+      console.log('No userId in session - iframe context detected');
+      return res.status(401).json({ 
+        message: 'Authentication required',
+        context: 'iframe_auth_failed',
+        debug: {
+          sessionExists: !!req.session,
+          sessionId: req.sessionID,
+          cookiePresent: !!req.headers.cookie
+        }
+      });
     }
 
     const user = await storage.getUser(userId);

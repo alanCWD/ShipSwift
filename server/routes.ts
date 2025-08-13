@@ -1202,11 +1202,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/users", requireAdmin, async (req, res) => {
     try {
+      console.log("Creating user - Request body:", req.body);
+      console.log("Creating user - Session info:", {
+        sessionId: req.sessionID,
+        userId: req.session?.userId,
+        user: req.user
+      });
+      
       const userData = req.body;
       
       // Check if email already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
+        console.log("User creation failed - email exists:", userData.email);
         return res.status(400).json({ message: "Email already exists" });
       }
       
@@ -1218,6 +1226,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
       
+      console.log("User created successfully:", user.id);
+      
       // Log user creation activity
       await storage.logUserActivity({
         userId: user.id,
@@ -1227,8 +1237,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(user);
     } catch (error: any) {
-      console.error("Error creating user:", error);
-      res.status(500).json({ message: "Failed to create user" });
+      console.error("Error creating user - Full error:", error);
+      console.error("Error creating user - Stack:", error.stack);
+      res.status(500).json({ message: "Failed to create user", error: error.message });
     }
   });
 
