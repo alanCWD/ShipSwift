@@ -33,27 +33,9 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     });
     
     // Check for user ID in session first (preferred method)
-    let userId = req.session?.userId;
+    let userId = (req.session as any)?.userId;
     
-    // For iframe contexts, check for special headers
-    if (!userId && req.headers['x-iframe-auth'] === 'true') {
-      const iframeUserId = req.headers['x-iframe-user-id'] as string;
-      const iframeSessionId = req.headers['x-iframe-session-id'] as string;
-      
-      console.log('Iframe auth headers detected:', {
-        iframeUserId,
-        iframeSessionId: iframeSessionId?.substring(0, 10) + '...'
-      });
-      
-      if (iframeUserId) {
-        // Verify the user exists and is active
-        const user = await storage.getUser(iframeUserId);
-        if (user && user.isActive) {
-          userId = iframeUserId;
-          console.log('Iframe authentication successful for user:', userId);
-        }
-      }
-    }
+    // Simple session-based authentication (works for both regular and iframe contexts)
     
     if (!userId) {
       console.log('No userId in session - iframe context detected');
@@ -71,7 +53,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const user = await storage.getUser(userId);
     if (!user || !user.isActive) {
       // Clear invalid session
-      req.session.userId = undefined;
+      (req.session as any).userId = undefined;
       return res.status(401).json({ message: 'Invalid or inactive user' });
     }
 

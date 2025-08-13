@@ -1205,7 +1205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating user - Request body:", req.body);
       console.log("Creating user - Session info:", {
         sessionId: req.sessionID,
-        userId: req.session?.userId,
+        userId: (req.session as any)?.userId,
         user: req.user
       });
       

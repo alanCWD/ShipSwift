@@ -30,36 +30,21 @@ export const useAuth = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          console.log('Login attempt - iframe context:', iframeAuthManager.isInIframe());
+          console.log('Login attempt');
           
-          let response: Response;
-          let data: any;
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, password }),
+          });
 
-          if (iframeAuthManager.isInIframe()) {
-            // Use iframe authentication
-            const authState = await iframeAuthManager.iframeLogin(email, password);
-            if (authState && authState.isAuthenticated) {
-              data = { user: authState.userInfo };
-            } else {
-              throw new Error('Iframe login failed');
-            }
-          } else {
-            // Use regular session-based authentication
-            response = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ email, password }),
-            });
-
-            if (!response.ok) {
-              const error = await response.json();
-              throw new Error(error.message || 'Login failed');
-            }
-
-            data = await response.json();
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Login failed');
           }
 
+          const data = await response.json();
           console.log('Login successful:', data.user);
           set({ 
             user: data.user,
@@ -118,30 +103,19 @@ export const useAuth = create<AuthState>()(
       checkAuth: async () => {
         set({ isLoading: true });
         try {
-          console.log('Checking auth - iframe context:', iframeAuthManager.isInIframe());
+          console.log('Checking auth');
 
-          if (iframeAuthManager.isInIframe()) {
-            // Check iframe authentication state
-            const authState = iframeAuthManager.getAuthState();
-            if (authState?.isAuthenticated && authState.userInfo) {
-              console.log('Found iframe auth state:', authState.userInfo);
-              set({ user: authState.userInfo, isLoading: false });
-            } else {
-              console.log('No iframe auth state found');
-              set({ user: null, isLoading: false });
-            }
+          const response = await fetch('/api/auth/user', {
+            credentials: 'include',
+          });
+
+          if (response.ok) {
+            const user = await response.json();
+            console.log('Auth check successful:', user);
+            set({ user, isLoading: false });
           } else {
-            // Use regular session-based authentication check
-            const response = await fetch('/api/auth/user', {
-              credentials: 'include',
-            });
-
-            if (response.ok) {
-              const user = await response.json();
-              set({ user, isLoading: false });
-            } else {
-              set({ user: null, isLoading: false });
-            }
+            console.log('Auth check failed:', response.status);
+            set({ user: null, isLoading: false });
           }
         } catch (error) {
           console.error('Auth check error:', error);

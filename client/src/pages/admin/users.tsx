@@ -137,33 +137,30 @@ export default function AdminUsers() {
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
       console.log('Creating user with data:', userData);
-      console.log('Is iframe context:', iframeAuthManager.isInIframe());
       
-      let response: Response;
-      
-      if (iframeAuthManager.isInIframe()) {
-        // Use iframe-compatible authentication
-        console.log('Using iframe authentication for user creation');
-        response = await iframeAuthManager.makeAuthenticatedRequest('/api/admin/users', {
-          method: 'POST',
-          body: JSON.stringify(userData),
-        });
-      } else {
-        // Use regular session-based authentication
-        response = await fetch('/api/admin/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(userData),
-        });
-      }
+      // Simple, direct API call with enhanced error handling
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Always include credentials
+        body: JSON.stringify(userData),
+      });
       
       console.log('User creation response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error('User creation failed:', errorText);
-        throw new Error(`Failed to create user: ${errorText}`);
+        let errorMessage = 'Failed to create user';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();

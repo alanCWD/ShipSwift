@@ -76,9 +76,17 @@ class IframeAuthManager {
     
     // Prepare headers
     const headers: Record<string, string> = {
-      ...options.headers,
       'Content-Type': 'application/json',
     };
+    
+    // Add existing headers
+    if (options.headers) {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers[key] = value;
+        }
+      });
+    }
 
     // For iframe contexts, add special headers if we have auth state
     if (this.isIframe && authState?.isAuthenticated) {

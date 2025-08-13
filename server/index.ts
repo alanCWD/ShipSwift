@@ -11,8 +11,8 @@ const SessionStore = MemoryStore(session);
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Force session save for iframe compatibility
+  saveUninitialized: true, // Save uninitialized sessions for iframe compatibility
   store: new SessionStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
@@ -20,7 +20,9 @@ app.use(session({
     secure: false, // Must be false in development for iframe testing
     httpOnly: false, // Allow client-side access for iframe compatibility
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'none' // Allow cross-origin iframe embedding (works in dev with secure: false)
+    sameSite: 'none', // Allow cross-origin iframe embedding (works in dev with secure: false)
+    domain: undefined, // Don't restrict domain for iframe compatibility
+    path: '/' // Ensure cookie is available site-wide
   }
 }));
 
@@ -40,8 +42,18 @@ app.use((req, res, next) => {
   if (origin) {
     res.header('Access-Control-Allow-Origin', origin);
   } else {
-    // Fallback for iframe contexts where origin might be null
-    res.header('Access-Control-Allow-Origin', '*');
+    // For iframe contexts, allow the referring domain
+    const referer = req.headers.referer;
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        res.header('Access-Control-Allow-Origin', refererUrl.origin);
+      } catch (e) {
+        res.header('Access-Control-Allow-Origin', '*');
+      }
+    } else {
+      res.header('Access-Control-Allow-Origin', '*');
+    }
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
