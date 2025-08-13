@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ShipSwift Debug - Iframe Embedding</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .panel { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; margin: 15px 0; }
+        .debug-info { background: #e3f2fd; border-left: 4px solid #2196F3; }
+        .error-info { background: #ffebee; border-left: 4px solid #f44336; }
+        .success-info { background: #e8f5e8; border-left: 4px solid #4caf50; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; }
+        iframe { width: 100%; height: 700px; border: 2px solid #007bff; border-radius: 6px; margin: 20px 0; }
+        .logs { background: #f1f3f4; border: 1px solid #dadce0; padding: 15px; border-radius: 6px; font-family: 'Monaco', 'Menlo', monospace; font-size: 12px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
+        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚢 ShipSwift - Iframe Embedding Debug Tool</h1>
+        
+        <div class="panel debug-info">
+            <h3>Current Test Status</h3>
+            <div id="status">
+                <span class="status-badge status-pending">TESTING</span>
+                Initializing iframe embedding test...
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div>
+                <h2>Authentication Test</h2>
+                <div class="panel">
+                    <h4>Test Admin Login</h4>
+                    <div>
+                        <input type="email" id="email" placeholder="Email" value="adam@ablplogistics.com" style="width: 200px;">
+                        <input type="password" id="password" placeholder="Password" value="password" style="width: 150px;">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button onclick="testLogin()">Test Login</button>
+                        <button onclick="testAuthCheck()">Check Auth</button>
+                        <button onclick="testUserCreation()">Test User Creation</button>
+                        <button onclick="clearLogs()">Clear Logs</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h4>Browser Info</h4>
+                    <div id="browser-info" style="font-size: 12px; color: #666;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <h2>Test Results</h2>
+                <div class="logs" id="logs"></div>
+            </div>
+        </div>
+
+        <h2>Embedded ShipSwift Admin Panel</h2>
+        <iframe id="shipswift" src="https://ship-swift-ablp.replit.app/admin" 
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                allow="cross-origin-isolated; clipboard-read; clipboard-write">
+            Your browser doesn't support iframes.
+        </iframe>
+    </div>
+
+    <script>
+        let sessionToken = null;
+        let testResults = [];
+
+        function updateStatus(status, message) {
+            const statusEl = document.getElementById('status');
+            const badgeClass = status === 'success' ? 'status-success' : 
+                             status === 'error' ? 'status-error' : 'status-pending';
+            statusEl.innerHTML = `<span class="status-badge ${badgeClass}">${status.toUpperCase()}</span> ${message}`;
+        }
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logs.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+            console.log(`[IFRAME-TEST] ${message}`);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').textContent = '';
+            testResults = [];
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            updateStatus('pending', 'Testing authentication...');
+            log(`Attempting login for: ${email}`, 'info');
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                const responseText = await response.text();
+                log(`Login response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const data = JSON.parse(responseText);
+                    log(`✅ LOGIN SUCCESS: ${data.user.firstName} ${data.user.lastName} (${data.user.role})`, 'success');
+                    updateStatus('success', `Logged in as ${data.user.firstName} ${data.user.lastName}`);
+                    testResults.push({ test: 'login', status: 'success', data });
+                } else {
+                    log(`❌ LOGIN FAILED: ${responseText}`, 'error');
+                    updateStatus('error', 'Login failed - check credentials');
+                    testResults.push({ test: 'login', status: 'error', error: responseText });
+                }
+            } catch (error) {
+                log(`❌ LOGIN ERROR: ${error.message}`, 'error');
+                updateStatus('error', 'Network error during login');
+                testResults.push({ test: 'login', status: 'error', error: error.message });
+            }
+        }
+
+        async function testAuthCheck() {
+            log('Testing authentication state...', 'info');
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/auth/user', {
+                    credentials: 'include',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const responseText = await response.text();
+                log(`Auth check response: ${response.status}`, response.ok ? 'success' : 'info');
+                
+                if (response.ok) {
+                    const user = JSON.parse(responseText);
+                    log(`✅ AUTHENTICATED: ${user.firstName} ${user.lastName} (${user.role})`, 'success');
+                    testResults.push({ test: 'auth_check', status: 'success', user });
+                } else {
+                    log(`⚠️ NOT AUTHENTICATED: ${responseText}`, 'info');
+                    testResults.push({ test: 'auth_check', status: 'unauthenticated', error: responseText });
+                }
+            } catch (error) {
+                log(`❌ AUTH CHECK ERROR: ${error.message}`, 'error');
+                testResults.push({ test: 'auth_check', status: 'error', error: error.message });
+            }
+        }
+
+        async function testUserCreation() {
+            log('Testing user creation...', 'info');
+            
+            const testUser = {
+                email: `test${Date.now()}@example.com`,
+                firstName: 'Test',
+                lastName: 'User',
+                companyName: 'Test Company',
+                phone: '555-1234',
+                role: 'customer',
+                password: 'password123',
+                isActive: true
+            };
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(testUser),
+                });
+                
+                const responseText = await response.text();
+                log(`User creation response: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const newUser = JSON.parse(responseText);
+                    log(`✅ USER CREATED: ${newUser.email} (ID: ${newUser.id})`, 'success');
+                    updateStatus('success', 'User creation test passed');
+                    testResults.push({ test: 'create_user', status: 'success', user: newUser });
+                } else {
+                    log(`❌ USER CREATION FAILED: ${responseText}`, 'error');
+                    updateStatus('error', 'User creation failed');
+                    testResults.push({ test: 'create_user', status: 'error', error: responseText });
+                }
+            } catch (error) {
+                log(`❌ USER CREATION ERROR: ${error.message}`, 'error');
+                updateStatus('error', 'Network error during user creation');
+                testResults.push({ test: 'create_user', status: 'error', error: error.message });
+            }
+        }
+
+        function updateBrowserInfo() {
+            const info = document.getElementById('browser-info');
+            info.innerHTML = `
+                <strong>Browser:</strong> ${navigator.userAgent}<br>
+                <strong>Cookies Enabled:</strong> ${navigator.cookieEnabled ? 'Yes' : 'No'}<br>
+                <strong>Origin:</strong> ${window.location.origin}<br>
+                <strong>Protocol:</strong> ${window.location.protocol}<br>
+                <strong>Third-party Context:</strong> ${window !== window.parent ? 'Yes (iframe)' : 'No (standalone)'}<br>
+                <strong>Secure Context:</strong> ${window.isSecureContext ? 'Yes' : 'No'}
+            `;
+        }
+
+        // Listen for messages from iframe
+        window.addEventListener('message', function(event) {
+            if (event.origin !== 'https://ship-swift-ablp.replit.app') return;
+            
+            if (event.data && event.data.type) {
+                if (event.data.type === 'shipswift-error') {
+                    log(`📨 IFRAME ERROR: ${JSON.stringify(event.data.error)}`, 'error');
+                } else if (event.data.type === 'shipswift-success') {
+                    log(`📨 IFRAME SUCCESS: ${JSON.stringify(event.data.data)}`, 'success');
+                } else {
+                    log(`📨 IFRAME MESSAGE: ${JSON.stringify(event.data)}`, 'info');
+                }
+            }
+        });
+
+        // Initialize
+        updateBrowserInfo();
+        log('🚀 Iframe embedding test initialized', 'info');
+        updateStatus('pending', 'Ready to test - click "Test Login" to begin');
+    </script>
+</body>
+</html>

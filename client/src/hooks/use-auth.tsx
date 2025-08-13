@@ -103,18 +103,24 @@ export const useAuth = create<AuthState>()(
       checkAuth: async () => {
         set({ isLoading: true });
         try {
-          console.log('Checking auth');
+          console.log('Checking auth - iframe context:', window !== window.parent);
+          console.log('Current origin:', window.location.origin);
+          console.log('Cookies available:', document.cookie ? 'yes' : 'no');
 
           const response = await fetch('/api/auth/user', {
             credentials: 'include',
           });
+
+          console.log('Auth response status:', response.status);
+          console.log('Auth response headers:', Object.fromEntries(response.headers.entries()));
 
           if (response.ok) {
             const user = await response.json();
             console.log('Auth check successful:', user);
             set({ user, isLoading: false });
           } else {
-            console.log('Auth check failed:', response.status);
+            const errorText = await response.text();
+            console.log('Auth check failed:', response.status, errorText);
             set({ user: null, isLoading: false });
           }
         } catch (error) {

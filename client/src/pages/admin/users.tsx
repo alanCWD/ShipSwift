@@ -136,23 +136,41 @@ export default function AdminUsers() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
+      console.log('=== USER CREATION DEBUG ===');
       console.log('Creating user with data:', userData);
+      console.log('Is iframe context:', window !== window.parent);
+      console.log('Current origin:', window.location.origin);
+      console.log('Document cookies:', document.cookie);
       
-      // Simple, direct API call with enhanced error handling
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Always include credentials
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
       
       console.log('User creation response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('User creation failed:', errorText);
+        console.error('User creation failed - Response text:', errorText);
+        
+        // Send detailed error info to parent if in iframe
+        if (window !== window.parent) {
+          window.parent.postMessage({
+            type: 'shipswift-error',
+            error: {
+              status: response.status,
+              message: errorText,
+              cookies: document.cookie,
+              origin: window.location.origin
+            }
+          }, '*');
+        }
+        
         let errorMessage = 'Failed to create user';
         try {
           const errorJson = JSON.parse(errorText);
@@ -163,7 +181,18 @@ export default function AdminUsers() {
         throw new Error(errorMessage);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('User creation successful:', result);
+      
+      // Send success info to parent if in iframe
+      if (window !== window.parent) {
+        window.parent.postMessage({
+          type: 'shipswift-success',
+          data: { userCreated: result.id }
+        }, '*');
+      }
+      
+      return result;
     },
     onSuccess: (data) => {
       console.log('User created successfully:', data);
@@ -351,6 +380,51 @@ export default function AdminUsers() {
       : 'bg-gray-100 text-gray-800';
   };
 
+  // Show authentication required message if no user is logged in
+  if (!user && !authStore.isLoading) {
+    return (
+      <div className="space-y-6 p-8">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-yellow-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Authentication Required</h1>
+          <p className="text-gray-600 mb-6">
+            Please log in as an administrator to access the user management panel.
+          </p>
+          
+          {/* Debug info for iframe context */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-md mx-auto">
+            <h3 className="font-medium text-blue-900 mb-2">Debug Information</h3>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p>• Context: {window !== window.parent ? 'Embedded (iframe)' : 'Standalone'}</p>
+              <p>• Origin: {window.location.origin}</p>
+              <p>• Cookies: {document.cookie ? 'Available' : 'None'}</p>
+              <p>• Loading: {authStore.isLoading ? 'Yes' : 'No'}</p>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Refresh Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authStore.isLoading) {
+    return (
+      <div className="space-y-6 p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -358,6 +432,11 @@ export default function AdminUsers() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600">Manage all users and their access levels</p>
+          
+          {/* Show current user info for debugging */}
+          <div className="mt-2 text-sm text-green-600">
+            Logged in as: {user?.firstName} {user?.lastName} ({user?.role})
+          </div>
         </div>
         <Button onClick={() => setShowCreateUserModal(true)} className="flex items-center gap-2">
           <UserPlus className="w-4 h-4" />

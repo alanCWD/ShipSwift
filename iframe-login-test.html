@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iframe Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-panel { background: #f0f8ff; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { padding: 10px 15px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        .logs { background: #f5f5f5; padding: 15px; margin: 20px 0; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        iframe { width: 100%; height: 600px; border: 2px solid #ccc; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>ShipSwift Iframe Login Test</h1>
+    
+    <div class="test-panel">
+        <h3>Direct API Login Test</h3>
+        <input type="email" id="email" placeholder="Email" value="adam@ablplogistics.com">
+        <input type="password" id="password" placeholder="Password" value="password">
+        <br>
+        <button onclick="testDirectLogin()">Test Direct Login</button>
+        <button onclick="testAuthCheck()">Test Auth Check</button>
+        <button onclick="testCreateUser()">Test Create User</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div class="logs" id="logs">
+        <strong>Test Logs:</strong><br>
+    </div>
+    
+    <iframe id="shipswift-iframe" src="https://ship-swift-ablp.replit.app/admin">
+    </iframe>
+    
+    <script>
+        let sessionCookie = null;
+        
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${timestamp}] ${message}<br>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '<strong>Test Logs:</strong><br>';
+        }
+        
+        async function testDirectLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            log(`Testing direct login for: ${email}`);
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                log(`Login response: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Login successful! User: ${data.user.firstName} ${data.user.lastName} (${data.user.role})`);
+                    
+                    // Extract session cookie
+                    const setCookieHeader = response.headers.get('set-cookie');
+                    if (setCookieHeader) {
+                        sessionCookie = setCookieHeader;
+                        log(`Session cookie set: ${setCookieHeader.substring(0, 50)}...`);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Login failed: ${errorText}`);
+                }
+            } catch (error) {
+                log(`❌ Login error: ${error.message}`);
+            }
+        }
+        
+        async function testAuthCheck() {
+            log('Testing auth check...');
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/auth/user', {
+                    credentials: 'include',
+                });
+                
+                log(`Auth check response: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    log(`✅ Auth check successful! User: ${user.firstName} ${user.lastName} (${user.role})`);
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Auth check failed: ${errorText}`);
+                }
+            } catch (error) {
+                log(`❌ Auth check error: ${error.message}`);
+            }
+        }
+        
+        async function testCreateUser() {
+            log('Testing user creation...');
+            
+            const userData = {
+                email: `test${Date.now()}@example.com`,
+                firstName: 'Test',
+                lastName: 'User',
+                companyName: 'Test Company',
+                phone: '555-1234',
+                role: 'customer',
+                password: 'password123',
+                isActive: true
+            };
+            
+            try {
+                const response = await fetch('https://ship-swift-ablp.replit.app/api/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(userData),
+                });
+                
+                log(`Create user response: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const newUser = await response.json();
+                    log(`✅ User created successfully! ID: ${newUser.id}`);
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ User creation failed: ${errorText}`);
+                }
+            } catch (error) {
+                log(`❌ User creation error: ${error.message}`);
+            }
+        }
+        
+        // Listen for messages from iframe
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type && event.data.type.startsWith('shipswift-')) {
+                log(`📨 Message from iframe: ${JSON.stringify(event.data)}`);
+            }
+        });
+        
+        log('Iframe login test initialized');
+    </script>
+</body>
+</html>
