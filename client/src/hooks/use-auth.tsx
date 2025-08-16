@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { iframeAuthManager } from '@/lib/iframe-auth';
 
 interface User {
   id: string;

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { iframeAuthManager } from '@/lib/iframe-auth';
+
 import {
   Select,
   SelectContent,
@@ -48,9 +48,11 @@ import {
   Activity,
   Plus,
   UserPlus,
-  Mail
+  Mail,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/use-auth';
 
 interface User {
   id: string;
@@ -99,6 +101,10 @@ export default function AdminUsers() {
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Auth hook for current user and authentication state
+  const authStore = useAuth();
+  const user = authStore.user;
 
   // Fetch user statistics
   const { data: stats } = useQuery<UserStats>({
