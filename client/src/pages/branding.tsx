@@ -83,12 +83,34 @@ export default function Branding() {
       console.log('Starting logout process...');
       await logout();
       console.log('Logout successful, navigating to home...');
-      // Force navigation to home page after logout
-      window.location.href = '/';
+      
+      // Multiple fallback navigation methods
+      if (window.parent !== window) {
+        // In iframe - try parent navigation first
+        console.log('Iframe detected - navigating parent window...');
+        window.parent.location.href = '/';
+      } else {
+        // Not in iframe - direct navigation
+        console.log('Direct navigation...');
+        window.location.replace('/');
+      }
+      
+      // Additional fallback after short delay
+      setTimeout(() => {
+        console.log('Fallback navigation...');
+        setLocation('/');
+      }, 100);
+      
     } catch (error) {
       console.error('Logout error:', error);
       // Navigate to home even if logout fails
-      window.location.href = '/';
+      console.log('Error fallback navigation...');
+      if (window.parent !== window) {
+        window.parent.location.href = '/';
+      } else {
+        window.location.replace('/');
+      }
+      setTimeout(() => setLocation('/'), 100);
     }
   };
 
