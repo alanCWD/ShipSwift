@@ -78,16 +78,18 @@ export default function Branding() {
   }, [branding]);
 
   // Handle logout with proper navigation
-  const handleLogout = async () => {
+  const handleLogout = () => {
     console.log('Starting logout process...');
     
-    // First log out the user
-    await logout();
-    console.log('Logout successful');
-    
-    // Force a complete page refresh to home
-    console.log('Forcing page refresh to home...');
-    window.location.assign('/');
+    // Log out and immediately redirect
+    logout().then(() => {
+      console.log('Logout successful, redirecting...');
+      window.location.href = '/';
+    }).catch((error) => {
+      console.error('Logout failed:', error);
+      // Redirect anyway
+      window.location.href = '/';
+    });
   };
 
   // Save branding settings
