@@ -80,13 +80,15 @@ export default function Branding() {
   // Handle logout with proper navigation
   const handleLogout = async () => {
     try {
+      console.log('Starting logout process...');
       await logout();
-      // Navigate to home page after logout
-      setLocation('/');
+      console.log('Logout successful, navigating to home...');
+      // Force navigation to home page after logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       // Navigate to home even if logout fails
-      setLocation('/');
+      window.location.href = '/';
     }
   };
 
