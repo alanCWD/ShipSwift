@@ -119,23 +119,32 @@ export default function Branding() {
   // Upload logo
   const uploadLogoMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('🔧 Creating FormData...');
       const formData = new FormData();
       formData.append('logo', file);
       
+      console.log('📡 Making fetch request to /api/branding/logo...');
       const response = await fetch('/api/branding/logo', {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
       
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error('Failed to upload logo');
+        const errorText = await response.text();
+        console.error('❌ Upload failed:', errorText);
+        throw new Error(`Failed to upload logo: ${response.status} ${errorText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Upload successful:', result);
+      return result;
     },
     onSuccess: (data) => {
-      console.log('Logo upload response:', data);
+      console.log('🎉 Logo upload response:', data);
       toast({
         title: "Success",
         description: "Logo uploaded successfully",
@@ -158,9 +167,12 @@ export default function Branding() {
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('Selected file:', file.name, file.type, file.size);
+      console.log('📂 Selected file:', file.name, file.type, file.size);
+      console.log('🚀 Starting upload mutation...');
       setLogoFile(file);
       uploadLogoMutation.mutate(file);
+    } else {
+      console.log('❌ No file selected');
     }
   };
 
