@@ -77,22 +77,15 @@ export default function Branding() {
     }
   }, [branding]);
 
-  // Handle logout with forced redirect
-  const handleLogout = async () => {
-    console.log('🚪 Logout clicked - forcing redirect');
+  // Handle logout with immediate redirect - NO ASYNC
+  const handleLogout = () => {
+    console.log('🚪 Logout button clicked - immediate redirect');
     
-    try {
-      // Start logout process but don't wait for it
-      logout().catch(() => {}); // Ignore errors
-      
-      // Force immediate navigation
-      console.log('🏠 Redirecting immediately...');
-      window.location.replace('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Still redirect even if logout fails
-      window.location.replace('/');
-    }
+    // Don't wait for anything - redirect NOW
+    window.location.href = '/';
+    
+    // Also try logout in background (optional)
+    logout().catch(() => {});
   };
 
   // Save branding settings
@@ -165,14 +158,20 @@ export default function Branding() {
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('🎯 handleLogoUpload called');
+    console.log('🗂️ Event target:', event.target);
+    console.log('📁 Files array:', event.target.files);
+    
     const file = event.target.files?.[0];
     if (file) {
       console.log('📂 Selected file:', file.name, file.type, file.size);
       console.log('🚀 Starting upload mutation...');
       setLogoFile(file);
+      console.log('💾 Set logo file state');
+      console.log('🔄 Calling uploadLogoMutation.mutate...');
       uploadLogoMutation.mutate(file);
     } else {
-      console.log('❌ No file selected');
+      console.log('❌ No file selected - files array is empty or null');
     }
   };
 
@@ -265,10 +264,15 @@ export default function Branding() {
                   <Input
                     id="logo"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/svg+xml"
                     onChange={(e) => {
                       console.log('🎯 File input onChange triggered!');
-                      handleLogoUpload(e);
+                      console.log('📤 Event object:', e);
+                      try {
+                        handleLogoUpload(e);
+                      } catch (error) {
+                        console.error('❌ Error in handleLogoUpload:', error);
+                      }
                     }}
                     disabled={uploadLogoMutation.isPending}
                   />
