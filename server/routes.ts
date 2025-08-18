@@ -14,7 +14,20 @@ import Stripe from "stripe";
 
 // Configure multer for file uploads
 const upload = multer({
-  dest: 'uploads/',
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = 'uploads';
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const extension = path.extname(file.originalname);
+      cb(null, uniqueName + extension);
+    }
+  }),
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -30,7 +43,20 @@ const upload = multer({
 
 // Configure multer for CSV uploads
 const csvUpload = multer({
-  dest: 'uploads/',
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = 'uploads';
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueName = Date.now() + '-csv-' + Math.round(Math.random() * 1E9);
+      const extension = path.extname(file.originalname);
+      cb(null, uniqueName + extension);
+    }
+  }),
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv')) {
       cb(null, true);

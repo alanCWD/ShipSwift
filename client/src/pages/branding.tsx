@@ -77,42 +77,18 @@ export default function Branding() {
     }
   }, [branding]);
 
-  // Handle logout with proper navigation - ENHANCED
+  // Handle logout with immediate redirect - SIMPLE APPROACH
   const handleLogout = () => {
-    console.log('🔄 Starting logout process...');
+    console.log('Starting logout...');
     
-    // Show immediate feedback
-    toast({
-      title: "Logging out...",
-      description: "Redirecting to home page",
-    });
+    // Don't wait for logout API - redirect immediately
+    logout();
     
-    // Log out and immediately redirect with multiple fallback methods
-    logout()
-      .then(() => {
-        console.log('✅ Logout API successful, now redirecting...');
-      })
-      .catch((error) => {
-        console.error('❌ Logout API failed:', error);
-      })
-      .finally(() => {
-        console.log('🏠 Forcing navigation to home...');
-        // Multiple redirect methods for maximum reliability
-        try {
-          window.location.replace('/');
-        } catch (e1) {
-          try {
-            window.location.href = '/';
-          } catch (e2) {
-            try {
-              window.location.assign('/');
-            } catch (e3) {
-              // Last resort - use router
-              setLocation('/');
-            }
-          }
-        }
-      });
+    // Immediate redirect without waiting
+    setTimeout(() => {
+      console.log('Redirecting now...');
+      window.location.href = '/';
+    }, 50); // Minimal delay to ensure logout starts
   };
 
   // Save branding settings
@@ -178,6 +154,7 @@ export default function Branding() {
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('Selected file:', file.name, file.type, file.size);
       setLogoFile(file);
       uploadLogoMutation.mutate(file);
     }
