@@ -53,11 +53,11 @@ export default function Branding() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   // Load current branding
-  const { data: branding, isLoading } = useQuery({
+  const { data: branding, isLoading } = useQuery<{ branding: ClientBranding | null }>({
     queryKey: ['/api/branding'],
   });
 
-  // Load branding data into form - FIXED STRUCTURE
+  // Load branding data into form - CORRECTED STRUCTURE
   useEffect(() => {
     if (branding?.branding) {
       const brandingData = branding.branding;
@@ -76,6 +76,19 @@ export default function Branding() {
       });
     }
   }, [branding]);
+
+  // Handle logout with proper navigation
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Navigate to home page after logout
+      setLocation('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Navigate to home even if logout fails
+      setLocation('/');
+    }
+  };
 
   // Save branding settings
   const saveBrandingMutation = useMutation({
@@ -148,18 +161,6 @@ export default function Branding() {
     saveBrandingMutation.mutate(formData);
   };
 
-  // Handle logout with navigation - FIXED LOGOUT REDIRECT
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setLocation('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Navigate to home even if logout fails
-      setLocation('/');
-    }
-  };
-
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -216,7 +217,7 @@ export default function Branding() {
             </CardContent>
           </Card>
 
-          {/* Logo Upload - FIXED LOGO DISPLAY */}
+          {/* Logo Upload - CORRECTED LOGO DISPLAY */}
           <Card>
             <CardHeader>
               <CardTitle>Company Logo</CardTitle>
@@ -365,7 +366,7 @@ export default function Branding() {
           </Card>
         </div>
 
-        {/* Preview Section - FIXED LOGO DISPLAY */}
+        {/* Preview Section - CORRECTED LOGO DISPLAY */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
