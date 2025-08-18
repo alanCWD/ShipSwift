@@ -77,19 +77,42 @@ export default function Branding() {
     }
   }, [branding]);
 
-  // Handle logout with proper navigation
+  // Handle logout with proper navigation - ENHANCED
   const handleLogout = () => {
-    console.log('Starting logout process...');
+    console.log('🔄 Starting logout process...');
     
-    // Log out and immediately redirect
-    logout().then(() => {
-      console.log('Logout successful, redirecting...');
-      window.location.href = '/';
-    }).catch((error) => {
-      console.error('Logout failed:', error);
-      // Redirect anyway
-      window.location.href = '/';
+    // Show immediate feedback
+    toast({
+      title: "Logging out...",
+      description: "Redirecting to home page",
     });
+    
+    // Log out and immediately redirect with multiple fallback methods
+    logout()
+      .then(() => {
+        console.log('✅ Logout API successful, now redirecting...');
+      })
+      .catch((error) => {
+        console.error('❌ Logout API failed:', error);
+      })
+      .finally(() => {
+        console.log('🏠 Forcing navigation to home...');
+        // Multiple redirect methods for maximum reliability
+        try {
+          window.location.replace('/');
+        } catch (e1) {
+          try {
+            window.location.href = '/';
+          } catch (e2) {
+            try {
+              window.location.assign('/');
+            } catch (e3) {
+              // Last resort - use router
+              setLocation('/');
+            }
+          }
+        }
+      });
   };
 
   // Save branding settings
@@ -132,6 +155,7 @@ export default function Branding() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('Logo upload response:', data);
       toast({
         title: "Success",
         description: "Logo uploaded successfully",
