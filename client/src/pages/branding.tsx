@@ -201,7 +201,13 @@ export default function Branding() {
               Customize your tracking interface with your company's branding
             </p>
           </div>
-          <Button onClick={handleLogout} variant="outline">
+          <Button 
+            onClick={() => {
+              console.log('🚪 Logout button clicked!');
+              handleLogout();
+            }} 
+            variant="outline"
+          >
             Logout
           </Button>
         </div>
@@ -260,12 +266,18 @@ export default function Branding() {
                     id="logo"
                     type="file"
                     accept="image/*"
-                    onChange={handleLogoUpload}
+                    onChange={(e) => {
+                      console.log('🎯 File input onChange triggered!');
+                      handleLogoUpload(e);
+                    }}
                     disabled={uploadLogoMutation.isPending}
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     Recommended: PNG or SVG format, max 5MB
                   </p>
+                  {uploadLogoMutation.isPending && (
+                    <p className="text-sm text-blue-600">Uploading...</p>
+                  )}
                 </div>
               </div>
             </CardContent>
