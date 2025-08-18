@@ -737,25 +737,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logo upload
+  // Logo upload with enhanced debugging
   app.post("/api/branding/logo", requireAuth, upload.single('logo'), async (req, res) => {
     try {
+      console.log('🖼️ Logo upload endpoint hit');
+      console.log('📁 Request file object:', req.file ? {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+        destination: req.file.destination
+      } : 'NO FILE');
+      
       if (!req.file) {
+        console.error('❌ No file in request');
         return res.status(400).json({ message: "No file uploaded" });
       }
 
       const userId = req.user!.id;
       const logoUrl = `/uploads/${req.file.filename}`;
       
-      console.log('Logo upload - User ID:', userId);
-      console.log('Logo upload - File:', req.file.filename);
-      console.log('Logo upload - Logo URL:', logoUrl);
+      console.log('👤 User ID:', userId);
+      console.log('📂 Saving to uploads directory as:', req.file.filename);
+      console.log('🔗 Logo URL will be:', logoUrl);
+      
+      // Check if file actually exists on disk
+      const filePath = path.join(process.cwd(), 'uploads', req.file.filename);
+      console.log('💾 File path on disk:', filePath);
+      console.log('📍 File exists on disk:', fs.existsSync(filePath));
       
       // Ensure branding record exists before updating logo
       const existingBranding = await storage.getClientBranding(userId);
       
       if (!existingBranding) {
-        console.log('No existing branding found, creating default branding record...');
+        console.log('🆕 No existing branding found, creating default branding record...');
         // Create default branding record with logo
         const defaultBranding = {
           userId,
@@ -766,17 +782,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         const branding = await storage.createClientBranding(defaultBranding);
-        console.log('Created new branding record:', branding.id);
+        console.log('✅ Created new branding record:', branding.id);
+        console.log('🏷️ New branding logoUrl:', branding.logoUrl);
         res.json({ logoUrl, branding });
       } else {
-        console.log('Updating existing branding record...');
+        console.log('🔄 Updating existing branding record...');
         const updatedBranding = await storage.updateClientBranding(userId, { logoUrl });
-        console.log('Updated branding record:', updatedBranding.id);
+        console.log('✅ Updated branding record:', updatedBranding.id);
+        console.log('🏷️ Updated branding logoUrl:', updatedBranding.logoUrl);
         res.json({ logoUrl, branding: updatedBranding });
       }
     } catch (error: any) {
-      console.error("Logo upload error:", error);
-      res.status(500).json({ message: "Failed to upload logo" });
+      console.error("💥 Logo upload error:", error);
+      res.status(500).json({ message: "Failed to upload logo", error: error.message });
     }
   });
 

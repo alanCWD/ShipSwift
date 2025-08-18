@@ -77,18 +77,22 @@ export default function Branding() {
     }
   }, [branding]);
 
-  // Handle logout with immediate redirect - SIMPLE APPROACH
-  const handleLogout = () => {
-    console.log('Starting logout...');
+  // Handle logout with forced redirect
+  const handleLogout = async () => {
+    console.log('🚪 Logout clicked - forcing redirect');
     
-    // Don't wait for logout API - redirect immediately
-    logout();
-    
-    // Immediate redirect without waiting
-    setTimeout(() => {
-      console.log('Redirecting now...');
-      window.location.href = '/';
-    }, 50); // Minimal delay to ensure logout starts
+    try {
+      // Start logout process but don't wait for it
+      logout().catch(() => {}); // Ignore errors
+      
+      // Force immediate navigation
+      console.log('🏠 Redirecting immediately...');
+      window.location.replace('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if logout fails
+      window.location.replace('/');
+    }
   };
 
   // Save branding settings
