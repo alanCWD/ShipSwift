@@ -158,31 +158,28 @@ export default function Branding() {
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('🎯 handleLogoUpload called');
-    console.log('🗂️ Event target:', event.target);
-    console.log('📁 Files array:', event.target.files);
-    console.log('📋 Files array length:', event.target.files?.length);
+    console.log('LOGO_UPLOAD: handleLogoUpload called');
+    console.log('LOGO_UPLOAD: Event target:', event.target);
+    console.log('LOGO_UPLOAD: Files array:', event.target.files);
+    console.log('LOGO_UPLOAD: Files array length:', event.target.files?.length);
     
     const file = event.target.files?.[0];
     if (file) {
-      console.log('📂 Selected file details:');
-      console.log('  - Name:', file.name);
-      console.log('  - Type:', file.type);
-      console.log('  - Size:', file.size);
-      console.log('  - Last modified:', file.lastModified);
-      console.log('🚀 Starting upload mutation...');
+      console.log('LOGO_UPLOAD: Selected file details:');
+      console.log('LOGO_UPLOAD:   - Name:', file.name);
+      console.log('LOGO_UPLOAD:   - Type:', file.type);
+      console.log('LOGO_UPLOAD:   - Size:', file.size);
+      console.log('LOGO_UPLOAD:   - Last modified:', file.lastModified);
+      console.log('LOGO_UPLOAD: Starting upload mutation...');
       setLogoFile(file);
-      console.log('💾 Set logo file state');
-      console.log('🔄 About to call uploadLogoMutation.mutate...');
+      console.log('LOGO_UPLOAD: Set logo file state');
+      console.log('LOGO_UPLOAD: About to call uploadLogoMutation.mutate...');
       
-      // Force the mutation to run
-      setTimeout(() => {
-        console.log('⏰ Delayed mutation call...');
-        uploadLogoMutation.mutate(file);
-      }, 100);
+      // Direct mutation call
+      uploadLogoMutation.mutate(file);
     } else {
-      console.log('❌ No file selected - files array is empty or null');
-      console.log('❌ Event.target.files:', event.target.files);
+      console.log('LOGO_UPLOAD: No file selected - files array is empty or null');
+      console.log('LOGO_UPLOAD: Event.target.files:', event.target.files);
     }
   };
 
@@ -272,38 +269,37 @@ export default function Branding() {
                 
                 <div>
                   <Label htmlFor="logo-upload">Upload New Logo</Label>
-                  <div className="mt-2">
-                    <input
-                      id="logo-upload"
-                      name="logo"
-                      type="file"
-                      accept="image/jpeg,image/png,image/svg+xml,image/jpg"
-                      onChange={(e) => {
-                        console.log('🎯 File input onChange triggered!');
-                        console.log('📤 Event object:', e);
-                        console.log('📁 Files length:', e.target.files?.length);
-                        console.log('📂 First file:', e.target.files?.[0]);
-                        try {
-                          handleLogoUpload(e);
-                        } catch (error) {
-                          console.error('❌ Error in handleLogoUpload:', error);
-                        }
-                      }}
-                      onClick={() => console.log('🖱️ File input clicked!')}
-                      onFocus={() => console.log('👁️ File input focused!')}
-                      disabled={uploadLogoMutation.isPending}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm cursor-pointer"
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        console.log('🔘 Button click - triggering file input');
-                        document.getElementById('logo-upload')?.click();
-                      }}
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Choose Logo File
-                    </button>
+                  <div className="mt-2 space-y-2">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <input
+                        id="logo-upload"
+                        name="logo"
+                        type="file"
+                        accept="image/jpeg,image/png,image/svg+xml,image/jpg"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          console.log('LOGO_UPLOAD: File input onChange triggered!');
+                          console.log('LOGO_UPLOAD: Event object:', e);
+                          console.log('LOGO_UPLOAD: Files length:', e.target.files?.length);
+                          console.log('LOGO_UPLOAD: First file:', e.target.files?.[0]);
+                          try {
+                            handleLogoUpload(e);
+                          } catch (error) {
+                            console.error('LOGO_UPLOAD: Error in handleLogoUpload:', error);
+                          }
+                        }}
+                      />
+                      <label 
+                        htmlFor="logo-upload" 
+                        className="cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        onClick={() => console.log('LOGO_UPLOAD: Label clicked!')}
+                      >
+                        Choose Logo File
+                      </label>
+                      <p className="mt-2 text-sm text-gray-500">
+                        Click to select an image file (PNG, JPG, SVG)
+                      </p>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     Recommended: PNG or SVG format, max 5MB
