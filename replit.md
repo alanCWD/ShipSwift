@@ -4,6 +4,18 @@ ShipSwift, a subsidiary of ABLP Logistics, is a Canadian shipping platform provi
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
+## Recent Changes (August 2025)
+
+**Authentication & Navigation (Resolved):**
+- Fixed logout redirect functionality across all pages using immediate window.location.href navigation
+- Enhanced navbar logout with proper session handling and immediate redirect
+
+**Logo Upload System (Resolved):**
+- Implemented comprehensive file upload system with multer middleware
+- Added extensive debugging and error handling for upload process
+- Fixed client-side event handling issues with proper HTML form semantics
+- Logo uploads now persist correctly in uploads directory and database
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
