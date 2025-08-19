@@ -18,6 +18,14 @@ interface NavbarProps {
 export default function Navbar({ onLogin, onRegister }: NavbarProps) {
   const { user, logout } = useAuth();
 
+  const handleLogout = () => {
+    console.log('🚪 Navbar logout clicked - immediate redirect');
+    // Immediate redirect - don't wait for anything
+    window.location.href = '/';
+    // Background logout call (optional)
+    logout().catch(() => {});
+  };
+
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return 'U';
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
@@ -123,7 +131,7 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
