@@ -112,32 +112,38 @@ export default function Branding() {
   // Upload logo
   const uploadLogoMutation = useMutation({
     mutationFn: async (file: File) => {
-      console.log('🔧 Creating FormData...');
+      console.log('DEBUG: Upload mutation started');
+      console.log('DEBUG: File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
       const formData = new FormData();
       formData.append('logo', file);
+      console.log('DEBUG: FormData created');
       
-      console.log('📡 Making fetch request to /api/branding/logo...');
+      console.log('DEBUG: Making fetch request...');
       const response = await fetch('/api/branding/logo', {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
       
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('DEBUG: Response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Upload failed:', errorText);
-        throw new Error(`Failed to upload logo: ${response.status} ${errorText}`);
+        console.error('DEBUG: Upload failed:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
       }
       
       const result = await response.json();
-      console.log('✅ Upload successful:', result);
+      console.log('DEBUG: Upload successful:', result);
       return result;
     },
     onSuccess: (data) => {
-      console.log('🎉 Logo upload response:', data);
+      console.log('DEBUG: Upload success callback:', data);
       toast({
         title: "Success",
         description: "Logo uploaded successfully",
@@ -270,35 +276,43 @@ export default function Branding() {
                 <div>
                   <Label htmlFor="logo-upload">Upload New Logo</Label>
                   <div className="mt-2 space-y-2">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                      {/* Debug: Always show this button */}
+                      <Button 
+                        type="button"
+                        onClick={() => {
+                          console.log('DEBUG: Upload button clicked!');
+                          const input = document.getElementById('logo-upload-input') as HTMLInputElement;
+                          if (input) {
+                            console.log('DEBUG: Input found, clicking...');
+                            input.click();
+                          } else {
+                            console.log('DEBUG: Input not found!');
+                          }
+                        }}
+                        className="mb-2"
+                      >
+                        Upload Logo (Debug)
+                      </Button>
+                      
                       <input
-                        id="logo-upload"
+                        id="logo-upload-input"
                         name="logo"
                         type="file"
-                        accept="image/jpeg,image/png,image/svg+xml,image/jpg"
-                        style={{ display: 'none' }}
+                        accept="image/*"
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         onChange={(e) => {
-                          console.log('LOGO_UPLOAD: File input onChange triggered!');
-                          console.log('LOGO_UPLOAD: Event object:', e);
-                          console.log('LOGO_UPLOAD: Files length:', e.target.files?.length);
-                          console.log('LOGO_UPLOAD: First file:', e.target.files?.[0]);
-                          try {
-                            handleLogoUpload(e);
-                          } catch (error) {
-                            console.error('LOGO_UPLOAD: Error in handleLogoUpload:', error);
+                          console.log('DEBUG: File selected!');
+                          console.log('DEBUG: Files:', e.target.files);
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            console.log('DEBUG: File name:', file.name);
+                            console.log('DEBUG: File size:', file.size);
+                            console.log('DEBUG: Calling upload mutation...');
+                            uploadLogoMutation.mutate(file);
                           }
                         }}
                       />
-                      <label 
-                        htmlFor="logo-upload" 
-                        className="cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        onClick={() => console.log('LOGO_UPLOAD: Label clicked!')}
-                      >
-                        Choose Logo File
-                      </label>
-                      <p className="mt-2 text-sm text-gray-500">
-                        Click to select an image file (PNG, JPG, SVG)
-                      </p>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
