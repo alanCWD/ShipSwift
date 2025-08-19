@@ -1,0 +1,127 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+ShipTimeService initialized for dynamic credentials
+Stripe key type: SECRET (sk_test...)
+1:17:49 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Session check: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: undefined,
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+No userId in session - iframe context detected
+1:17:54 AM [express] GET /api/auth/user 401 in 5ms :: {"message":"Authentication required","context"…
+Setting session for user: 7b004946-6993-4b96-b986-4655a7a18120
+Session saved successfully: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120'
+}
+1:18:01 AM [express] POST /api/auth/login 200 in 1162ms :: {"user":{"id":"7b004946-6993-4b96-b986-46…
+Session check: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:18:02 AM [express] GET /api/shipments 304 in 221ms :: {"shipments":[]}
+Session check: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/branding',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:18:05 AM [express] GET /api/branding 304 in 212ms :: {"branding":{"id":"2b4f6e11-0466-43c7-ba5d-21…
+Session check: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev',
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/branding',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:18:22 AM [express] POST /api/branding 200 in 636ms :: {"branding":{"id":"2b4f6e11-0466-43c7-ba5d-2…
+Session check: {
+  sessionId: 'WOblpggOmHEGcqZ_-wbAHF7UvdtXTMPg',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/branding',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:18:22 AM [express] GET /api/branding 200 in 210ms :: {"branding":{"id":"2b4f6e11-0466-43c7-ba5d-21…
+1:18:34 AM [express] POST /api/auth/logout 200 in 1ms :: {"message":"Logged out successfully"}
+Session check: {
+  sessionId: 'MZblUlzu-DVk_LEmUmxVQeCwVxGB9oKH',
+  userId: undefined,
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+No userId in session - iframe context detected
+1:18:49 AM [express] GET /api/auth/user 401 in 2ms :: {"message":"Authentication required","context"…
+Setting session for user: 7b004946-6993-4b96-b986-4655a7a18120
+Session saved successfully: {
+  sessionId: 'MZblUlzu-DVk_LEmUmxVQeCwVxGB9oKH',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120'
+}
+1:18:55 AM [express] POST /api/auth/login 200 in 634ms :: {"user":{"id":"7b004946-6993-4b96-b986-465…
+Session check: {
+  sessionId: 'MZblUlzu-DVk_LEmUmxVQeCwVxGB9oKH',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:18:55 AM [express] GET /api/shipments 304 in 209ms :: {"shipments":[]}
+1:19:03 AM [express] POST /api/auth/logout 200 in 1ms :: {"message":"Logged out successfully"}
+Setting session for user: 7b004946-6993-4b96-b986-4655a7a18120
+Session saved successfully: {
+  sessionId: 'm7XeGld3XxBVXd0wUWR2T19_q3oh1QLO',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120'
+}
+1:19:08 AM [express] POST /api/auth/login 200 in 635ms :: {"user":{"id":"7b004946-6993-4b96-b986-465…
+1:19:15 AM [express] POST /api/auth/logout 200 in 1ms :: {"message":"Logged out successfully"}
+Setting session for user: 7b004946-6993-4b96-b986-4655a7a18120
+Session saved successfully: {
+  sessionId: 'IA3Z-tq07S7SqWNnvAONptamNhrWuMUh',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120'
+}
+1:19:39 AM [express] POST /api/auth/login 200 in 632ms :: {"user":{"id":"7b004946-6993-4b96-b986-465…
+Session check: {
+  sessionId: 'IA3Z-tq07S7SqWNnvAONptamNhrWuMUh',
+  userId: '7b004946-6993-4b96-b986-4655a7a18120',
+  sessionExists: true,
+  headers: {
+    origin: undefined,
+    referer: 'https://69d448a7-e6ea-4620-9961-4cc966699429-00-1v0bseke8fen8.janeway.replit.dev/branding',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap'
+  }
+}
+1:19:42 AM [express] GET /api/branding 304 in 207ms :: {"branding":{"id":"2b4f6e11-0466-43c7-ba5d-21…
