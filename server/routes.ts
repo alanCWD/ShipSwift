@@ -180,8 +180,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Password is required" });
       }
       
-      // Check if stored password matches provided password
-      if (user.password && user.password !== password) {
+      // Ensure user has a password set in database
+      if (!user.password || user.password.trim() === "") {
+        return res.status(401).json({ message: "Account password not set. Contact administrator." });
+      }
+      
+      // Check if stored password matches provided password exactly
+      if (user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       // Update login stats
