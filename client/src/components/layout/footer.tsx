@@ -11,7 +11,6 @@ export default function Footer() {
               <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
                 ShipSwift
               </div>
-              <span className="ml-3 text-2xl font-bold">Logistics</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Canadian shipping platform for ABLP Logistics.

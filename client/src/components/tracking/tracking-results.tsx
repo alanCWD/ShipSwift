@@ -281,7 +281,6 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
             <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
               ShipSwift
             </div>
-            <span className="ml-3 text-2xl font-bold text-gray-900">Logistics</span>
           </div>
           <p className="text-gray-600 mb-4">
             Thank you for choosing ShipSwift for your shipping needs.
