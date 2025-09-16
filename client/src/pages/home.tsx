@@ -46,7 +46,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 text-lg px-6 sm:px-8 py-4 w-full sm:w-auto"
+                className="bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 text-lg px-6 sm:px-8 py-4 w-full sm:w-auto"
                 onClick={() => window.open('https://meeting.calendarhero.com/meetingalan', '_blank')}
                 data-testid="button-schedule-demo"
               >
