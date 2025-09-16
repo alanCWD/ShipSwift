@@ -34,19 +34,21 @@ export default function Home() {
             <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
               Compare rates from major Canadian carriers, manage shipments, and provide branded tracking experiences for your customers. Save up to 70% on shipping costs.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-start sm:justify-center items-center w-full max-w-md sm:max-w-none mx-auto">
               <Button 
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-4"
+                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-6 sm:px-8 py-4 w-full sm:w-auto"
                 onClick={() => document.getElementById('rate-calculator')?.scrollIntoView({ behavior: 'smooth' })}
+                data-testid="button-get-quote"
               >
                 Get Instant Quote
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-700 hover:text-white text-lg px-8 py-4"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 text-lg px-6 sm:px-8 py-4 w-full sm:w-auto"
                 onClick={() => window.open('https://meeting.calendarhero.com/meetingalan', '_blank')}
+                data-testid="button-schedule-demo"
               >
                 Schedule Demo
               </Button>
