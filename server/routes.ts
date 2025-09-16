@@ -175,13 +175,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // In a real app, you'd verify password here against hashed password
-      // For demo purposes, we'll check if password is provided
+      // Verify password against stored password in database
       if (!password) {
         return res.status(401).json({ message: "Password is required" });
       }
       
-      // For demo: accept any non-empty password (in production, verify against hashed password)
+      // Check if stored password matches provided password
+      if (user.password && user.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
       // Update login stats
       await storage.updateUser(user.id, {
         lastLoginAt: new Date(),
