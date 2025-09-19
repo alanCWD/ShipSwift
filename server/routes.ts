@@ -1532,7 +1532,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
-  // Production-safe initialization for required admin and test accounts
+  // Bootstrap endpoint for initial setup when no admin users can login
+  app.post("/api/bootstrap/initialize-users", async (req, res) => {
+    try {
+      // Safety check: Only allow if no active admin users exist
+      const adminUsers = await storage.getAllUsers({ role: 'admin', status: 'active' });
+      const activeAdminUsers = adminUsers;
+      
+      if (activeAdminUsers.length > 0) {
+        return res.status(403).json({ 
+          message: "Bootstrap initialization blocked: Active admin users already exist. Use the regular admin panel instead.",
+          activeAdmins: activeAdminUsers.length
+        });
+      }
+      
+      // Get password from request body (required)
+      const { password } = req.body;
+      
+      if (!password || typeof password !== 'string' || password.length < 8) {
+        return res.status(400).json({ 
+          message: "Password is required and must be at least 8 characters long" 
+        });
+      }
+      
+      // Define the required users that must exist for the application to function
+      const requiredUsers = [
+        {
+          email: 'alan@citywidedigital.ca',
+          firstName: 'Alan',
+          lastName: 'Bowles',
+          companyName: 'Citywide Digital',
+          role: 'admin',
+          password: password,
+          isActive: true
+        },
+        {
+          email: 'adam@ablplogistics.com',
+          firstName: 'Adam',
+          lastName: 'Wilson',
+          companyName: 'ABLP Logistics',
+          role: 'admin', 
+          password: password,
+          isActive: true
+        },
+        {
+          email: 'test@example.com',
+          firstName: 'Test',
+          lastName: 'User',
+          companyName: 'Test Company',
+          role: 'customer',
+          password: password,
+          isActive: true
+        }
+      ];
+
+      const results = [];
+      
+      for (const userData of requiredUsers) {
+        try {
+          const existingUser = await storage.getUserByEmail(userData.email);
+          if (!existingUser) {
+            // Create the user if they don't exist
+            const user = await storage.createUser(userData);
+            
+            // Log initial activity
+            await storage.logUserActivity({
+              userId: user.id,
+              activityType: 'registration',
+              activityData: { method: 'bootstrap_initialization' },
+              ipAddress: req.ip,
+              userAgent: req.get('User-Agent')
+            });
+            
+            results.push({ email: userData.email, status: 'created' });
+          } else {
+            // User exists - update password, role, and isActive to ensure they can login
+            const updates: any = {};
+            let needsUpdate = false;
+            
+            if (!existingUser.password || existingUser.password.trim() === '') {
+              updates.password = userData.password;
+              needsUpdate = true;
+            }
+            
+            if (existingUser.role !== userData.role) {
+              updates.role = userData.role;
+              needsUpdate = true;
+            }
+            
+            if (!existingUser.isActive) {
+              updates.isActive = true;
+              needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+              await storage.updateUser(existingUser.id, updates);
+              results.push({ email: userData.email, status: 'updated', updates: Object.keys(updates) });
+            } else {
+              results.push({ email: userData.email, status: 'already_exists' });
+            }
+          }
+        } catch (error: any) {
+          console.error(`Failed to process user ${userData.email}:`, error);
+          results.push({ email: userData.email, status: 'error', error: error.message });
+        }
+      }
+
+      // Log the bootstrap action
+      console.log('Bootstrap user initialization completed:', {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        results: results
+      });
+
+      res.json({ 
+        message: 'Bootstrap user initialization completed',
+        results
+      });
+    } catch (error: any) {
+      console.error("Error in bootstrap initialization:", error);
+      res.status(500).json({ message: "Failed to initialize users", error: error.message });
+    }
+  });
+
+  // Production-safe initialization for required admin and test accounts (requires admin)
   app.post("/api/admin/initialize-required-users", requireAdmin, async (req, res) => {
     try {
       // Get password from request body (required)
