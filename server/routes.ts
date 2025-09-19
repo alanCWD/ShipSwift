@@ -1535,14 +1535,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bootstrap endpoint for initial setup when no admin users can login
   app.post("/api/bootstrap/initialize-users", async (req, res) => {
     try {
-      // Safety check: Only allow if no active admin users exist
-      const adminUsers = await storage.getAllUsers({ role: 'admin', status: 'active' });
-      const activeAdminUsers = adminUsers;
+      // Check for bootstrap secret - required for security
+      const bootstrapSecret = req.headers['x-bootstrap-secret'];
+      const requiredSecret = process.env.BOOTSTRAP_SECRET;
       
-      if (activeAdminUsers.length > 0) {
+      if (!requiredSecret) {
+        return res.status(404).json({ message: "Not found" });
+      }
+      
+      if (!bootstrapSecret || bootstrapSecret !== requiredSecret) {
+        console.log('Bootstrap attempt with invalid secret from:', req.ip);
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Check if bootstrap has already been used (one-time only)
+      if (process.env.BOOTSTRAP_USED === 'true') {
+        console.log('Bootstrap attempt after already used from:', req.ip);
+        return res.status(404).json({ message: "Not found" });
+      }
+      
+      // Safety check: Only allow if no active admin users with passwords exist
+      const allAdminUsers = await storage.getAllUsers({ role: 'admin' });
+      const adminUsersWithPasswords = allAdminUsers.filter(user => 
+        user.isActive && user.password && user.password.trim() !== ''
+      );
+      
+      if (adminUsersWithPasswords.length > 0) {
         return res.status(403).json({ 
-          message: "Bootstrap initialization blocked: Active admin users already exist. Use the regular admin panel instead.",
-          activeAdmins: activeAdminUsers.length
+          message: "Access denied" // Don't leak system state
         });
       }
       
@@ -1638,16 +1658,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Log the bootstrap action
+      // Log the bootstrap action (without password)
       console.log('Bootstrap user initialization completed:', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
-        results: results
+        timestamp: new Date().toISOString(),
+        results: results.map(r => ({ email: r.email, status: r.status }))
       });
 
+      // Set a flag to disable further bootstrap attempts
+      process.env.BOOTSTRAP_USED = 'true';
+
       res.json({ 
-        message: 'Bootstrap user initialization completed',
-        results
+        message: 'Bootstrap initialization completed successfully'
       });
     } catch (error: any) {
       console.error("Error in bootstrap initialization:", error);
