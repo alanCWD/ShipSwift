@@ -19,6 +19,7 @@ export default function SettingsPanel() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('shiptime');
   const [testingConnection, setTestingConnection] = useState(false);
+  const [initPassword, setInitPassword] = useState('');
 
   // ShipTime API Settings
   const [shiptimeSettings, setShiptimeSettings] = useState({
@@ -244,6 +245,40 @@ export default function SettingsPanel() {
     } finally {
       setTestingConnection(false);
     }
+  };
+
+  // Initialize required users mutation
+  const initializeUsersMutation = useMutation({
+    mutationFn: async (password: string) => {
+      const response = await apiRequest('POST', '/api/admin/initialize-required-users', { password });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "User Initialization Complete",
+        description: `Successfully processed ${data.results.length} required users. Check the results for details.`,
+      });
+      console.log('User initialization results:', data.results);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Initialization Failed",
+        description: error.message || "Failed to initialize required users.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleInitializeUsers = () => {
+    if (!initPassword || initPassword.length < 8) {
+      toast({
+        title: "Password Required",
+        description: "Please enter a password of at least 8 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    initializeUsersMutation.mutate(initPassword);
   };
 
   return (
@@ -740,6 +775,55 @@ export default function SettingsPanel() {
               >
                 {saveCompanySettings.isPending ? 'Saving...' : 'Save Company Settings'}
               </Button>
+
+              <Separator className="my-6" />
+
+              {/* System Maintenance Section */}
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <Settings className="w-5 h-5 mr-2 text-gray-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">System Maintenance</h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Initialize required system users and perform maintenance tasks
+                </p>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
+                    <div className="w-full">
+                      <h4 className="font-medium text-yellow-800">Initialize Required Users</h4>
+                      <p className="text-sm text-yellow-700 mt-1 mb-3">
+                        Ensures that essential admin and test accounts exist with proper passwords. This creates accounts for alan@citywidedigital.ca, adam@ablplogistics.com, and test@example.com if they don't exist.
+                      </p>
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="init-password" className="text-sm font-medium text-yellow-800">
+                            Password for Required Users
+                          </Label>
+                          <Input
+                            id="init-password"
+                            type="password"
+                            value={initPassword}
+                            onChange={(e) => setInitPassword(e.target.value)}
+                            placeholder="Enter secure password (min 8 characters)"
+                            className="mt-1"
+                            data-testid="input-init-password"
+                          />
+                        </div>
+                        <Button 
+                          onClick={handleInitializeUsers}
+                          disabled={initializeUsersMutation.isPending || !initPassword}
+                          className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                          data-testid="button-initialize-users"
+                        >
+                          {initializeUsersMutation.isPending ? 'Initializing...' : 'Initialize Required Users'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
