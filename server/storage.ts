@@ -49,6 +49,7 @@ export interface IStorage {
   }>;
   getUserActivity(userId: string): Promise<UserActivity[]>;
   logUserActivity(activity: InsertUserActivity): Promise<void>;
+  getUsersWithPasswords(): Promise<User[]>;
   
   // Shipment operations
   getShipment(id: string): Promise<Shipment | undefined>;
@@ -362,6 +363,10 @@ export class DatabaseStorage implements IStorage {
 
   async logUserActivity(activity: InsertUserActivity): Promise<void> {
     await db.insert(userActivity).values(activity);
+  }
+
+  async getUsersWithPasswords(): Promise<User[]> {
+    return await db.select().from(users).where(ne(users.password, null));
   }
 
   // Shipment operations

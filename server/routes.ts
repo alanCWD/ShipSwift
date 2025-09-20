@@ -74,6 +74,42 @@ const csvUpload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Temporary migration route to hash existing plain text passwords
+  app.post("/api/admin/migrate-passwords", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      // Get all users with non-null passwords
+      const users = await storage.getUsersWithPasswords();
+      const migrationResults = [];
+      
+      for (const user of users) {
+        // Check if password is already hashed (bcrypt hashes start with $2)
+        if (user.password && !user.password.startsWith('$2')) {
+          // This is a plain text password, hash it
+          const hashedPassword = await bcrypt.hash(user.password, 10);
+          await storage.updateUser(user.id, { password: hashedPassword });
+          
+          migrationResults.push({
+            email: user.email,
+            status: 'migrated'
+          });
+        } else {
+          migrationResults.push({
+            email: user.email,
+            status: 'already_hashed'
+          });
+        }
+      }
+      
+      res.json({
+        message: "Password migration completed",
+        results: migrationResults
+      });
+    } catch (error) {
+      console.error('Password migration error:', error);
+      res.status(500).json({ message: "Migration failed" });
+    }
+  });
+  
   // Password-based authentication routes (primary method)
   
   // Register endpoint
