@@ -79,9 +79,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register endpoint
   app.post("/api/auth/register", async (req, res) => {
     try {
+      // CSRF Protection - verify origin matches host
+      const origin = req.headers.origin;
+      const expectedOrigin = `${req.protocol}://${req.hostname}`;
+      if (origin && origin !== expectedOrigin) {
+        return res.status(403).json({ message: "Invalid origin" });
+      }
+
       const userData = insertUserSchema.extend({
         password: z.string().min(6, "Password must be at least 6 characters")
-      }).parse(req.body);
+      }).omit({ role: true }).parse(req.body); // Remove role from client input
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
@@ -92,12 +99,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-      // Create user
+      // Create user (force role to 'customer' for security - never trust client input for role)
       const newUser = await storage.createUser({
-        ...userData,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        companyName: userData.companyName,
         password: hashedPassword,
         authProvider: 'email',
-        role: userData.role || 'customer',
+        role: 'customer', // Always force to 'customer' - never trust client input
         isActive: true,
       });
 
@@ -157,6 +167,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
+      // CSRF Protection - verify origin matches host
+      const origin = req.headers.origin;
+      const expectedOrigin = `${req.protocol}://${req.hostname}`;
+      if (origin && origin !== expectedOrigin) {
+        return res.status(403).json({ message: "Invalid origin" });
+      }
+
       const { email, password } = req.body;
 
       if (!email || !password) {
