@@ -50,9 +50,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false, // Set to false for development - auto-detect in production
       maxAge: sessionTtl,
-      sameSite: 'none', // Allow iframe/cross-origin contexts
+      sameSite: 'lax', // More permissive for development while still secure
     },
   });
 }
