@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -28,7 +27,7 @@ export default function RegisterModal({ isOpen, onClose }: { isOpen: boolean; on
     password: '',
     agreeToTerms: false,
   });
-  const { register, loginWithApp, isLoading } = useAuth();
+  const { register, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,11 +82,6 @@ export default function RegisterModal({ isOpen, onClose }: { isOpen: boolean; on
     }
   };
 
-  const handleAppLogin = () => {
-    // Close modal and redirect to App OIDC (handles both login and registration)
-    onClose();
-    loginWithApp();
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -216,24 +210,6 @@ export default function RegisterModal({ isOpen, onClose }: { isOpen: boolean; on
           </Button>
         </form>
         
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={handleAppLogin}
-          variant="outline"
-          className="w-full"
-          disabled={isLoading}
-          data-testid="button-continue-app-register"
-        >
-          Continue with App Testing
-        </Button>
       </DialogContent>
     </Dialog>
   );

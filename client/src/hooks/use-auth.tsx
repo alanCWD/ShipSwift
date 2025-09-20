@@ -23,7 +23,6 @@ interface AuthState {
     companyName?: string;
     role?: string;
   }) => Promise<void>;
-  loginWithApp: () => void;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
   checkAuth: () => Promise<void>;
@@ -87,10 +86,6 @@ export const useAuth = create<AuthState>()(
         }
       },
 
-      loginWithApp: () => {
-        // Redirect to App OIDC login
-        window.location.href = '/api/login';
-      },
 
       logout: async () => {
         try {

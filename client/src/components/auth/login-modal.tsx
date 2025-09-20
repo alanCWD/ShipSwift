@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -23,7 +22,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
     email: '',
     password: '',
   });
-  const { login, loginWithApp, isLoading } = useAuth();
+  const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,11 +61,6 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
     }
   };
 
-  const handleAppLogin = () => {
-    // Close modal and redirect to App OIDC
-    onClose();
-    loginWithApp();
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -122,24 +116,6 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
           </Button>
         </form>
         
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={handleAppLogin}
-          variant="outline"
-          className="w-full"
-          disabled={isLoading}
-          data-testid="button-continue-app-login"
-        >
-          Continue with App Testing
-        </Button>
       </DialogContent>
     </Dialog>
   );
