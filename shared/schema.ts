@@ -27,9 +27,10 @@ export const sessions = pgTable(
 // Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique().notNull(),
+  email: varchar("email").unique(), // Made nullable - Replit users might not have emails
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"), // Replit profile picture URL
   companyName: varchar("company_name"),
   phone: varchar("phone"),
   address: text("address"),
@@ -38,7 +39,7 @@ export const users = pgTable("users", {
   postalCode: varchar("postal_code"),
   country: varchar("country").default('CA'),
   role: varchar("role").default('customer'), // customer, admin, ablp_admin
-  password: varchar("password"), // Hashed password
+  password: varchar("password"), // Legacy field - no longer used with Replit Auth
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
   loginCount: integer("login_count").default(0),
@@ -47,6 +48,9 @@ export const users = pgTable("users", {
   shipmentsCount: integer("shipments_count").default(0),
   preferredCarrier: varchar("preferred_carrier"),
   notes: text("notes"), // Admin notes about the user
+  // Replit Auth fields
+  replitSub: varchar("replit_sub").unique(), // Replit user ID from 'sub' claim
+  authProvider: varchar("auth_provider").default('replit'), // Authentication provider
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
