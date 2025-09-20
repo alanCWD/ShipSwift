@@ -76,7 +76,7 @@ export async function setupAuth(app: Express) {
       const state = randomState();
       const nonce = randomNonce();
       const codeVerifier = randomPKCECodeVerifier();
-      const codeChallenge = calculatePKCECodeChallenge(codeVerifier);
+      const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
       
       // Store state, nonce, and code verifier in session for verification
       req.session.regenerate((err) => {
@@ -139,11 +139,16 @@ export async function setupAuth(app: Express) {
       }
 
       // Exchange code for tokens with PKCE
-      const tokenResponse = await authorizationCodeGrant(config, {
-        code: code as string,
-        redirect_uri: `https://${sessionHostname}/api/callback`,
-        code_verifier: sessionCodeVerifier,
-      });
+      const tokenResponse = await authorizationCodeGrant(
+        config,
+        new URL(`https://${sessionHostname}/api/callback`),
+        {
+          pkceCodeVerifier: sessionCodeVerifier,
+        },
+        {
+          code: code as string,
+        }
+      );
 
       // Fetch user info
       const userInfo = await fetchUserInfo(config, tokenResponse.access_token!, tokenResponse.token_type || 'Bearer');
@@ -231,7 +236,7 @@ export async function setupAuth(app: Express) {
         let logoutUrl = `${req.protocol}://${hostname}`;
         
         try {
-          if (tokens?.id_token && config.end_session_endpoint) {
+          if (tokens?.id_token && config.serverMetadata()?.end_session_endpoint) {
             const endSessionUrl = buildEndSessionUrl(config, {
               post_logout_redirect_uri: logoutUrl,
               id_token_hint: tokens.id_token,
