@@ -1,30 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import MemoryStore from "memorystore";
 import { registerRoutes } from "./routes";
+import { setupAuth } from "./replitAuth";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-
-// Session configuration - must be before other middleware
-const SessionStore = MemoryStore(session);
-
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret-key-change-in-production',
-  resave: true, // Force session save for iframe compatibility
-  saveUninitialized: true, // Save uninitialized sessions for iframe compatibility
-  store: new SessionStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  }),
-  cookie: {
-    secure: false, // Must be false in development for iframe testing
-    httpOnly: false, // Allow client-side access for iframe compatibility
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'none', // Allow cross-origin iframe embedding (works in dev with secure: false)
-    domain: undefined, // Don't restrict domain for iframe compatibility
-    path: '/' // Ensure cookie is available site-wide
-  }
-}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -102,6 +81,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup Replit Auth before other routes
+  await setupAuth(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
