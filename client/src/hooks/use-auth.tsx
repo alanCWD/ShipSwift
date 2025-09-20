@@ -8,13 +8,13 @@ interface User {
   lastName?: string;
   role: string;
   companyName?: string;
+  profileImageUrl?: string;
 }
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: () => void;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
   checkAuth: () => Promise<void>;
@@ -26,71 +26,17 @@ export const useAuth = create<AuthState>()(
       user: null,
       isLoading: false,
       
-      login: async (email: string, password: string) => {
-        set({ isLoading: true });
-        try {
-          console.log('Login attempt');
-          
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ email, password }),
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Login failed');
-          }
-
-          const data = await response.json();
-          console.log('Login successful:', data.user);
-          set({ 
-            user: data.user,
-            isLoading: false 
-          });
-        } catch (error) {
-          console.error('Login error:', error);
-          set({ isLoading: false });
-          throw error;
-        }
-      },
-
-      register: async (userData: any) => {
-        set({ isLoading: true });
-        try {
-          const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // Include cookies for sessions
-            body: JSON.stringify(userData),
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Registration failed');
-          }
-
-          const data = await response.json();
-          set({ 
-            user: data.user,
-            isLoading: false 
-          });
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
+      login: () => {
+        // Redirect to Replit OIDC login
+        window.location.href = '/api/login';
       },
 
       logout: async () => {
         try {
-          await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include', // Include cookies for sessions
-          });
+          // Use the new OIDC logout endpoint which handles both local and IdP logout
+          window.location.href = '/api/logout';
         } catch (error) {
           console.error('Logout error:', error);
-        } finally {
           set({ user: null });
         }
       },

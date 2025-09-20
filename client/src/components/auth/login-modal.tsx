@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -8,9 +6,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -18,39 +13,13 @@ interface LoginModalProps {
   onSwitchToRegister: () => void;
 }
 
-export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const { login, isLoading } = useAuth();
-  const { toast } = useToast();
+export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter both email and password.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await login(email, password);
-      toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
-      });
-      onClose();
-    } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid email or password.",
-        variant: "destructive",
-      });
-    }
+  const handleLogin = () => {
+    // Close modal and redirect to Replit OIDC
+    onClose();
+    login();
   };
 
   return (
@@ -60,73 +29,22 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
           <DialogTitle className="text-2xl font-bold text-gray-900">Sign In</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
-              disabled={isLoading}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1"
-              disabled={isLoading}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
-              />
-              <Label htmlFor="remember" className="text-sm text-gray-600">
-                Remember me
-              </Label>
-            </div>
-            <Button variant="link" className="text-sm text-blue-600 hover:text-blue-800">
-              Forgot password?
-            </Button>
+        <div className="space-y-6">
+          <div className="text-center text-gray-600">
+            <p>Sign in securely with your Replit account</p>
           </div>
           
           <Button 
-            type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={isLoading}
+            onClick={handleLogin}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3"
+            data-testid="button-continue-replit"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            Continue with Replit
           </Button>
-        </form>
-        
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Button 
-              variant="link" 
-              className="text-blue-600 hover:text-blue-800 font-medium p-0"
-              onClick={onSwitchToRegister}
-            >
-              Sign up
-            </Button>
-          </p>
+          
+          <div className="text-center text-sm text-gray-500">
+            <p>No account needed - Replit handles registration automatically</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
