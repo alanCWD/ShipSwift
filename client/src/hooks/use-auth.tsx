@@ -14,7 +14,16 @@ interface User {
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  login: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    companyName?: string;
+    role?: string;
+  }) => Promise<void>;
+  loginWithApp: () => void;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
   checkAuth: () => Promise<void>;
@@ -26,8 +35,60 @@ export const useAuth = create<AuthState>()(
       user: null,
       isLoading: false,
       
-      login: () => {
-        // Redirect to Replit OIDC login
+      login: async (email: string, password: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email, password }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            set({ user: data.user, isLoading: false });
+          } else {
+            const errorData = await response.json();
+            set({ isLoading: false });
+            throw new Error(errorData.message || 'Login failed');
+          }
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      register: async (userData) => {
+        set({ isLoading: true });
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(userData),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            set({ user: data.user, isLoading: false });
+          } else {
+            const errorData = await response.json();
+            set({ isLoading: false });
+            throw new Error(errorData.message || 'Registration failed');
+          }
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      loginWithApp: () => {
+        // Redirect to App OIDC login
         window.location.href = '/api/login';
       },
 

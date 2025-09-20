@@ -12,6 +12,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import Stripe from "stripe";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -71,6 +73,169 @@ const csvUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Password-based authentication routes (primary method)
+  
+  // Register endpoint
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.extend({
+        password: z.string().min(6, "Password must be at least 6 characters")
+      }).parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+      // Create user
+      const newUser = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+        authProvider: 'email',
+        role: userData.role || 'customer',
+        isActive: true,
+      });
+
+      // Log registration activity
+      await storage.logUserActivity({
+        userId: newUser.id,
+        activityType: 'registration',
+        activityData: { method: 'email_password' },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] || null,
+      });
+
+      // Create session
+      req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Session error" });
+        }
+
+        (req.session as any).isAuthenticated = true;
+        (req.session as any).userId = newUser.id;
+        (req.session as any).user = {
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+          profileImageUrl: newUser.profileImageUrl,
+        };
+
+        req.session.save((err) => {
+          if (err) {
+            return res.status(500).json({ message: "Session save error" });
+          }
+
+          res.status(201).json({
+            message: "User registered successfully",
+            user: {
+              id: newUser.id,
+              email: newUser.email,
+              firstName: newUser.firstName,
+              lastName: newUser.lastName,
+              role: newUser.role,
+              profileImageUrl: newUser.profileImageUrl,
+            }
+          });
+        });
+      });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.issues) {
+        return res.status(400).json({ message: "Validation error", errors: error.issues });
+      }
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Login endpoint
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.password) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        return res.status(401).json({ message: "Account is deactivated" });
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Update last login stats
+      await storage.updateUser(user.id, {
+        lastLoginAt: new Date(),
+        loginCount: (user.loginCount || 0) + 1,
+      });
+
+      // Log login activity
+      await storage.logUserActivity({
+        userId: user.id,
+        activityType: 'login',
+        activityData: { method: 'email_password' },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] || null,
+      });
+
+      // Create session
+      req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Session error" });
+        }
+
+        (req.session as any).isAuthenticated = true;
+        (req.session as any).userId = user.id;
+        (req.session as any).user = {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          profileImageUrl: user.profileImageUrl,
+        };
+
+        req.session.save((err) => {
+          if (err) {
+            return res.status(500).json({ message: "Session save error" });
+          }
+
+          res.json({
+            message: "Login successful",
+            user: {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+              profileImageUrl: user.profileImageUrl,
+            }
+          });
+        });
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
   // Demo label endpoint
   app.get("/api/demo-label", (req, res) => {
     // Generate a simple SVG shipping label
