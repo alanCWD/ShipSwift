@@ -5,7 +5,8 @@ import { storage } from "./storage";
 import { shiptimeService } from "./services/shiptime";
 import { stripeService } from "./services/stripe-service";
 import { emailService } from "./services/email-service";
-import { requireAuth, requireAdmin } from "./middleware/auth";
+import { isAuthenticated as requireAuth } from "./replitAuth";
+import { requireAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -128,105 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Disposition', 'inline; filename="demo-shipping-label.svg"');
     res.send(svg);
   });
-  // Auth routes
-  app.post("/api/auth/register", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists with this email" });
-      }
-
-      const user = await storage.createUser(userData);
-      
-      // Automatically log in the user after registration
-      (req.session as any).userId = user.id;
-      
-      // Update login stats
-      await storage.updateUser(user.id, {
-        lastLoginAt: new Date(),
-        loginCount: (user.loginCount || 0) + 1
-      });
-      
-      // Log registration activity
-      await storage.logUserActivity({
-        userId: user.id,
-        activityType: 'registration',
-        activityData: { method: 'web_form' },
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      
-      res.json({ user: { ...user, role: user.role } });
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      res.status(400).json({ message: error.message || "Registration failed" });
-    }
-  });
-
-  app.post("/api/auth/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      const user = await storage.getUserByEmail(email);
-      
-      if (!user || !user.isActive) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      // Verify password against stored password in database
-      if (!password) {
-        return res.status(401).json({ message: "Password is required" });
-      }
-      
-      // Ensure user has a password set in database
-      if (!user.password || user.password.trim() === "") {
-        return res.status(401).json({ message: "Account password not set. Contact administrator." });
-      }
-      
-      // Check if stored password matches provided password exactly
-      if (user.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      // Update login stats
-      await storage.updateUser(user.id, {
-        lastLoginAt: new Date(),
-        loginCount: (user.loginCount || 0) + 1
-      });
-      
-      // Log login activity
-      await storage.logUserActivity({
-        userId: user.id,
-        activityType: 'login',
-        activityData: { method: 'email_password' },
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      
-      // Set session
-      console.log('Setting session for user:', user.id);
-      (req.session as any).userId = user.id;
-      
-      // Explicitly save session to ensure it persists
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ message: 'Failed to save session' });
-        }
-        console.log('Session saved successfully:', {
-          sessionId: req.sessionID,
-          userId: (req.session as any).userId
-        });
-        res.json({ user: { ...user, role: user.role } });
-      });
-    } catch (error: any) {
-      console.error("Login error:", error);
-      res.status(401).json({ message: "Login failed" });
-    }
-  });
-
-  // Logout endpoint
+  // Legacy logout route - redirect to new OIDC logout
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {

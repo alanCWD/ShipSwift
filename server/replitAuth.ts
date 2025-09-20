@@ -16,6 +16,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { isAllowedHostname } from "./domainValidation";
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
@@ -67,9 +68,8 @@ export async function setupAuth(app: Express) {
     try {
       const hostname = req.hostname;
       
-      // Validate hostname against REPLIT_DOMAINS
-      const allowedDomains = process.env.REPLIT_DOMAINS!.split(",");
-      if (!allowedDomains.includes(hostname)) {
+      // Validate hostname against REPLIT_DOMAINS using shared validation
+      if (!isAllowedHostname(hostname)) {
         return res.status(400).json({ error: "Unsupported domain" });
       }
 

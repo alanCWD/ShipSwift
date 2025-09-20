@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupAuth } from "./replitAuth";
 import { setupVite, serveStatic, log } from "./vite";
+import { isAllowedOrigin, getDefaultAllowedOrigin } from "./domainValidation";
 
 const app = express();
 
@@ -16,31 +17,36 @@ app.use((req, res, next) => {
   // Allow embedding in iframes from any domain
   res.removeHeader('X-Frame-Options'); // Remove default frame restrictions
   
-  // Set CORS headers for API requests
+  // Set CORS headers for API requests - strict allowlist with exact matching
   const origin = req.headers.origin;
-  if (origin) {
+    
+  if (origin && isAllowedOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    // For iframe contexts, allow the referring domain
+  } else if (!origin) {
+    // For iframe contexts without Origin header, validate referring domain
     const referer = req.headers.referer;
     if (referer) {
       try {
         const refererUrl = new URL(referer);
-        res.header('Access-Control-Allow-Origin', refererUrl.origin);
+        if (isAllowedOrigin(refererUrl.origin)) {
+          res.header('Access-Control-Allow-Origin', refererUrl.origin);
+        }
+        // Don't set ACAO header for disallowed referers
       } catch (e) {
-        res.header('Access-Control-Allow-Origin', '*');
+        // Don't set ACAO header for invalid referers
       }
-    } else {
-      res.header('Access-Control-Allow-Origin', '*');
     }
+    // Don't set ACAO header when no Origin or Referer
   }
+  // Don't set ACAO header for disallowed origins
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
   
-  // Additional headers for iframe compatibility
+  // Additional headers for iframe compatibility and security
   res.header('Cross-Origin-Embedder-Policy', 'cross-origin');
   res.header('Cross-Origin-Opener-Policy', 'cross-origin');
+  res.header('Content-Security-Policy', 'frame-ancestors https://replit.com https://*.replit.com;');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
