@@ -49,7 +49,7 @@ export const users = pgTable("users", {
   preferredCarrier: varchar("preferred_carrier"),
   notes: text("notes"), // Admin notes about the user
   // Replit Auth fields
-  replitSub: varchar("replit_sub").unique(), // Replit user ID from 'sub' claim
+  replitSub: varchar("replit_sub").unique(), // Replit user ID from 'sub' claim - unique but nullable for migration
   authProvider: varchar("auth_provider").default('replit'), // Authentication provider
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

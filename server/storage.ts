@@ -26,6 +26,15 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByReplitSub(replitSub: string): Promise<User | undefined>;
+  upsertUser(user: Omit<InsertUser, 'id'>): Promise<User>; // Replit Auth compatibility method
+  linkOrCreateUserFromReplit(replitData: {
+    sub: string;
+    email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    profileImageUrl?: string | null;
+  }): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   
@@ -117,6 +126,153 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  // Replit Auth methods
+  async getUserByReplitSub(replitSub: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.replitSub, replitSub));
+    return user;
+  }
+
+  async upsertUser(userData: Omit<InsertUser, 'id'>): Promise<User> {
+    // Fix: Use replitSub as conflict target since that's the intended use case for Replit Auth
+    if (!userData.replitSub) {
+      throw new Error('replitSub is required for upsert operation');
+    }
+    
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.replitSub,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async linkOrCreateUserFromReplit(replitData: {
+    sub: string;
+    email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    profileImageUrl?: string | null;
+  }): Promise<User> {
+    // Start transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Check if user with this Replit sub already exists
+      const [existingUserBySub] = await tx.select().from(users).where(eq(users.replitSub, replitData.sub));
+      if (existingUserBySub) {
+        // Update existing user's login stats and profile data
+        const [updatedUser] = await tx
+          .update(users)
+          .set({
+            firstName: replitData.firstName || existingUserBySub.firstName,
+            lastName: replitData.lastName || existingUserBySub.lastName,
+            profileImageUrl: replitData.profileImageUrl || existingUserBySub.profileImageUrl,
+            authProvider: 'replit', // Ensure auth provider is set
+            lastLoginAt: new Date(),
+            loginCount: (existingUserBySub.loginCount || 0) + 1,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existingUserBySub.id))
+          .returning();
+
+        // Log login activity
+        await this.logUserActivity({
+          userId: updatedUser.id,
+          activityType: 'login',
+          activityData: { 
+            method: 'replit_auth',
+            provider: 'replit' 
+          },
+          ipAddress: null,
+          userAgent: null,
+        });
+
+        return updatedUser;
+      }
+
+      // Try to find existing user by email for linking (only if email provided)
+      if (replitData.email) {
+        const [existingUserByEmail] = await tx.select().from(users).where(eq(users.email, replitData.email));
+        if (existingUserByEmail) {
+          // SECURITY: Check if user is already linked to a different Replit account
+          if (existingUserByEmail.replitSub && existingUserByEmail.replitSub !== replitData.sub) {
+            throw new Error('This email is already linked to a different Replit account. Cannot link accounts.');
+          }
+
+          // Only link if the user hasn't been linked to Replit yet
+          if (!existingUserByEmail.replitSub) {
+            const [linkedUser] = await tx
+              .update(users)
+              .set({
+                replitSub: replitData.sub,
+                firstName: replitData.firstName || existingUserByEmail.firstName,
+                lastName: replitData.lastName || existingUserByEmail.lastName,
+                profileImageUrl: replitData.profileImageUrl || existingUserByEmail.profileImageUrl,
+                authProvider: 'replit',
+                lastLoginAt: new Date(),
+                loginCount: (existingUserByEmail.loginCount || 0) + 1,
+                updatedAt: new Date(),
+              })
+              .where(eq(users.id, existingUserByEmail.id))
+              .returning();
+
+            // Log account linking activity
+            await this.logUserActivity({
+              userId: linkedUser.id,
+              activityType: 'account_linked',
+              activityData: { 
+                method: 'replit_auth',
+                provider: 'replit',
+                linkedBy: 'email'
+              },
+              ipAddress: null,
+              userAgent: null,
+            });
+
+            return linkedUser;
+          }
+        }
+      }
+
+      // Create new user
+      const [newUser] = await tx
+        .insert(users)
+        .values({
+          email: replitData.email || undefined,
+          firstName: replitData.firstName || undefined,
+          lastName: replitData.lastName || undefined,
+          profileImageUrl: replitData.profileImageUrl || undefined,
+          replitSub: replitData.sub,
+          authProvider: 'replit',
+          role: 'customer',
+          isActive: true,
+          lastLoginAt: new Date(),
+          loginCount: 1,
+        })
+        .returning();
+
+      // Log registration activity
+      await this.logUserActivity({
+        userId: newUser.id,
+        activityType: 'registration',
+        activityData: { 
+          method: 'replit_auth',
+          provider: 'replit' 
+        },
+        ipAddress: null,
+        userAgent: null,
+      });
+
+      return newUser;
+    });
+
+    return result;
   }
 
   // Admin user management operations
