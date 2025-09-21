@@ -324,6 +324,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // EMERGENCY FIX ENDPOINT - FIXES PRODUCTION DATABASE
+  app.post("/api/debug/emergency-fix", async (req, res) => {
+    try {
+      const password = "12345678";
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const results = [];
+
+      // Fix alan@citywidedigital.ca - exists but no password
+      let alanAdmin = await storage.getUserByEmail('alan@citywidedigital.ca');
+      if (alanAdmin && !alanAdmin.password) {
+        await storage.updateUser(alanAdmin.id, { password: hashedPassword });
+        results.push({ email: 'alan@citywidedigital.ca', action: 'password_added' });
+      } else if (alanAdmin?.password) {
+        results.push({ email: 'alan@citywidedigital.ca', action: 'already_has_password' });
+      }
+
+      // Create alanb613@gmail.com - doesn't exist
+      let alanUser = await storage.getUserByEmail('alanb613@gmail.com');
+      if (!alanUser) {
+        alanUser = await storage.createUser({
+          email: 'alanb613@gmail.com',
+          firstName: 'Alan',
+          lastName: 'Bowles',
+          password: hashedPassword,
+          authProvider: 'email',
+          role: 'customer',
+          isActive: true,
+        });
+        results.push({ email: 'alanb613@gmail.com', action: 'user_created' });
+      } else {
+        results.push({ email: 'alanb613@gmail.com', action: 'already_exists' });
+      }
+
+      res.json({
+        message: "Emergency fix completed",
+        environment: process.env.NODE_ENV || 'unknown',
+        fixes: results,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Emergency fix error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        environment: process.env.NODE_ENV || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Demo label endpoint
   app.get("/api/demo-label", (req, res) => {
     // Generate a simple SVG shipping label
