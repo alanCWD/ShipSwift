@@ -289,6 +289,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TEMPORARY DEBUG ENDPOINT - REMOVE AFTER FIXING PRODUCTION
+  app.get("/api/debug/auth-check", async (req, res) => {
+    try {
+      const testEmails = ['alan@citywidedigital.ca', 'alanb613@gmail.com'];
+      const results = [];
+      
+      for (const email of testEmails) {
+        const user = await storage.getUserByEmail(email);
+        results.push({
+          email,
+          userExists: !!user,
+          hasPassword: !!(user?.password),
+          passwordStart: user?.password?.substring(0, 10) || null,
+          isActive: user?.isActive,
+          authProvider: user?.authProvider,
+          role: user?.role
+        });
+      }
+      
+      res.json({
+        environment: process.env.NODE_ENV || 'unknown',
+        databaseConnected: true,
+        users: results,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Debug endpoint error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        environment: process.env.NODE_ENV || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Demo label endpoint
   app.get("/api/demo-label", (req, res) => {
     // Generate a simple SVG shipping label
