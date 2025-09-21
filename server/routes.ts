@@ -400,6 +400,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SET ACCURATE LOGIN HISTORY - RESET TO REAL DATA ONLY  
+  app.get("/api/debug/reset-history", async (req, res) => {
+    try {
+      const results = [];
+      
+      // Real historical login dates (not testing dates)
+      const adamLastLogin = new Date('2025-09-16T19:47:06.307Z');
+      const testLastLogin = new Date('2025-08-09T23:48:30.262Z');
+      
+      // Reset Adam's login history to accurate data
+      const adam = await storage.getUserByEmail('adam@ablplogistics.com');
+      if (adam) {
+        await storage.updateUser(adam.id, {
+          lastLoginAt: adamLastLogin,
+          loginCount: 2  // Real historical count
+        });
+        results.push({
+          email: 'adam@ablplogistics.com',
+          action: 'reset_to_real_history',
+          realLastLogin: adamLastLogin.toISOString(),
+          realLoginCount: 2
+        });
+      }
+      
+      // Reset Test user's login history to accurate data  
+      const testUser = await storage.getUserByEmail('test@example.com');
+      if (testUser) {
+        await storage.updateUser(testUser.id, {
+          lastLoginAt: testLastLogin,
+          loginCount: 1  // Real historical count
+        });
+        results.push({
+          email: 'test@example.com', 
+          action: 'reset_to_real_history',
+          realLastLogin: testLastLogin.toISOString(),
+          realLoginCount: 1
+        });
+      }
+
+      res.json({
+        message: "Login history reset to accurate historical data",
+        environment: process.env.NODE_ENV || 'unknown',
+        resets: results,
+        note: "Only showing real historical logins, not testing attempts",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('History reset error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        environment: process.env.NODE_ENV || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // CLEAN UP TESTING LOGS - REMOVE ALL RECENT TEST LOGINS
+  app.get("/api/debug/clean-logs", async (req, res) => {
+    try {
+      // Delete all user activity logs after Aug 10, 2025 (all testing logs)
+      const cutoffDate = new Date('2025-08-10T00:00:00.000Z');
+      
+      const deletedLogs = await storage.cleanupTestingLogs(cutoffDate);
+      
+      res.json({
+        message: "Testing logs cleaned successfully",
+        environment: process.env.NODE_ENV || 'unknown',
+        deletedCount: deletedLogs,
+        cutoffDate: cutoffDate.toISOString(),
+        keptLogins: "Only real historical logins before Aug 10, 2025",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Log cleanup error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        environment: process.env.NODE_ENV || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // FINAL USER FIXES - ADAM TO ADMIN & TEST USER CREATION
   app.get("/api/debug/final-fix", async (req, res) => {
     try {

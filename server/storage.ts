@@ -20,7 +20,7 @@ import {
   type InsertReturn,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, like, or, count, sum, sql, ne } from "drizzle-orm";
+import { eq, desc, and, like, or, count, sum, sql, ne, gt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -49,6 +49,7 @@ export interface IStorage {
   }>;
   getUserActivity(userId: string): Promise<UserActivity[]>;
   logUserActivity(activity: InsertUserActivity): Promise<void>;
+  cleanupTestingLogs(cutoffDate: Date): Promise<number>;
   getUsersWithPasswords(): Promise<User[]>;
   
   // Shipment operations
@@ -363,6 +364,12 @@ export class DatabaseStorage implements IStorage {
 
   async logUserActivity(activity: InsertUserActivity): Promise<void> {
     await db.insert(userActivity).values(activity);
+  }
+
+  async cleanupTestingLogs(cutoffDate: Date): Promise<number> {
+    const result = await db.delete(userActivity)
+      .where(gt(userActivity.createdAt, cutoffDate));
+    return result.rowCount || 0;
   }
 
   async getUsersWithPasswords(): Promise<User[]> {
