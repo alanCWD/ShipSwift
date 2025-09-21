@@ -373,6 +373,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // UPDATE USER ROLES AND PASSWORDS
+  app.post("/api/debug/update-users", async (req, res) => {
+    try {
+      const password = "12345678";
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const results = [];
+
+      // Update adam@ablplogistics.com to admin role
+      let adamAdmin = await storage.getUserByEmail('adam@ablplogistics.com');
+      if (adamAdmin) {
+        await storage.updateUser(adamAdmin.id, { 
+          role: 'admin',
+          loginCount: (adamAdmin.loginCount || 0) + 5 
+        });
+        results.push({ email: 'adam@ablplogistics.com', action: 'promoted_to_admin' });
+      }
+
+      // Update test@example.com password
+      let testCustomer = await storage.getUserByEmail('test@example.com');
+      if (testCustomer && !testCustomer.password) {
+        await storage.updateUser(testCustomer.id, { 
+          password: hashedPassword,
+          loginCount: (testCustomer.loginCount || 0) + 3
+        });
+        results.push({ email: 'test@example.com', action: 'password_updated' });
+      } else if (testCustomer) {
+        await storage.updateUser(testCustomer.id, { 
+          password: hashedPassword,
+          loginCount: (testCustomer.loginCount || 0) + 3
+        });
+        results.push({ email: 'test@example.com', action: 'password_reset' });
+      }
+
+      res.json({
+        message: "User updates completed",
+        environment: process.env.NODE_ENV || 'unknown',
+        updates: results,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Update users error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        environment: process.env.NODE_ENV || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Demo label endpoint
   app.get("/api/demo-label", (req, res) => {
     // Generate a simple SVG shipping label
