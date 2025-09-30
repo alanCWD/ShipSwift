@@ -2274,7 +2274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Manual API test with full debugging
           const apiUrl = environment === 'sandbox' 
-            ? 'https://restapi.sandbox.shiptime.com/rest/'
+            ? 'https://sandboxapi.shiptime.com/rest/'
             : 'https://restapi.shiptime.com/rest/';
           
           const credentials = Buffer.from(`${username}:${password}`).toString('base64');
@@ -2282,6 +2282,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log('  - API URL:', apiUrl);
           console.log('  - Auth header sample:', authHeader.substring(0, 20) + '...');
+          
+          // Configure HTTPS agent for sandbox (SSL issues with sandbox API)
+          const https = await import('https');
+          const fetchOptions: any = {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          };
+          
+          // For sandbox environment, disable SSL verification due to certificate issues
+          if (environment === 'sandbox') {
+            fetchOptions.agent = new https.Agent({
+              rejectUnauthorized: false
+            });
+          }
           
           // Make a test request directly
           const testPayload = {
@@ -2318,15 +2336,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log('  - Sending test request...');
           
-          const response = await fetch(`${apiUrl}rates`, {
-            method: 'POST',
-            headers: {
-              'Authorization': authHeader,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify(testPayload),
-          });
+          fetchOptions.body = JSON.stringify(testPayload);
+          const response = await fetch(`${apiUrl}rates`, fetchOptions);
 
           const responseText = await response.text();
           console.log('  - Response status:', response.status);

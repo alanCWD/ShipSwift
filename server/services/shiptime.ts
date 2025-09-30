@@ -124,6 +124,28 @@ class ShipTimeService {
     return this.environment === 'sandbox' ? this.sandboxApiUrl : this.apiUrl;
   }
 
+  private async getFetchOptions(method: string, body?: any): Promise<any> {
+    const https = await import('https');
+    const options: any = {
+      method,
+      headers: {
+        'Authorization': this.getBasicAuthHeader(),
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    };
+    
+    // For sandbox environment, disable SSL verification due to certificate issues
+    if (this.environment === 'sandbox') {
+      options.agent = new https.Agent({
+        rejectUnauthorized: false
+      });
+    }
+    
+    return options;
+  }
+
   private async makeRequest(endpoint: string, method: string = 'POST', body?: any) {
     // Load credentials from database if not already loaded
     if (!this.username || !this.password) {
@@ -137,15 +159,8 @@ class ShipTimeService {
     console.log(`ShipTime API request to ${this.environment || 'production'} environment:`, `${apiUrl}${endpoint}`);
     console.log('Using credentials:', this.username);
     
-    const response = await fetch(`${apiUrl}${endpoint}`, {
-      method,
-      headers: {
-        'Authorization': this.getBasicAuthHeader(),
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const fetchOptions = await this.getFetchOptions(method, body);
+    const response = await fetch(`${apiUrl}${endpoint}`, fetchOptions);
 
     const responseText = await response.text();
     
