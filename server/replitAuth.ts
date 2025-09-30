@@ -43,9 +43,11 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  // Detect if running on HTTPS
-  const isProduction = process.env.NODE_ENV === 'production';
-  const isHttps = process.env.REPLIT_DOMAINS?.includes('.replit.app') || false;
+  // Replit always uses HTTPS for both .replit.dev (dev) and .replit.app (production)
+  // We need sameSite: 'none' to support iframe embedding in Replit workspace
+  const isReplitEnvironment = process.env.REPLIT_DOMAINS && 
+    (process.env.REPLIT_DOMAINS.includes('.replit.dev') || 
+     process.env.REPLIT_DOMAINS.includes('.replit.app'));
   
   return session({
     secret: process.env.SESSION_SECRET!,
@@ -54,9 +56,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isHttps || isProduction, // Must be true for sameSite: 'none'
+      secure: isReplitEnvironment || process.env.NODE_ENV === 'production', // HTTPS required for sameSite: 'none'
       maxAge: sessionTtl,
-      sameSite: isHttps || isProduction ? 'none' : 'lax', // 'none' allows iframe embedding
+      sameSite: isReplitEnvironment || process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' enables iframe embedding
     },
   });
 }
