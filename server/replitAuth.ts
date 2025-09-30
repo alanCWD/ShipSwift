@@ -43,6 +43,10 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  // Detect if running on HTTPS
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isHttps = process.env.REPLIT_DOMAINS?.includes('.replit.app') || false;
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -50,9 +54,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to false for development - auto-detect in production
+      secure: isHttps || isProduction, // Must be true for sameSite: 'none'
       maxAge: sessionTtl,
-      sameSite: 'lax', // More permissive for development while still secure
+      sameSite: isHttps || isProduction ? 'none' : 'lax', // 'none' allows iframe embedding
     },
   });
 }

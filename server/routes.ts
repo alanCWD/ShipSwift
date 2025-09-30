@@ -2192,37 +2192,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (service === 'shiptime') {
         try {
-          // Test ShipTime API connection with a simple rates request
-          const testRequest = {
-            from: {
-              countryCode: 'CA',
-              postalCode: 'V2R4H1',
-              streetAddress: '44322 Yale Rd #3',
-              city: 'Chilliwack',
-              state: 'BC'
-            },
-            to: {
-              countryCode: 'CA',
-              postalCode: 'V6B1A1',
-              city: 'Vancouver',
-              state: 'BC'
-            },
-            packageDetails: {
-              length: 30,
-              width: 20,
-              height: 10,
-              weight: 1
-            }
-          };
+          // Get current credentials for debugging
+          const username = await storage.getSetting('SHIPTIME_USERNAME');
+          const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+          
+          console.log('🔍 ShipTime Test Connection Debug:');
+          console.log('  - Username from DB:', username ? `${username.substring(0, 3)}***` : 'NOT SET');
+          console.log('  - Environment:', environment);
+          console.log('  - Has Password:', !!(await storage.getSetting('SHIPTIME_PASSWORD')));
 
           // Clear credentials cache and reload from database
           await shiptimeService.clearCredentials();
+          const loaded = await shiptimeService['loadCredentials']();
+          
+          if (!loaded) {
+            return res.status(400).json({ 
+              message: "ShipTime credentials not found in database. Please save credentials first.",
+              debug: {
+                username: username ? 'SET' : 'NOT SET',
+                password: !!(await storage.getSetting('SHIPTIME_PASSWORD')) ? 'SET' : 'NOT SET',
+                environment
+              }
+            });
+          }
+
           await shiptimeService.testConnection();
           
-          res.json({ message: "ShipTime API connection successful", status: "connected" });
+          res.json({ 
+            message: "ShipTime API connection successful", 
+            status: "connected",
+            environment,
+            username: username ? `${username.substring(0, 3)}***` : 'unknown'
+          });
         } catch (error: any) {
           console.error("ShipTime connection test failed:", error);
-          res.status(400).json({ message: `ShipTime API connection failed: ${error.message}` });
+          
+          // Provide detailed error information
+          const errorMessage = error.message || 'Unknown error';
+          const isAuthError = errorMessage.includes('Authentication failed') || errorMessage.includes('401');
+          
+          res.status(400).json({ 
+            message: `ShipTime API connection failed: ${errorMessage}`,
+            isAuthenticationError: isAuthError,
+            suggestion: isAuthError ? 
+              'Double-check your ShipTime username and password. Also verify you have the correct environment (Sandbox vs Production).' :
+              'Check ShipTime API status or contact support if credentials are correct.'
+          });
         }
       } else if (service === 'stripe') {
         try {
