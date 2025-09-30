@@ -74,6 +74,21 @@ const csvUpload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Diagnostic endpoint to check session status (temporary for debugging)
+  app.get("/api/debug/session", (req, res) => {
+    const sessionData = req.session as any;
+    res.json({
+      hasSession: !!req.session,
+      sessionID: req.sessionID,
+      isAuthenticated: sessionData?.isAuthenticated,
+      hasUser: !!sessionData?.user,
+      userId: sessionData?.userId,
+      userRole: sessionData?.user?.role,
+      hasTokens: !!sessionData?.tokens,
+      sessionKeys: Object.keys(sessionData || {}),
+    });
+  });
+  
   // Temporary migration route to hash existing plain text passwords
   app.post("/api/admin/migrate-passwords", requireAuth, requireAdmin, async (req, res) => {
     try {
