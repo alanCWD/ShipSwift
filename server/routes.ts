@@ -2178,6 +2178,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug ShipTime API call details
+  app.get("/api/admin/debug/shiptime", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const username = await storage.getSetting('SHIPTIME_USERNAME');
+      const password = await storage.getSetting('SHIPTIME_PASSWORD');
+      const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+      
+      // Test the Basic Auth encoding
+      const credentials = Buffer.from(`${username}:${password}`).toString('base64');
+      const authHeader = `Basic ${credentials}`;
+      
+      const apiUrl = environment === 'sandbox' 
+        ? 'https://restapi.sandbox.shiptime.com/rest/'
+        : 'https://restapi.shiptime.com/rest/';
+
+      const debugInfo = {
+        credentialsInDatabase: {
+          username: username ? `${username.substring(0, 3)}***${username.substring(username.length - 3)}` : 'NOT SET',
+          password: password ? `SET (${password.length} chars)` : 'NOT SET',
+          environment
+        },
+        apiEndpoint: `${apiUrl}rates`,
+        authHeaderSample: authHeader ? `Basic ${authHeader.substring(6, 15)}...` : 'NOT SET',
+        encodingTest: {
+          originalLength: username ? username.length + password.length : 0,
+          base64Length: credentials.length,
+          sampleEncoded: credentials.substring(0, 20) + '...'
+        }
+      };
+
+      res.json(debugInfo);
+    } catch (error: any) {
+      console.error('Debug endpoint error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Test API connections
   app.post("/api/admin/test-connection/:service", requireAuth, async (req, res) => {
     try {
@@ -2194,49 +2238,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Get current credentials for debugging
           const username = await storage.getSetting('SHIPTIME_USERNAME');
+          const password = await storage.getSetting('SHIPTIME_PASSWORD');
           const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
           
           console.log('🔍 ShipTime Test Connection Debug:');
           console.log('  - Username from DB:', username ? `${username.substring(0, 3)}***` : 'NOT SET');
+          console.log('  - Password length:', password ? password.length : 0);
           console.log('  - Environment:', environment);
-          console.log('  - Has Password:', !!(await storage.getSetting('SHIPTIME_PASSWORD')));
-
-          // Clear credentials cache and reload from database
-          await shiptimeService.clearCredentials();
-          const loaded = await shiptimeService['loadCredentials']();
           
-          if (!loaded) {
+          if (!username || !password) {
             return res.status(400).json({ 
               message: "ShipTime credentials not found in database. Please save credentials first.",
               debug: {
                 username: username ? 'SET' : 'NOT SET',
-                password: !!(await storage.getSetting('SHIPTIME_PASSWORD')) ? 'SET' : 'NOT SET',
+                password: password ? 'SET' : 'NOT SET',
                 environment
               }
             });
           }
 
-          await shiptimeService.testConnection();
+          // Manual API test with full debugging
+          const apiUrl = environment === 'sandbox' 
+            ? 'https://restapi.sandbox.shiptime.com/rest/'
+            : 'https://restapi.shiptime.com/rest/';
+          
+          const credentials = Buffer.from(`${username}:${password}`).toString('base64');
+          const authHeader = `Basic ${credentials}`;
+          
+          console.log('  - API URL:', apiUrl);
+          console.log('  - Auth header sample:', authHeader.substring(0, 20) + '...');
+          
+          // Make a test request directly
+          const testPayload = {
+            from: {
+              companyName: 'ShipSwift',
+              streetAddress: '44322 Yale Rd #3',
+              city: 'Chilliwack',
+              state: 'BC',
+              countryCode: 'CA',
+              postalCode: 'V2R4H1',
+              attention: 'ShipSwift',
+              phone: '1-800-225-7564'
+            },
+            to: {
+              companyName: 'Test Customer',
+              streetAddress: '123 West Hastings St',
+              city: 'Vancouver',
+              state: 'BC',
+              countryCode: 'CA', 
+              postalCode: 'V6B1A1',
+              attention: 'Test Customer',
+              phone: '604-555-0123'
+            },
+            packageType: 'PACKAGE',
+            unitOfMeasurement: 'METRIC',
+            lineItems: [{
+              length: 30,
+              width: 20,
+              height: 10,
+              weight: 1,
+            }],
+            shipDate: new Date().toISOString(),
+          };
+          
+          console.log('  - Sending test request...');
+          
+          const response = await fetch(`${apiUrl}rates`, {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(testPayload),
+          });
+
+          const responseText = await response.text();
+          console.log('  - Response status:', response.status);
+          console.log('  - Response preview:', responseText.substring(0, 200));
+          
+          if (!response.ok) {
+            // Try to parse error response
+            let errorDetails = responseText;
+            try {
+              const errorJson = JSON.parse(responseText);
+              errorDetails = JSON.stringify(errorJson, null, 2);
+            } catch (e) {
+              // Response is not JSON
+            }
+            
+            console.error('❌ ShipTime API Error:', errorDetails);
+            
+            return res.status(400).json({ 
+              message: `ShipTime API returned ${response.status}: ${response.statusText}`,
+              isAuthenticationError: response.status === 401,
+              errorDetails: errorDetails.substring(0, 500),
+              debug: {
+                statusCode: response.status,
+                environment,
+                apiUrl,
+                usernamePrefix: username.substring(0, 3)
+              }
+            });
+          }
+          
+          const responseData = JSON.parse(responseText);
+          console.log('✅ ShipTime connection successful! Rates:', responseData.availableRates?.length || 0);
           
           res.json({ 
             message: "ShipTime API connection successful", 
             status: "connected",
             environment,
-            username: username ? `${username.substring(0, 3)}***` : 'unknown'
+            ratesReceived: responseData.availableRates?.length || 0,
+            username: `${username.substring(0, 3)}***`
           });
         } catch (error: any) {
-          console.error("ShipTime connection test failed:", error);
-          
-          // Provide detailed error information
-          const errorMessage = error.message || 'Unknown error';
-          const isAuthError = errorMessage.includes('Authentication failed') || errorMessage.includes('401');
+          console.error("❌ ShipTime connection test failed:", error);
           
           res.status(400).json({ 
-            message: `ShipTime API connection failed: ${errorMessage}`,
-            isAuthenticationError: isAuthError,
-            suggestion: isAuthError ? 
-              'Double-check your ShipTime username and password. Also verify you have the correct environment (Sandbox vs Production).' :
-              'Check ShipTime API status or contact support if credentials are correct.'
+            message: `Connection test failed: ${error.message}`,
+            errorType: error.name,
+            isAuthenticationError: error.message.includes('401') || error.message.includes('Authentication'),
           });
         }
       } else if (service === 'stripe') {
