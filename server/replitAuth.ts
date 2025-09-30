@@ -276,8 +276,20 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const sessionData = req.session as any;
   
+  // Debug logging
+  console.log('🔐 Auth Check:', {
+    hasSession: !!req.session,
+    sessionId: req.sessionID?.substring(0, 10) + '...',
+    isAuthenticated: sessionData?.isAuthenticated,
+    hasUser: !!sessionData?.user,
+    hasUserId: !!sessionData?.userId,
+    hasTokens: !!sessionData?.tokens,
+    path: req.path
+  });
+  
   // Check basic authentication status
   if (!sessionData?.isAuthenticated) {
+    console.log('❌ Auth failed: No isAuthenticated flag');
     return res.status(401).json({ message: "Unauthorized" });
   }
 
