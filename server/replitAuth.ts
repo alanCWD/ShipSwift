@@ -276,10 +276,22 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const sessionData = req.session as any;
   
-  if (!sessionData?.isAuthenticated || !sessionData?.userId || !sessionData?.tokens) {
+  // Check basic authentication status
+  if (!sessionData?.isAuthenticated) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Email/password authentication (no tokens, just user object)
+  if (!sessionData.tokens) {
+    // For email/password auth, just verify user exists in session
+    if (!sessionData.user || !sessionData.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    req.user = sessionData.user;
+    return next();
+  }
+
+  // Replit OAuth authentication (with tokens) - handle token refresh
   const tokens = sessionData.tokens;
   const now = Math.floor(Date.now() / 1000);
   
