@@ -4,13 +4,21 @@ ShipSwift, a subsidiary of ABLP Logistics, is a Canadian shipping platform provi
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
-## Recent Changes (August 2025)
+## Recent Changes (October 2025)
 
-**Authentication & Navigation (Resolved):**
+**Pallet/Freight Shipping (New Feature):**
+- Added pallet and freight (LTL) shipping capabilities alongside existing package shipping
+- Shipment type selector in UI allows users to choose between Package and Pallet/Freight shipping
+- Pallet-specific fields: number of pallets, pallet type (standard/euro/custom), stackability, freight class
+- Backend integration with ShipTime API for freight rate requests using PALLET packageType
+- Database schema uses shipment_type column to differentiate shipments, with pallet metadata stored in packageDetails JSONB field for flexibility
+- Design decision: Pallet-specific fields stored in packageDetails JSONB rather than dedicated columns for schema flexibility and easier evolution
+
+**Authentication & Navigation (August 2025 - Resolved):**
 - Fixed logout redirect functionality across all pages using immediate window.location.href navigation
 - Enhanced navbar logout with proper session handling and immediate redirect
 
-**Logo Upload System (Resolved):**
+**Logo Upload System (August 2025 - Resolved):**
 - Implemented comprehensive file upload system with multer middleware
 - Added extensive debugging and error handling for upload process
 - Fixed client-side event handling issues with proper HTML form semantics
@@ -49,6 +57,7 @@ Preferred communication style: Simple, everyday language.
 - **Security**: PCI-compliant through Stripe Elements.
 
 ## System Design Choices
+- **Pallet/Freight Shipping**: Full support for both package (parcel) and pallet/freight (LTL) shipments with dedicated UI for pallet-specific details (pallet count, type, stackability, freight class). Uses JSONB storage for flexible pallet metadata.
 - **ABLP Admin System**: Dedicated admin panel for internal ABLP management, including dynamic ShipTime API credential management (encrypted storage) and advanced rate markup configuration with conditional logic (cost/weight/location-based rules) for profit margin control.
 - **Client Branding System**: Allows ABLP clients to customize their shipping interface and tracking pages with their logos and color schemes for a white-label experience.
 - **Rate Calculation System**: Features auto-rate fetching with debounce, graceful API failure handling using sample rates as fallback, and dynamic loading of ABLP credentials.
