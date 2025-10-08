@@ -13,12 +13,18 @@ interface PackageDetails {
   width: number;
   height: number;
   weight: number;
+  // Pallet-specific fields
+  palletCount?: number;
+  palletType?: string;
+  isStackable?: boolean;
+  freightClass?: string;
 }
 
 interface RateRequest {
   from: ShipTimeAddress;
   to: ShipTimeAddress;
   packageDetails: PackageDetails;
+  shipmentType?: 'package' | 'pallet';
 }
 
 interface ShipmentRequest extends RateRequest {
@@ -246,7 +252,40 @@ class ShipTimeService {
 
   async getRates(request: RateRequest): Promise<ShipTimeRate[]> {
     try {
-      const payload = {
+      const isPallet = request.shipmentType === 'pallet';
+      const packageType = isPallet ? 'PALLET' : 'PACKAGE';
+      
+      // Build line items based on shipment type
+      const lineItems: any[] = [];
+      
+      if (isPallet && request.packageDetails.palletCount) {
+        // For pallets, create multiple line items if palletCount > 1
+        for (let i = 0; i < request.packageDetails.palletCount; i++) {
+          const item: any = {
+            length: request.packageDetails.length,
+            width: request.packageDetails.width,
+            height: request.packageDetails.height,
+            weight: request.packageDetails.weight,
+          };
+          
+          // Add freight class if provided
+          if (request.packageDetails.freightClass) {
+            item.freightClass = request.packageDetails.freightClass;
+          }
+          
+          lineItems.push(item);
+        }
+      } else {
+        // Standard package - single line item
+        lineItems.push({
+          length: request.packageDetails.length,
+          width: request.packageDetails.width,
+          height: request.packageDetails.height,
+          weight: request.packageDetails.weight,
+        });
+      }
+      
+      const payload: any = {
         from: {
           countryCode: request.from.countryCode,
           postalCode: request.from.postalCode,
@@ -269,17 +308,19 @@ class ShipTimeService {
             phone: request.to.phone,
           })
         },
-        packageType: 'PACKAGE',
+        packageType,
         unitOfMeasurement: 'METRIC',
-        lineItems: [{
-          length: request.packageDetails.length,
-          width: request.packageDetails.width,
-          height: request.packageDetails.height,
-          weight: request.packageDetails.weight,
-        }],
+        lineItems,
         shipDate: new Date().toISOString(),
       };
+      
+      // Add pallet-specific details if applicable
+      if (isPallet) {
+        payload.palletType = request.packageDetails.palletType || 'standard';
+        payload.stackable = request.packageDetails.isStackable !== false;
+      }
 
+      console.log(`Fetching ${packageType} rates with payload:`, JSON.stringify(payload, null, 2));
       const response = await this.makeRequest('rates', 'POST', payload);
       
       if (!response.availableRates || response.availableRates.length === 0) {
@@ -301,7 +342,40 @@ class ShipTimeService {
         ? 'Test booking Not for Pick up - SANDBOX TESTING ONLY'
         : undefined;
 
-      const payload = {
+      const isPallet = request.shipmentType === 'pallet';
+      const packageType = isPallet ? 'PALLET' : 'PACKAGE';
+      
+      // Build line items based on shipment type
+      const lineItems: any[] = [];
+      
+      if (isPallet && request.packageDetails.palletCount) {
+        // For pallets, create multiple line items if palletCount > 1
+        for (let i = 0; i < request.packageDetails.palletCount; i++) {
+          const item: any = {
+            length: request.packageDetails.length,
+            width: request.packageDetails.width,
+            height: request.packageDetails.height,
+            weight: request.packageDetails.weight,
+          };
+          
+          // Add freight class if provided
+          if (request.packageDetails.freightClass) {
+            item.freightClass = request.packageDetails.freightClass;
+          }
+          
+          lineItems.push(item);
+        }
+      } else {
+        // Standard package - single line item
+        lineItems.push({
+          length: request.packageDetails.length,
+          width: request.packageDetails.width,
+          height: request.packageDetails.height,
+          weight: request.packageDetails.weight,
+        });
+      }
+
+      const payload: any = {
         rateId: request.rateId,
         from: {
           attention: request.from.attention || 'ShipSwift',
@@ -321,19 +395,20 @@ class ShipTimeService {
           postalCode: request.to.postalCode,
           phone: request.to.phone || '',
         },
-        packageType: 'PACKAGE',
+        packageType,
         unitOfMeasurement: 'METRIC',
-        lineItems: [{
-          length: request.packageDetails.length,
-          width: request.packageDetails.width,
-          height: request.packageDetails.height,
-          weight: request.packageDetails.weight,
-        }],
+        lineItems,
         // Add special instructions for sandbox testing
         ...(specialInstructions && { specialInstructions }),
         // Default to drop-off service for testing (not pickup)
         serviceType: 'DROP_OFF',
       };
+      
+      // Add pallet-specific details if applicable
+      if (isPallet) {
+        payload.palletType = request.packageDetails.palletType || 'standard';
+        payload.stackable = request.packageDetails.isStackable !== false;
+      }
 
       const response = await this.makeRequest('shipments', 'POST', payload);
       

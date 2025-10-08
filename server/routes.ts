@@ -704,7 +704,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fromPostalCode,
       toCountry,
       toPostalCode,
-      packageDetails
+      packageDetails,
+      shipmentType
     } = req.body;
 
     if (!fromPostalCode || !toPostalCode || !packageDetails) {
@@ -715,7 +716,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rates = await shiptimeService.getRates({
         from: { countryCode: fromCountry, postalCode: fromPostalCode },
         to: { countryCode: toCountry, postalCode: toPostalCode },
-        packageDetails
+        packageDetails,
+        shipmentType: shipmentType || 'package'
       });
 
       res.json({ rates });
@@ -870,13 +872,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/shipments", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const { fromAddress, toAddress, packageDetails, ...otherData } = req.body;
+      const { fromAddress, toAddress, packageDetails, shipmentType, ...otherData } = req.body;
       
       // Transform the data to match ShipTime service interface
       const shipmentRequest = {
         rateId: otherData.rateId,
         carrierName: otherData.carrierName,
         serviceName: otherData.serviceName,
+        shipmentType: shipmentType || 'package',
         from: {
           countryCode: fromAddress.countryCode,
           postalCode: fromAddress.postalCode,
