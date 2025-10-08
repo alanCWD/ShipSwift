@@ -14,6 +14,7 @@ interface RateCalculatorProps {
 }
 
 export default function RateCalculator({ onRatesReceived }: RateCalculatorProps) {
+  const [shipmentType, setShipmentType] = useState<'package' | 'pallet'>('package');
   const [formData, setFormData] = useState({
     fromCountry: 'CA',
     fromPostalCode: 'V2R 4H1',
@@ -23,6 +24,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     width: '',
     height: '',
     weight: '',
+    // Pallet-specific fields
+    palletCount: '1',
+    palletType: 'standard',
+    isStackable: 'yes',
+    freightClass: '',
   });
   
   const [hasRates, setHasRates] = useState(false);
@@ -101,17 +107,30 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         apiWeight = parseFloat(convertToMetric(data.weight, 'weight'));
       }
       
+      const packageDetails: any = {
+        length: apiLength,
+        width: apiWidth,
+        height: apiHeight,
+        weight: apiWeight,
+      };
+      
+      // Add pallet-specific fields if shipment type is pallet
+      if (shipmentType === 'pallet') {
+        packageDetails.palletCount = parseInt(data.palletCount);
+        packageDetails.palletType = data.palletType;
+        packageDetails.isStackable = data.isStackable === 'yes';
+        if (data.freightClass) {
+          packageDetails.freightClass = data.freightClass;
+        }
+      }
+      
       const response = await apiRequest('POST', '/api/shipping/rates', {
         fromCountry: data.fromCountry,
         fromPostalCode: data.fromPostalCode,
         toCountry: data.toCountry,
         toPostalCode: data.toPostalCode,
-        packageDetails: {
-          length: apiLength,
-          width: apiWidth,
-          height: apiHeight,
-          weight: apiWeight,
-        }
+        shipmentType,
+        packageDetails
       });
       return response.json();
     },
@@ -271,12 +290,39 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
             </div>
           </div>
 
-          {/* Package Details */}
+          {/* Shipment Type Selector */}
+          <div className="border-t pt-6">
+            <div className="space-y-4">
+              <Label htmlFor="shipmentType">Shipment Type</Label>
+              <Select 
+                value={shipmentType}
+                onValueChange={(value: 'package' | 'pallet') => {
+                  setShipmentType(value);
+                  setHasRates(false);
+                }}
+              >
+                <SelectTrigger data-testid="select-shipment-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="package" data-testid="option-package">📦 Package / Parcel</SelectItem>
+                  <SelectItem value="pallet" data-testid="option-pallet">🚛 Pallet / Freight (LTL)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500">
+                {shipmentType === 'package' 
+                  ? 'For small to medium parcels shipped via courier services'
+                  : 'For large shipments on pallets via freight carriers'}
+              </p>
+            </div>
+          </div>
+
+          {/* Package/Pallet Details */}
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Package className="w-5 h-5 mr-2 text-blue-600" />
-                Package Details
+                {shipmentType === 'package' ? 'Package Details' : 'Pallet Details'}
               </h3>
               
               {/* Unit Selector */}
@@ -352,6 +398,71 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 />
               </div>
             </div>
+            
+            {/* Pallet-Specific Fields */}
+            {shipmentType === 'pallet' && (
+              <div className="mt-6 pt-6 border-t">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Additional Pallet Information</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="palletCount">Number of Pallets</Label>
+                    <Input
+                      id="palletCount"
+                      data-testid="input-pallet-count"
+                      type="number"
+                      min="1"
+                      value={formData.palletCount}
+                      onChange={(e) => handleInputChange('palletCount', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="palletType">Pallet Type</Label>
+                    <Select 
+                      value={formData.palletType}
+                      onValueChange={(value) => handleInputChange('palletType', value)}
+                    >
+                      <SelectTrigger data-testid="select-pallet-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard (48" x 40")</SelectItem>
+                        <SelectItem value="euro">Euro (47.2" x 39.4")</SelectItem>
+                        <SelectItem value="custom">Custom Size</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="isStackable">Stackable?</Label>
+                    <Select 
+                      value={formData.isStackable}
+                      onValueChange={(value) => handleInputChange('isStackable', value)}
+                    >
+                      <SelectTrigger data-testid="select-stackable">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="yes">Yes</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Label htmlFor="freightClass">Freight Class (Optional)</Label>
+                  <Input
+                    id="freightClass"
+                    data-testid="input-freight-class"
+                    placeholder="e.g., 50, 60, 70, 85, 100, 125, 150"
+                    value={formData.freightClass}
+                    onChange={(e) => handleInputChange('freightClass', e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave blank if unknown. Freight class helps determine accurate pricing for LTL shipments.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
