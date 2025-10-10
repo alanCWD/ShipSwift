@@ -197,7 +197,25 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     },
   });
 
+  const formatPostalCode = (value: string): string => {
+    // Remove spaces and convert to uppercase
+    let formatted = value.replace(/\s/g, '').toUpperCase();
+    
+    // Add space after 3rd character for Canadian postal codes (A1A 1A1 format)
+    if (formatted.length > 3) {
+      formatted = formatted.slice(0, 3) + ' ' + formatted.slice(3);
+    }
+    
+    // Limit to 7 characters (A1A 1A1)
+    return formatted.slice(0, 7);
+  };
+
   const handleInputChange = (name: string, value: string) => {
+    // Auto-format postal codes
+    if (name === 'fromPostalCode' || name === 'toPostalCode') {
+      value = formatPostalCode(value);
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
     setHasRates(false); // Reset rates when form data changes
   };
@@ -324,14 +342,29 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                       </div>
                       <div>
                         <Label htmlFor="fromProvince">Province *</Label>
-                        <Input
-                          id="fromProvince"
-                          placeholder="e.g., BC"
+                        <Select
                           value={formData.fromProvince}
-                          onChange={(e) => handleInputChange('fromProvince', e.target.value)}
-                          required
-                          data-testid="input-from-province"
-                        />
+                          onValueChange={(value) => handleInputChange('fromProvince', value)}
+                        >
+                          <SelectTrigger data-testid="select-from-province">
+                            <SelectValue placeholder="Select province" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AB">Alberta (AB)</SelectItem>
+                            <SelectItem value="BC">British Columbia (BC)</SelectItem>
+                            <SelectItem value="MB">Manitoba (MB)</SelectItem>
+                            <SelectItem value="NB">New Brunswick (NB)</SelectItem>
+                            <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
+                            <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
+                            <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
+                            <SelectItem value="NU">Nunavut (NU)</SelectItem>
+                            <SelectItem value="ON">Ontario (ON)</SelectItem>
+                            <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
+                            <SelectItem value="QC">Quebec (QC)</SelectItem>
+                            <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
+                            <SelectItem value="YT">Yukon (YT)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div>
@@ -429,14 +462,29 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                       </div>
                       <div>
                         <Label htmlFor="toProvince">Province *</Label>
-                        <Input
-                          id="toProvince"
-                          placeholder="e.g., ON"
+                        <Select
                           value={formData.toProvince}
-                          onChange={(e) => handleInputChange('toProvince', e.target.value)}
-                          required
-                          data-testid="input-to-province"
-                        />
+                          onValueChange={(value) => handleInputChange('toProvince', value)}
+                        >
+                          <SelectTrigger data-testid="select-to-province">
+                            <SelectValue placeholder="Select province" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AB">Alberta (AB)</SelectItem>
+                            <SelectItem value="BC">British Columbia (BC)</SelectItem>
+                            <SelectItem value="MB">Manitoba (MB)</SelectItem>
+                            <SelectItem value="NB">New Brunswick (NB)</SelectItem>
+                            <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
+                            <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
+                            <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
+                            <SelectItem value="NU">Nunavut (NU)</SelectItem>
+                            <SelectItem value="ON">Ontario (ON)</SelectItem>
+                            <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
+                            <SelectItem value="QC">Quebec (QC)</SelectItem>
+                            <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
+                            <SelectItem value="YT">Yukon (YT)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div>
