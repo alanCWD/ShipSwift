@@ -24,46 +24,68 @@ export default function RateResults({ rates }: RateResultsProps) {
 
 
 
-  const calculateTotal = (rate: any) => {
+  const calculatePricing = (rate: any) => {
     // Handle sample rates format (has totalCharge or price as string)
     if (rate.totalCharge) {
-      return parseFloat(rate.totalCharge);
+      return {
+        subtotal: parseFloat(rate.totalCharge),
+        tax: 0,
+        total: parseFloat(rate.totalCharge),
+        markup: 0
+      };
     }
     if (rate.price) {
-      return parseFloat(rate.price);
+      return {
+        subtotal: parseFloat(rate.price),
+        tax: 0,
+        total: parseFloat(rate.price),
+        markup: 0
+      };
     }
     
-    // Handle real API format (has baseCharge.amount in cents)
-    // For some shipment types (e.g., LTL/pallet), baseCharge may already include surcharges/taxes
-    // Check if surcharges/taxes arrays exist and have items before adding them
-    let total = 0;
+    // Handle marked up API format (includes markup breakdown)
+    if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+      return {
+        subtotal: rate.subtotal, // Base + markup (pre-tax)
+        tax: rate.taxAmount,
+        total: rate.subtotal + rate.taxAmount,
+        markup: rate.markup || 0
+      };
+    }
+    
+    // Handle legacy API format (has baseCharge.amount in cents)
+    let subtotal = 0;
+    let tax = 0;
     
     if (rate.baseCharge?.amount) {
-      total = rate.baseCharge.amount / 100; // Convert from cents
+      subtotal = rate.baseCharge.amount / 100; // Convert from cents
     }
     
-    // Only add surcharges if they exist AND are separate from baseCharge
-    // (some API responses include them in baseCharge already)
     const hasSeparateSurcharges = rate.surcharges && rate.surcharges.length > 0;
     const hasSeparateTaxes = rate.taxes && rate.taxes.length > 0;
     
     if (hasSeparateSurcharges) {
       rate.surcharges.forEach((surcharge: any) => {
         if (surcharge.price?.amount) {
-          total += surcharge.price.amount / 100;
+          subtotal += surcharge.price.amount / 100;
         }
       });
     }
     
     if (hasSeparateTaxes) {
-      rate.taxes.forEach((tax: any) => {
-        if (tax.price?.amount) {
-          total += tax.price.amount / 100;
+      rate.taxes.forEach((taxItem: any) => {
+        if (taxItem.price?.amount) {
+          tax += taxItem.price.amount / 100;
         }
       });
     }
     
-    return total;
+    return {
+      subtotal,
+      tax,
+      total: subtotal + tax,
+      markup: 0
+    };
   };
 
   if (!rates || rates.length === 0) {
@@ -146,7 +168,7 @@ export default function RateResults({ rates }: RateResultsProps) {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {rates.map((rate, index) => {
-                  const total = calculateTotal(rate);
+                  const pricing = calculatePricing(rate);
                   // Handle both sample rates and real API format
                   const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
                   const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
@@ -169,8 +191,20 @@ export default function RateResults({ rates }: RateResultsProps) {
                         <div className="text-sm text-gray-900">{rate.deliveryDays || rate.transitTime}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-lg font-bold text-gray-900">
-                          ${total.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
+                        <div>
+                          <div className="text-lg font-bold text-gray-900">
+                            ${pricing.subtotal.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
+                          </div>
+                          {pricing.tax > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              + ${pricing.tax.toFixed(2)} tax
+                            </div>
+                          )}
+                          {pricing.tax > 0 && (
+                            <div className="text-xs font-medium text-gray-700 mt-0.5">
+                              Total: ${pricing.total.toFixed(2)}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -178,6 +212,7 @@ export default function RateResults({ rates }: RateResultsProps) {
                           onClick={() => handleRateSelection(rate)}
                           className="bg-blue-600 text-white hover:bg-blue-700"
                           size="sm"
+                          data-testid={`button-select-rate-${index}`}
                         >
                           Select
                         </Button>
