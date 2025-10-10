@@ -325,11 +325,9 @@ class ShipTimeService {
         shipDate: new Date().toISOString(),
       };
       
-      // Add pallet-specific details if applicable
-      if (isPallet) {
-        payload.palletType = request.packageDetails.palletType || 'standard';
-        payload.stackable = request.packageDetails.isStackable !== false;
-      }
+      // Note: ShipTime API doesn't support palletType/stackable fields
+      // The packageType: "PALLET" is sufficient to indicate pallet shipments
+      // Pallet-specific metadata is stored in our database for reference only
 
       console.log(`Fetching ${packageType} rates with payload:`, JSON.stringify(payload, null, 2));
       const response = await this.makeRequest('rates', 'POST', payload);
