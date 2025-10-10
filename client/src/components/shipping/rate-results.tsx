@@ -34,13 +34,20 @@ export default function RateResults({ rates }: RateResultsProps) {
     }
     
     // Handle real API format (has baseCharge.amount in cents)
+    // For some shipment types (e.g., LTL/pallet), baseCharge may already include surcharges/taxes
+    // Check if surcharges/taxes arrays exist and have items before adding them
     let total = 0;
     
     if (rate.baseCharge?.amount) {
-      total += rate.baseCharge.amount / 100; // Convert from cents
+      total = rate.baseCharge.amount / 100; // Convert from cents
     }
     
-    if (rate.surcharges) {
+    // Only add surcharges if they exist AND are separate from baseCharge
+    // (some API responses include them in baseCharge already)
+    const hasSeparateSurcharges = rate.surcharges && rate.surcharges.length > 0;
+    const hasSeparateTaxes = rate.taxes && rate.taxes.length > 0;
+    
+    if (hasSeparateSurcharges) {
       rate.surcharges.forEach((surcharge: any) => {
         if (surcharge.price?.amount) {
           total += surcharge.price.amount / 100;
@@ -48,7 +55,7 @@ export default function RateResults({ rates }: RateResultsProps) {
       });
     }
     
-    if (rate.taxes) {
+    if (hasSeparateTaxes) {
       rate.taxes.forEach((tax: any) => {
         if (tax.price?.amount) {
           total += tax.price.amount / 100;
