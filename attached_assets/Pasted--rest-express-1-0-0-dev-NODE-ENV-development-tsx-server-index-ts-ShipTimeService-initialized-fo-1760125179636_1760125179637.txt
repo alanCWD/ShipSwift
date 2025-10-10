@@ -1,0 +1,67 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+ShipTimeService initialized for dynamic credentials
+Stripe key type: SECRET (sk_test...)
+7:36:51 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 12 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+🔐 Auth Check: {
+  hasSession: true,
+  sessionId: '_wfMwcHBtH...',
+  isAuthenticated: true,
+  hasUser: true,
+  hasUserId: true,
+  hasTokens: false,
+  path: '/api/shipments'
+}
+7:37:04 PM [express] GET /api/auth/user 304 in 213ms :: {"id":"e8682df4-0e4c-40b2-aca4-71d258dfeecb"…
+7:37:04 PM [express] GET /api/shipments 304 in 665ms :: {"shipments":[{"id":"157b2794-c2c8-4dc9-b22b…
+Fetching PALLET rates with payload: {
+  "from": {
+    "countryCode": "CA",
+    "postalCode": "V2R 4H1"
+  },
+  "to": {
+    "countryCode": "CA",
+    "postalCode": "k6h5l6"
+  },
+  "packageType": "PALLET",
+  "unitOfMeasurement": "METRIC",
+  "lineItems": [
+    {
+      "length": 40,
+      "width": 48,
+      "height": 48,
+      "weight": 1800
+    }
+  ],
+  "shipDate": "2025-10-10T19:39:15.970Z"
+}
+ShipTime credentials loaded from database for username: alan@citywidedigital.ca environment: sandbox
+Using API URL: https://sandboxapi.shiptime.com/rest/
+ShipTime API request to sandbox environment: https://sandboxapi.shiptime.com/rest/rates
+Using credentials: alan@citywidedigital.ca
+ShipTime API error (400): {
+  "success" : false,
+  "messages" : [ "RateRequest/From CompanyName is empty", "RateRequest/From StreetAddress is empty", "RateRequest/From Attention is empty", "RateRequest/From Phone is empty", "RateRequest/From State is empty", "RateRequest/From Phone is empty", "RateRequest/From PostalCode does not match city name (null). The postal code 'V2R 4H1' is only valid for Chilliwack", "RateRequest/To CompanyName is empty", "RateRequest/To StreetAddress is empty", "RateRequest/To Attention is empty", "RateRequest/To Phone is empty", "RateRequest/To State is empty", "RateRequest/To Phone is empty", "RateRequest/To PostalCode is invalid. The string 'k6h5l6' must match ^(?!.*[DFIOQU])[A-VXY][0-9][A-Z] ?[0-9][A-Z][0-9]$" ]
+}
+ShipTime getRates error: Error: ShipTime API error (400): {
+  "success" : false,
+  "messages" : [ "RateRequest/From CompanyName is empty", "RateRequest/From StreetAddress is empty", "RateRequest/From Attention is empty", "RateRequest/From Phone is empty", "RateRequest/From State is empty", "RateRequest/From Phone is empty", "RateRequest/From PostalCode does not match city name (null). The postal code 'V2R 4H1' is only valid for Chilliwack", "RateRequest/To CompanyName is empty", "RateRequest/To StreetAddress is empty", "RateRequest/To Attention is empty", "RateRequest/To Phone is empty", "RateRequest/To State is empty", "RateRequest/To Phone is empty", "RateRequest/To PostalCode is invalid. The string 'k6h5l6' must match ^(?!.*[DFIOQU])[A-VXY][0-9][A-Z] ?[0-9][A-Z][0-9]$" ]
+}
+    at ShipTimeService.makeRequest (/home/runner/workspace/server/services/shiptime.ts:196:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ShipTimeService.getRates (/home/runner/workspace/server/services/shiptime.ts:333:24)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:716:21)
+ShipTime API error, providing sample rates: Error: ShipTime API error (400): {
+  "success" : false,
+  "messages" : [ "RateRequest/From CompanyName is empty", "RateRequest/From StreetAddress is empty", "RateRequest/From Attention is empty", "RateRequest/From Phone is empty", "RateRequest/From State is empty", "RateRequest/From Phone is empty", "RateRequest/From PostalCode does not match city name (null). The postal code 'V2R 4H1' is only valid for Chilliwack", "RateRequest/To CompanyName is empty", "RateRequest/To StreetAddress is empty", "RateRequest/To Attention is empty", "RateRequest/To Phone is empty", "RateRequest/To State is empty", "RateRequest/To Phone is empty", "RateRequest/To PostalCode is invalid. The string 'k6h5l6' must match ^(?!.*[DFIOQU])[A-VXY][0-9][A-Z] ?[0-9][A-Z][0-9]$" ]
+}
+    at ShipTimeService.makeRequest (/home/runner/workspace/server/services/shiptime.ts:196:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ShipTimeService.getRates (/home/runner/workspace/server/services/shiptime.ts:333:24)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:716:21)
+7:39:16 PM [express] POST /api/shipping/rates 200 in 1741ms :: {"rates":[{"id":"rate_1760125156893_1…

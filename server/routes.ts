@@ -705,7 +705,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       toCountry,
       toPostalCode,
       packageDetails,
-      shipmentType
+      shipmentType,
+      fromAddress,
+      toAddress
     } = req.body;
 
     if (!fromPostalCode || !toPostalCode || !packageDetails) {
@@ -713,12 +715,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const rates = await shiptimeService.getRates({
+      const rateRequest: any = {
         from: { countryCode: fromCountry, postalCode: fromPostalCode },
         to: { countryCode: toCountry, postalCode: toPostalCode },
         packageDetails,
         shipmentType: shipmentType || 'package'
-      });
+      };
+
+      // Add full address details for pallet shipments (required by ShipTime)
+      if (fromAddress) {
+        rateRequest.from = {
+          ...rateRequest.from,
+          companyName: fromAddress.company,
+          streetAddress: fromAddress.streetAddress,
+          city: fromAddress.city,
+          state: fromAddress.state,
+          phone: fromAddress.phone,
+          attention: fromAddress.attention
+        };
+      }
+      if (toAddress) {
+        rateRequest.to = {
+          ...rateRequest.to,
+          companyName: toAddress.company,
+          streetAddress: toAddress.streetAddress,
+          city: toAddress.city,
+          state: toAddress.state,
+          phone: toAddress.phone,
+          attention: toAddress.attention
+        };
+      }
+
+      const rates = await shiptimeService.getRates(rateRequest);
 
       res.json({ rates });
     } catch (apiError: any) {

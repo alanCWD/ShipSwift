@@ -1,6 +1,7 @@
 interface ShipTimeAddress {
   countryCode: string;
   postalCode: string;
+  companyName?: string;
   streetAddress?: string;
   city?: string;
   state?: string;
@@ -300,6 +301,7 @@ class ShipTimeService {
         from: {
           countryCode: request.from.countryCode,
           postalCode: request.from.postalCode,
+          ...(request.from.companyName && { companyName: request.from.companyName }),
           ...(request.from.streetAddress && {
             streetAddress: request.from.streetAddress,
             city: request.from.city,
@@ -311,6 +313,7 @@ class ShipTimeService {
         to: {
           countryCode: request.to.countryCode,
           postalCode: request.to.postalCode,
+          ...(request.to.companyName && { companyName: request.to.companyName }),
           ...(request.to.streetAddress && {
             streetAddress: request.to.streetAddress,
             city: request.to.city,

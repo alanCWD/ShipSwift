@@ -24,7 +24,20 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     width: '',
     height: '',
     weight: '',
-    // Pallet-specific fields
+    // Pallet-specific address fields (required for freight)
+    fromCompany: 'ABLP Logistics',
+    fromStreet: '44322 Yale Rd #3',
+    fromCity: 'Chilliwack',
+    fromProvince: 'BC',
+    fromPhone: '1-800-225-7564',
+    fromAttention: '',
+    toCompany: '',
+    toStreet: '',
+    toCity: '',
+    toProvince: '',
+    toPhone: '',
+    toAttention: '',
+    // Pallet-specific shipment fields
     palletCount: '1',
     palletType: 'standard',
     isStackable: 'yes',
@@ -124,14 +137,36 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         }
       }
       
-      const response = await apiRequest('POST', '/api/shipping/rates', {
+      const requestBody: any = {
         fromCountry: data.fromCountry,
         fromPostalCode: data.fromPostalCode,
         toCountry: data.toCountry,
         toPostalCode: data.toPostalCode,
         shipmentType,
         packageDetails
-      });
+      };
+
+      // Add full address details for pallet shipments (required by ShipTime)
+      if (shipmentType === 'pallet') {
+        requestBody.fromAddress = {
+          company: data.fromCompany,
+          streetAddress: data.fromStreet,
+          city: data.fromCity,
+          state: data.fromProvince,
+          phone: data.fromPhone,
+          attention: data.fromAttention || data.fromCompany
+        };
+        requestBody.toAddress = {
+          company: data.toCompany,
+          streetAddress: data.toStreet,
+          city: data.toCity,
+          state: data.toProvince,
+          phone: data.toPhone,
+          attention: data.toAttention || data.toCompany
+        };
+      }
+
+      const response = await apiRequest('POST', '/api/shipping/rates', requestBody);
       return response.json();
     },
     onSuccess: (data) => {
@@ -175,7 +210,17 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       length,
       width,
       height,
-      weight
+      weight,
+      fromCompany,
+      fromStreet,
+      fromCity,
+      fromProvince,
+      fromPhone,
+      toCompany,
+      toStreet,
+      toCity,
+      toProvince,
+      toPhone
     } = formData;
     
     // Check if all required fields have valid values
@@ -186,10 +231,24 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       parseFloat(height) > 0 && 
       parseFloat(weight) > 0;
     
-    if (hasValidPostalCodes && hasValidDimensions && !ratesMutation.isPending && !hasRates) {
+    // For pallet shipments, require full addresses
+    const hasValidPalletAddresses = shipmentType !== 'pallet' || (
+      fromCompany.trim().length > 0 &&
+      fromStreet.trim().length > 0 &&
+      fromCity.trim().length > 0 &&
+      fromProvince.trim().length > 0 &&
+      fromPhone.trim().length > 0 &&
+      toCompany.trim().length > 0 &&
+      toStreet.trim().length > 0 &&
+      toCity.trim().length > 0 &&
+      toProvince.trim().length > 0 &&
+      toPhone.trim().length > 0
+    );
+    
+    if (hasValidPostalCodes && hasValidDimensions && hasValidPalletAddresses && !ratesMutation.isPending && !hasRates) {
       ratesMutation.mutate(formData);
     }
-  }, [formData, ratesMutation, hasRates]);
+  }, [formData, ratesMutation, hasRates, shipmentType]);
 
   // Debounced auto-fetch effect
   useEffect(() => {
@@ -227,6 +286,77 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 Ship From
               </h3>
               <div className="space-y-4">
+                {shipmentType === 'pallet' && (
+                  <>
+                    <div>
+                      <Label htmlFor="fromCompany">Company Name *</Label>
+                      <Input
+                        id="fromCompany"
+                        placeholder="e.g., ABLP Logistics"
+                        value={formData.fromCompany}
+                        onChange={(e) => handleInputChange('fromCompany', e.target.value)}
+                        required
+                        data-testid="input-from-company"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="fromStreet">Street Address *</Label>
+                      <Input
+                        id="fromStreet"
+                        placeholder="e.g., 44322 Yale Rd #3"
+                        value={formData.fromStreet}
+                        onChange={(e) => handleInputChange('fromStreet', e.target.value)}
+                        required
+                        data-testid="input-from-street"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="fromCity">City *</Label>
+                        <Input
+                          id="fromCity"
+                          placeholder="e.g., Chilliwack"
+                          value={formData.fromCity}
+                          onChange={(e) => handleInputChange('fromCity', e.target.value)}
+                          required
+                          data-testid="input-from-city"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="fromProvince">Province *</Label>
+                        <Input
+                          id="fromProvince"
+                          placeholder="e.g., BC"
+                          value={formData.fromProvince}
+                          onChange={(e) => handleInputChange('fromProvince', e.target.value)}
+                          required
+                          data-testid="input-from-province"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="fromPhone">Phone Number *</Label>
+                      <Input
+                        id="fromPhone"
+                        placeholder="e.g., 1-800-225-7564"
+                        value={formData.fromPhone}
+                        onChange={(e) => handleInputChange('fromPhone', e.target.value)}
+                        required
+                        data-testid="input-from-phone"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="fromAttention">Contact Person</Label>
+                      <Input
+                        id="fromAttention"
+                        placeholder="e.g., John Smith"
+                        value={formData.fromAttention}
+                        onChange={(e) => handleInputChange('fromAttention', e.target.value)}
+                        data-testid="input-from-attention"
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <Label htmlFor="fromCountry">Country</Label>
                   <Select 
@@ -261,6 +391,77 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 Ship To
               </h3>
               <div className="space-y-4">
+                {shipmentType === 'pallet' && (
+                  <>
+                    <div>
+                      <Label htmlFor="toCompany">Company Name *</Label>
+                      <Input
+                        id="toCompany"
+                        placeholder="e.g., Recipient Company"
+                        value={formData.toCompany}
+                        onChange={(e) => handleInputChange('toCompany', e.target.value)}
+                        required
+                        data-testid="input-to-company"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="toStreet">Street Address *</Label>
+                      <Input
+                        id="toStreet"
+                        placeholder="e.g., 123 Main St"
+                        value={formData.toStreet}
+                        onChange={(e) => handleInputChange('toStreet', e.target.value)}
+                        required
+                        data-testid="input-to-street"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="toCity">City *</Label>
+                        <Input
+                          id="toCity"
+                          placeholder="e.g., Kingston"
+                          value={formData.toCity}
+                          onChange={(e) => handleInputChange('toCity', e.target.value)}
+                          required
+                          data-testid="input-to-city"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="toProvince">Province *</Label>
+                        <Input
+                          id="toProvince"
+                          placeholder="e.g., ON"
+                          value={formData.toProvince}
+                          onChange={(e) => handleInputChange('toProvince', e.target.value)}
+                          required
+                          data-testid="input-to-province"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="toPhone">Phone Number *</Label>
+                      <Input
+                        id="toPhone"
+                        placeholder="e.g., 613-555-1234"
+                        value={formData.toPhone}
+                        onChange={(e) => handleInputChange('toPhone', e.target.value)}
+                        required
+                        data-testid="input-to-phone"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="toAttention">Contact Person</Label>
+                      <Input
+                        id="toAttention"
+                        placeholder="e.g., Jane Doe"
+                        value={formData.toAttention}
+                        onChange={(e) => handleInputChange('toAttention', e.target.value)}
+                        data-testid="input-to-attention"
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <Label htmlFor="toCountry">Country</Label>
                   <Select 
