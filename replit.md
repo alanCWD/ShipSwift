@@ -6,6 +6,18 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 
 ## Recent Changes (October 2025)
 
+**Rate Markup System (October 2025 - New Feature):**
+- Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates
+- Created RateMarkupService that queries carrier-specific markup rules from database
+- Default 25% markup applied when no carrier-specific rule exists
+- Markup applied to base rates only (excluding taxes) for accurate comparison
+- Frontend displays pre-tax subtotal as main price (matching ShipTime display)
+- Taxes shown as separate line item ("+ $X.XX tax") below subtotal
+- Final total displayed clearly ("Total: $X.XX")
+- Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
+- Enables apples-to-apples rate comparison between ShipSwift and ShipTime interface
+- Admin can configure carrier-specific markup rules via existing rateMarkups table
+
 **Pallet/Freight Shipping (New Feature):**
 - Added pallet and freight (LTL) shipping capabilities alongside existing package shipping
 - Shipment type selector in UI allows users to choose between Package and Pallet/Freight shipping
@@ -13,6 +25,8 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Backend integration with ShipTime API for freight rate requests using PALLET packageType
 - Database schema uses shipment_type column to differentiate shipments, with pallet metadata stored in packageDetails JSONB field for flexibility
 - Design decision: Pallet-specific fields stored in packageDetails JSONB rather than dedicated columns for schema flexibility and easier evolution
+- Province dropdowns ensure 2-letter codes (AB, BC, ON) for API validation
+- Automatic postal code formatting (uppercase with space: A1A 1A1)
 
 **Authentication & Navigation (August 2025 - Resolved):**
 - Fixed logout redirect functionality across all pages using immediate window.location.href navigation
