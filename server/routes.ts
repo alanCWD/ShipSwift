@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { shiptimeService } from "./services/shiptime";
 import { stripeService } from "./services/stripe-service";
 import { emailService } from "./services/email-service";
+import { rateMarkupService } from "./services/rate-markup";
 import { isAuthenticated as requireAuth } from "./replitAuth";
 import { requireAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
@@ -747,8 +748,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const rates = await shiptimeService.getRates(rateRequest);
+      
+      // Apply markup rules to rates
+      const markedUpRates = await rateMarkupService.applyMarkups(rates);
 
-      res.json({ rates });
+      res.json({ rates: markedUpRates });
     } catch (apiError: any) {
       console.error("ShipTime API error, providing sample rates:", apiError);
       
