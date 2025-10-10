@@ -727,22 +727,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate weight-based pricing for realistic rates
       const weight = packageDetails.weight || 1;
       const timestamp = Date.now();
+      const isPallet = shipmentType === 'pallet';
       
       // Provide comprehensive sample rates when API is unavailable
-      const sampleRates = [
-        // Canada Post Options
-        {
-          id: `rate_${timestamp}_1`,
-          carrierId: 'canadapost',
-          carrierName: 'Canada Post',
-          serviceName: 'Regular Parcel',
-          serviceType: 'regular',
-          totalCharge: (12 + (weight * 2.5)).toFixed(2),
-          price: (12 + (weight * 2.5)).toFixed(2),
-          transitTime: '5-7 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        },
+      let sampleRates: any[] = [];
+      
+      if (isPallet) {
+        // LTL/Freight carriers only (no Canada Post for pallets)
+        sampleRates = [
+          {
+            id: `rate_${timestamp}_1`,
+            carrierId: 'dayross',
+            carrierName: 'Day & Ross',
+            serviceName: 'General LTL',
+            serviceType: 'ltl',
+            totalCharge: (300 + (weight * 1.2)).toFixed(2),
+            price: (300 + (weight * 1.2)).toFixed(2),
+            transitTime: '3-5 business days',
+            currency: 'CAD',
+            estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: `rate_${timestamp}_2`,
+            carrierId: 'fedexfreight',
+            carrierName: 'FedEx Freight',
+            serviceName: 'Priority',
+            serviceType: 'ltl',
+            totalCharge: (450 + (weight * 1.8)).toFixed(2),
+            price: (450 + (weight * 1.8)).toFixed(2),
+            transitTime: '2-4 business days',
+            currency: 'CAD',
+            estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: `rate_${timestamp}_3`,
+            carrierId: 'gls',
+            carrierName: 'GLS',
+            serviceName: 'Ground Freight',
+            serviceType: 'ltl',
+            totalCharge: (380 + (weight * 1.5)).toFixed(2),
+            price: (380 + (weight * 1.5)).toFixed(2),
+            transitTime: '4-6 business days',
+            currency: 'CAD',
+            estimatedDelivery: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+      } else {
+        // Package carriers (includes Canada Post)
+        sampleRates = [
+          {
+            id: `rate_${timestamp}_1`,
+            carrierId: 'canadapost',
+            carrierName: 'Canada Post',
+            serviceName: 'Regular Parcel',
+            serviceType: 'regular',
+            totalCharge: (12 + (weight * 2.5)).toFixed(2),
+            price: (12 + (weight * 2.5)).toFixed(2),
+            transitTime: '5-7 business days',
+            currency: 'CAD',
+            estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          },
         {
           id: `rate_${timestamp}_2`,
           carrierId: 'canadapost',
@@ -860,6 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
         }
       ];
+      }
       
       res.json({
         rates: sampleRates,

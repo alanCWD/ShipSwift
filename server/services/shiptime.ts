@@ -338,6 +338,13 @@ class ShipTimeService {
         throw new Error('No shipping rates available for this route');
       }
 
+      console.log(`Received ${response.availableRates.length} ${packageType} rates from ShipTime API:`);
+      response.availableRates.forEach((rate: any, index: number) => {
+        console.log(`  Rate ${index + 1}: ${rate.carrier?.name || rate.carrierName} - ${rate.service?.name || rate.serviceName}`);
+        console.log(`    baseCharge: ${rate.baseCharge?.amount || 'N/A'} (${rate.baseCharge?.currency || 'N/A'})`);
+        console.log(`    Total surcharges: ${rate.surcharges?.length || 0}, Total taxes: ${rate.taxes?.length || 0}`);
+      });
+
       return response.availableRates;
     } catch (error) {
       console.error('ShipTime getRates error:', error);
