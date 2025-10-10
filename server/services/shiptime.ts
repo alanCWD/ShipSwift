@@ -259,13 +259,16 @@ class ShipTimeService {
       const lineItems: any[] = [];
       
       if (isPallet && request.packageDetails.palletCount) {
-        // For pallets, create multiple line items if palletCount > 1
+        // For pallets, distribute total weight across all pallets
+        // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
+        const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
+        
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
             length: request.packageDetails.length,
             width: request.packageDetails.width,
             height: request.packageDetails.height,
-            weight: request.packageDetails.weight,
+            weight: weightPerPallet,
           };
           
           // Add freight class if provided
@@ -349,13 +352,16 @@ class ShipTimeService {
       const lineItems: any[] = [];
       
       if (isPallet && request.packageDetails.palletCount) {
-        // For pallets, create multiple line items if palletCount > 1
+        // For pallets, distribute total weight across all pallets
+        // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
+        const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
+        
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
             length: request.packageDetails.length,
             width: request.packageDetails.width,
             height: request.packageDetails.height,
-            weight: request.packageDetails.weight,
+            weight: weightPerPallet,
           };
           
           // Add freight class if provided
