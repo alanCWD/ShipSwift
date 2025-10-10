@@ -1,10 +1,18 @@
 # Overview
 
-GoABLP, a subsidiary of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolol, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
+GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolol, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
 ## Recent Changes (October 2025)
+
+**Complete Rebranding to GoABLP (October 2025):**
+- Rebranded entire application from "ShipSwift" to "GoABLP"
+- Replaced all text references, logos, and branding elements throughout the platform
+- Updated navbar and footer with new GoABLP logo
+- Updated email templates, documentation, and all user-facing text
+- Changed tagline from "Subsidiary of ABLP Logistics" to "A Product of ABLP Logistics"
+- Comprehensive find-and-replace across frontend, backend, and documentation
 
 **Rate Markup System (October 2025 - New Feature):**
 - Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates
