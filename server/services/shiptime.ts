@@ -259,6 +259,14 @@ class ShipTimeService {
       const lineItems: any[] = [];
       
       if (isPallet && request.packageDetails.palletCount) {
+        // Validate pallet shipment data
+        if (request.packageDetails.palletCount <= 0) {
+          throw new Error('Pallet count must be greater than 0');
+        }
+        if (!request.packageDetails.weight || request.packageDetails.weight <= 0) {
+          throw new Error('Weight must be greater than 0 for pallet shipments');
+        }
+        
         // For pallets, distribute total weight across all pallets
         // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
         const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
@@ -352,6 +360,14 @@ class ShipTimeService {
       const lineItems: any[] = [];
       
       if (isPallet && request.packageDetails.palletCount) {
+        // Validate pallet shipment data
+        if (request.packageDetails.palletCount <= 0) {
+          throw new Error('Pallet count must be greater than 0');
+        }
+        if (!request.packageDetails.weight || request.packageDetails.weight <= 0) {
+          throw new Error('Weight must be greater than 0 for pallet shipments');
+        }
+        
         // For pallets, distribute total weight across all pallets
         // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
         const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
