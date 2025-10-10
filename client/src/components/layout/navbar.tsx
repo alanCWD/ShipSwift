@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Settings, LogOut, Package, Palette } from 'lucide-react';
+import goAblpLogo from '@assets/GO ABLP logo_1760134713651.png';
 
 interface NavbarProps {
   onLogin?: () => void;
@@ -37,9 +38,12 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/home" className="flex items-center hover:opacity-80 transition-opacity">
-              <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
-                ShipSwift
-              </div>
+              <img 
+                src={goAblpLogo} 
+                alt="GoABLP" 
+                className="h-10"
+                data-testid="img-logo"
+              />
             </Link>
             
             {user && (

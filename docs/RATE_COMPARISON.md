@@ -2,7 +2,7 @@
 
 ## Overview
 
-ShipSwift's real-time rate comparison system provides accurate savings calculations by comparing negotiated rates with actual carrier standard rates. This replaces the simple percentage-based estimation with authentic data from carrier APIs.
+GoABLP's real-time rate comparison system provides accurate savings calculations by comparing negotiated rates with actual carrier standard rates. This replaces the simple percentage-based estimation with authentic data from carrier APIs.
 
 ## How It Works
 
@@ -208,4 +208,4 @@ Use the admin rate comparison tool to verify integration:
 
 ---
 
-This real-time rate comparison system provides authentic, transparent savings calculations that build user trust and demonstrate clear value from ShipSwift's negotiated carrier rates.
+This real-time rate comparison system provides authentic, transparent savings calculations that build user trust and demonstrate clear value from GoABLP's negotiated carrier rates.

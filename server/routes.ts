@@ -586,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
         <rect width="400" height="600" fill="white" stroke="black" stroke-width="2"/>
         
-        <!-- ShipSwift Logo Area -->
+        <!-- GoABLP Logo Area -->
         <rect x="20" y="20" width="360" height="80" fill="#1E40AF" rx="8"/>
         <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">SHIPSWIFT</text>
         <text x="200" y="75" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Canadian Shipping Solutions</text>
@@ -598,7 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         <!-- From Address -->
         <text x="30" y="190" fill="black" font-family="Arial, sans-serif" font-size="14" font-weight="bold">FROM:</text>
-        <text x="30" y="210" fill="black" font-family="Arial, sans-serif" font-size="12">ShipSwift</text>
+        <text x="30" y="210" fill="black" font-family="Arial, sans-serif" font-size="12">GoABLP</text>
         <text x="30" y="225" fill="black" font-family="Arial, sans-serif" font-size="12">44322 Yale Rd #3</text>
         <text x="30" y="240" fill="black" font-family="Arial, sans-serif" font-size="12">Chilliwack, BC V2R 4H1</text>
         <text x="30" y="255" fill="black" font-family="Arial, sans-serif" font-size="12">Canada</text>
@@ -2384,13 +2384,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Make a test request directly
           const testPayload = {
             from: {
-              companyName: 'ShipSwift',
+              companyName: 'GoABLP',
               streetAddress: '44322 Yale Rd #3',
               city: 'Chilliwack',
               state: 'BC',
               countryCode: 'CA',
               postalCode: 'V2R4H1',
-              attention: 'ShipSwift',
+              attention: 'GoABLP',
               phone: '1-800-225-7564'
             },
             to: {
@@ -2528,7 +2528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               email: fromEmail,
               name: fromName
             },
-            subject: 'ShipSwift - SendGrid API Test',
+            subject: 'GoABLP - SendGrid API Test',
             text: 'This is a test email to verify your SendGrid API configuration.',
             html: '<p>This is a test email to verify your SendGrid API configuration.</p><p>If you received this email, your SendGrid API is working correctly.</p>'
           });

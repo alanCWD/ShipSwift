@@ -69,7 +69,7 @@ export default function RegisterModal({ isOpen, onClose }: { isOpen: boolean; on
       });
       
       toast({
-        title: "Welcome to ShipSwift!",
+        title: "Welcome to GoABLP!",
         description: "Your account has been created successfully.",
       });
       onClose();

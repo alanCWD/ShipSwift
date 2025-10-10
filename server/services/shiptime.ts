@@ -212,13 +212,13 @@ class ShipTimeService {
       // Try a complete rates request with all required fields
       const completeRatesRequest = {
         from: {
-          companyName: 'ShipSwift',
+          companyName: 'GoABLP',
           streetAddress: '44322 Yale Rd #3',
           city: 'Chilliwack',
           state: 'BC',
           countryCode: 'CA',
           postalCode: 'V2R4H1',
-          attention: 'ShipSwift',
+          attention: 'GoABLP',
           phone: '1-800-225-7564'
         },
         to: {
@@ -408,7 +408,7 @@ class ShipTimeService {
       const payload: any = {
         rateId: request.rateId,
         from: {
-          attention: request.from.attention || 'ShipSwift',
+          attention: request.from.attention || 'GoABLP',
           streetAddress: request.from.streetAddress || '44322 Yale Rd #3',
           city: request.from.city || 'Chilliwack',
           state: request.from.state || 'BC',

@@ -106,7 +106,7 @@ export default function RateComparisonPage() {
         <Calculator className="w-6 h-6 text-blue-600" />
         <div>
           <h1 className="text-2xl font-bold">Real-Time Rate Comparison</h1>
-          <p className="text-gray-600">Compare ShipSwift negotiated rates vs standard carrier rates</p>
+          <p className="text-gray-600">Compare GoABLP negotiated rates vs standard carrier rates</p>
         </div>
       </div>
 
@@ -312,7 +312,7 @@ export default function RateComparisonPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-600">ShipSwift Rate:</span>
+                        <span className="text-gray-600">GoABLP Rate:</span>
                         <span className="ml-2 font-medium">${comparison.negotiatedRate.toFixed(2)}</span>
                       </div>
                       <div>

@@ -26,7 +26,7 @@ interface CarrierRate {
   service: string;
   rate: number;
   transitTime?: string;
-  isNegotiated: boolean; // true for ShipSwift rates, false for standard rates
+  isNegotiated: boolean; // true for GoABLP rates, false for standard rates
 }
 
 interface ShipTimeRate {

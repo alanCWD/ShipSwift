@@ -112,7 +112,7 @@ export default function InsuranceModal({ isOpen, onClose, onSave, initialData }:
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="shipswift" id="shipswift" />
-                  <label htmlFor="shipswift" className="font-medium">ShipSwift</label>
+                  <label htmlFor="shipswift" className="font-medium">GoABLP</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="carrier" id="carrier" />
@@ -122,7 +122,7 @@ export default function InsuranceModal({ isOpen, onClose, onSave, initialData }:
             </div>
           </div>
 
-          {/* ShipSwift Insurance Options */}
+          {/* GoABLP Insurance Options */}
           {insuranceType === 'shipswift' && (
             <div className="space-y-4 border-t pt-4">
               <div className="bg-blue-50 p-4 rounded-lg">

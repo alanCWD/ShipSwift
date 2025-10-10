@@ -80,7 +80,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
     // Always add initial processing event
     events.push({
       status: 'Order Processed',
-      location: 'ShipSwift Facility, Canada',
+      location: 'GoABLP Facility, Canada',
       timestamp: statusDate.toISOString(),
       description: 'Package received and processed for shipping',
       isCompleted: true,
@@ -274,16 +274,16 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
         </CardContent>
       </Card>
 
-      {/* ShipSwift Branded Footer */}
+      {/* GoABLP Branded Footer */}
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
-              ShipSwift
+              GoABLP
             </div>
           </div>
           <p className="text-gray-600 mb-4">
-            Thank you for choosing ShipSwift for your shipping needs.
+            Thank you for choosing GoABLP for your shipping needs.
           </p>
           <div className="flex justify-center space-x-4 text-sm text-gray-600">
             <span>📍 44322 Yale Rd #3, Chilliwack, BC</span>

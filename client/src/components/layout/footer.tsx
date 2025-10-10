@@ -1,5 +1,6 @@
 import { Link } from 'wouter';
 import { MapPin, Phone, Mail } from 'lucide-react';
+import goAblpLogo from '@assets/GO ABLP logo_1760134713651.png';
 
 export default function Footer() {
   return (
@@ -8,9 +9,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-6">
-              <div className="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold text-xl">
-                ShipSwift
-              </div>
+              <img 
+                src={goAblpLogo} 
+                alt="GoABLP" 
+                className="h-10"
+              />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Canadian shipping platform for ABLP Logistics.
@@ -54,7 +57,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-300">&copy; 2025 ShipSwift - Subsidiary of ABLP Logistics. All rights reserved.</p>
+            <p className="text-gray-300">&copy; 2025 GoABLP - A Product of ABLP Logistics. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/terms-of-service" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>

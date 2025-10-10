@@ -1,6 +1,6 @@
 # Overview
 
-ShipSwift, a subsidiary of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolol, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
+GoABLP, a subsidiary of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolol, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
@@ -15,7 +15,7 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Taxes shown as separate line item ("+ $X.XX tax") below subtotal
 - Final total displayed clearly ("Total: $X.XX")
 - Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
-- Enables apples-to-apples rate comparison between ShipSwift and ShipTime interface
+- Enables apples-to-apples rate comparison between GoABLP and ShipTime interface
 - Admin can configure carrier-specific markup rules via existing rateMarkups table
 
 **Pallet/Freight Shipping (New Feature):**
