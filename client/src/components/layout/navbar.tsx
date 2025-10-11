@@ -10,6 +10,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Settings, LogOut, Package, Palette } from 'lucide-react';
 import goAblpLogo from '@assets/GO ABLP logo_1760134713651.png';
+import { useState, useEffect } from 'react';
 
 interface NavbarProps {
   onLogin?: () => void;
@@ -18,6 +19,16 @@ interface NavbarProps {
 
 export default function Navbar({ onLogin, onRegister }: NavbarProps) {
   const { user, logout } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     console.log('🚪 Navbar logout clicked - immediate redirect');
@@ -33,15 +44,15 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className={`flex justify-between items-center transition-all duration-300 ${isScrolled ? 'h-20' : 'h-32'}`}>
           <div className="flex items-center">
             <Link href="/home" className="flex items-center hover:opacity-80 transition-opacity">
               <img 
                 src={goAblpLogo} 
                 alt="GoABLP" 
-                className="h-10"
+                className={`transition-all duration-300 ${isScrolled ? 'h-16' : 'h-30'}`}
                 data-testid="img-logo"
               />
             </Link>
