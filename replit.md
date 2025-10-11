@@ -9,11 +9,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 **Complete Rebranding to GoABLP (October 2025):**
 - Rebranded entire application from "ShipSwift" to "GoABLP"
 - Replaced all text references, logos, and branding elements throughout the platform
-- Updated navbar and footer with new GoABLP logo (2x bigger than original)
+- Updated navbar and footer with new GoABLP logo (500x300px version)
 - Implemented sticky header with dynamic logo sizing on scroll
-- Logo reduces from 80px to 70px when scrolling down (smooth 300ms transition)
-- Navbar container adjusts from 96px to 80px height on scroll
-- Footer logo set to 80px (2x original size)
+- Logo initially 120px tall, reduces to 108px on scroll (10% reduction, smooth 300ms transition)
+- Navbar container adjusts from 144px to 112px height on scroll
+- Footer logo set to 120px (matches header default)
+- Menu items positioned on left side, desktop-justified for consistency across all pages
 - Updated email templates, documentation, and all user-facing text
 - Changed tagline from "Subsidiary of ABLP Logistics" to "A Product of ABLP Logistics"
 - Comprehensive find-and-replace across frontend, backend, and documentation
