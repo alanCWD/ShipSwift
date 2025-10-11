@@ -12,7 +12,7 @@ export default function Footer() {
               <img 
                 src={goAblpLogo} 
                 alt="GoABLP" 
-                className="h-30"
+                className="h-20"
               />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">

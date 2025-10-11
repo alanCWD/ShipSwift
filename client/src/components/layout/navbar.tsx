@@ -46,13 +46,13 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex justify-between items-center transition-all duration-300 ${isScrolled ? 'h-20' : 'h-32'}`}>
+        <div className={`flex justify-between items-center transition-all duration-300 ${isScrolled ? 'h-20' : 'h-24'}`}>
           <div className="flex items-center">
             <Link href="/home" className="flex items-center hover:opacity-80 transition-opacity">
               <img 
                 src={goAblpLogo} 
                 alt="GoABLP" 
-                className={`transition-all duration-300 ${isScrolled ? 'h-16' : 'h-30'}`}
+                className={`transition-all duration-300 ${isScrolled ? 'h-[70px]' : 'h-20'}`}
                 data-testid="img-logo"
               />
             </Link>
