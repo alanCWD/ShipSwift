@@ -1,6 +1,6 @@
 import { Link } from 'wouter';
 import { MapPin, Phone, Mail } from 'lucide-react';
-import goAblpLogo from '@assets/GO ABLP logo_1760134713651.png';
+import goAblpLogo from '@assets/GO ABLP logo (500 x 300 px)_1760196935840.png';
 
 export default function Footer() {
   return (
@@ -12,7 +12,7 @@ export default function Footer() {
               <img 
                 src={goAblpLogo} 
                 alt="GoABLP" 
-                className="h-20"
+                className="h-[120px]"
               />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
