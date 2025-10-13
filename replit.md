@@ -20,7 +20,7 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Comprehensive find-and-replace across frontend, backend, and documentation
 
 **Rate Markup System (October 2025 - New Feature):**
-- Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates
+- Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates (backend only)
 - Created RateMarkupService that queries carrier-specific markup rules from database
 - Default 15% markup applied when no carrier-specific rule exists
 - Markup applied to base rates only (excluding taxes) for accurate comparison
@@ -28,11 +28,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Taxes shown as separate line item ("+ $X.XX tax") below subtotal
 - Final total displayed clearly ("Total: $X.XX")
 - Added information tooltip (?) on hover showing detailed rate breakdown with all charges:
-  - Base (includes markup) - shipping base rate with 15% markup applied
+  - Base Rate - shipping base rate
   - Individual surcharges (Tailgate Delivery, Fuel Surcharge, etc.) - shown by name
-  - Before Tax Total - sum of base with markup and all surcharges - bolded
+  - Before Tax Total - sum of base rate and all surcharges - bolded
   - Tax amount - Canadian taxes
-  - After Tax Total - final price including everything - bolded in larger font
+  - After Tax Total - final price including everything - bolded
+- Customer-facing interface shows final rates without any mention of markup
 - Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
 - Enables apples-to-apples rate comparison between GoABLP and ShipTime interface
 - Admin can configure carrier-specific markup rules via existing rateMarkups table

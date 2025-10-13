@@ -224,43 +224,41 @@ export default function RateResults({ rates }: RateResultsProps) {
                                 <div className="space-y-2">
                                   <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
                                   
-                                  {/* Calculate base with markup (subtotal minus surcharges) */}
                                   {(() => {
                                     const surchargesTotal = (rate.surcharges || []).reduce((sum: number, s: any) => 
                                       sum + ((s.price?.amount || 0) / 100), 0
                                     );
-                                    const baseWithMarkup = pricing.subtotal - surchargesTotal;
+                                    const baseRate = pricing.subtotal - surchargesTotal;
                                     
                                     return (
                                       <>
                                         <div className="flex justify-between text-sm">
-                                          <span className="text-gray-600">Base (includes markup):</span>
-                                          <span className="font-medium">${baseWithMarkup.toFixed(2)}</span>
+                                          <span className="text-gray-600">Base Rate:</span>
+                                          <span>${baseRate.toFixed(2)}</span>
                                         </div>
                                         
-                                        {/* Show individual surcharges */}
                                         {rate.surcharges && rate.surcharges.length > 0 && rate.surcharges.map((surcharge: any, idx: number) => (
                                           <div key={idx} className="flex justify-between text-sm">
                                             <span className="text-gray-600">{surcharge.name || 'Surcharge'}:</span>
-                                            <span className="font-medium">${(surcharge.price.amount / 100).toFixed(2)}</span>
+                                            <span>${(surcharge.price.amount / 100).toFixed(2)}</span>
                                           </div>
                                         ))}
                                         
                                         <div className="flex justify-between text-sm pt-2 border-t">
-                                          <span className="font-semibold">Before Tax Total:</span>
+                                          <span className="font-bold">Before Tax Total:</span>
                                           <span className="font-bold">${pricing.subtotal.toFixed(2)}</span>
                                         </div>
                                         
                                         {pricing.tax > 0 && (
                                           <div className="flex justify-between text-sm">
                                             <span className="text-gray-600">Tax:</span>
-                                            <span className="font-medium">${pricing.tax.toFixed(2)}</span>
+                                            <span>${pricing.tax.toFixed(2)}</span>
                                           </div>
                                         )}
                                         
-                                        <div className="flex justify-between text-base pt-2 border-t">
+                                        <div className="flex justify-between text-sm pt-2 border-t">
                                           <span className="font-bold">After Tax Total:</span>
-                                          <span className="font-bold text-lg">${pricing.total.toFixed(2)}</span>
+                                          <span className="font-bold">${pricing.total.toFixed(2)}</span>
                                         </div>
                                       </>
                                     );
