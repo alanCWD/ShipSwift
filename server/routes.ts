@@ -766,180 +766,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isPallet) {
         // LTL/Freight carriers only (no Canada Post for pallets)
+        const dayRossBase = 300 + (weight * 1.0);
+        const fedexBase = 450 + (weight * 1.5);
+        const glsBase = 380 + (weight * 1.2);
+        
         sampleRates = [
           {
-            id: `rate_${timestamp}_1`,
-            carrierId: 'dayross',
-            carrierName: 'Day & Ross',
-            serviceName: 'General LTL',
-            serviceType: 'ltl',
-            totalCharge: (300 + (weight * 1.2)).toFixed(2),
-            price: (300 + (weight * 1.2)).toFixed(2),
-            transitTime: '3-5 business days',
-            currency: 'CAD',
-            estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+            rateId: `rate_${timestamp}_1`,
+            carrier: { name: 'Day & Ross' },
+            service: { name: 'General LTL' },
+            baseCharge: { amount: Math.round(dayRossBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(dayRossBase * 0.15 * 100) } },
+              { name: 'Tailgate Delivery', price: { amount: 5000 } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((dayRossBase + dayRossBase * 0.15 + 50) * 0.13 * 100) } }
+            ],
+            deliveryDays: 4,
+            transitTime: '3-5 business days'
           },
           {
-            id: `rate_${timestamp}_2`,
-            carrierId: 'fedexfreight',
-            carrierName: 'FedEx Freight',
-            serviceName: 'Priority',
-            serviceType: 'ltl',
-            totalCharge: (450 + (weight * 1.8)).toFixed(2),
-            price: (450 + (weight * 1.8)).toFixed(2),
-            transitTime: '2-4 business days',
-            currency: 'CAD',
-            estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
+            rateId: `rate_${timestamp}_2`,
+            carrier: { name: 'FedEx Freight' },
+            service: { name: 'Priority' },
+            baseCharge: { amount: Math.round(fedexBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(fedexBase * 0.18 * 100) } },
+              { name: 'Residential Delivery', price: { amount: 7500 } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((fedexBase + fedexBase * 0.18 + 75) * 0.13 * 100) } }
+            ],
+            deliveryDays: 3,
+            transitTime: '2-4 business days'
           },
           {
-            id: `rate_${timestamp}_3`,
-            carrierId: 'gls',
-            carrierName: 'GLS',
-            serviceName: 'Ground Freight',
-            serviceType: 'ltl',
-            totalCharge: (380 + (weight * 1.5)).toFixed(2),
-            price: (380 + (weight * 1.5)).toFixed(2),
-            transitTime: '4-6 business days',
-            currency: 'CAD',
-            estimatedDelivery: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString()
+            rateId: `rate_${timestamp}_3`,
+            carrier: { name: 'GLS' },
+            service: { name: 'Ground Freight' },
+            baseCharge: { amount: Math.round(glsBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(glsBase * 0.16 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((glsBase + glsBase * 0.16) * 0.13 * 100) } }
+            ],
+            deliveryDays: 5,
+            transitTime: '4-6 business days'
           }
         ];
       } else {
         // Package carriers (includes Canada Post)
+        const cpRegularBase = 12 + (weight * 2.0);
+        const cpExpBase = 18 + (weight * 2.5);
+        const cpXpressBase = 25 + (weight * 3.2);
+        const puroGroundBase = 22 + (weight * 3.0);
+        const puroExpBase = 32 + (weight * 3.5);
+        const upsGroundBase = 24 + (weight * 3.2);
+        const upsExpBase = 38 + (weight * 4.2);
+        const fedexGroundBase = 26 + (weight * 3.4);
+        const fedexExpBase = 45 + (weight * 5.0);
+        const dhlExpBase = 52 + (weight * 6.0);
+        
         sampleRates = [
           {
-            id: `rate_${timestamp}_1`,
-            carrierId: 'canadapost',
-            carrierName: 'Canada Post',
-            serviceName: 'Regular Parcel',
-            serviceType: 'regular',
-            totalCharge: (12 + (weight * 2.5)).toFixed(2),
-            price: (12 + (weight * 2.5)).toFixed(2),
-            transitTime: '5-7 business days',
-            currency: 'CAD',
-            estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            rateId: `rate_${timestamp}_1`,
+            carrier: { name: 'Canada Post' },
+            service: { name: 'Regular Parcel' },
+            baseCharge: { amount: Math.round(cpRegularBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(cpRegularBase * 0.12 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((cpRegularBase + cpRegularBase * 0.12) * 0.13 * 100) } }
+            ],
+            deliveryDays: 6,
+            transitTime: '5-7 business days'
           },
-        {
-          id: `rate_${timestamp}_2`,
-          carrierId: 'canadapost',
-          carrierName: 'Canada Post',
-          serviceName: 'Expedited Parcel',
-          serviceType: 'expedited',
-          totalCharge: (18 + (weight * 3.2)).toFixed(2),
-          price: (18 + (weight * 3.2)).toFixed(2),
-          transitTime: '2-3 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: `rate_${timestamp}_3`,
-          carrierId: 'canadapost',
-          carrierName: 'Canada Post',
-          serviceName: 'Xpresspost',
-          serviceType: 'express',
-          totalCharge: (25 + (weight * 4.1)).toFixed(2),
-          price: (25 + (weight * 4.1)).toFixed(2),
-          transitTime: '1-2 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        
-        // Purolator Options
-        {
-          id: `rate_${timestamp}_4`,
-          carrierId: 'purolator',
-          carrierName: 'Purolator',
-          serviceName: 'Ground',
-          serviceType: 'ground',
-          totalCharge: (22 + (weight * 3.8)).toFixed(2),
-          price: (22 + (weight * 3.8)).toFixed(2),
-          transitTime: '1-3 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: `rate_${timestamp}_5`,
-          carrierId: 'purolator',
-          carrierName: 'Purolator',
-          serviceName: 'Express',
-          serviceType: 'express',
-          totalCharge: (32 + (weight * 4.5)).toFixed(2),
-          price: (32 + (weight * 4.5)).toFixed(2),
-          transitTime: '1-2 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        
-        // UPS Options
-        {
-          id: `rate_${timestamp}_6`,
-          carrierId: 'ups',
-          carrierName: 'UPS',
-          serviceName: 'Ground',
-          serviceType: 'ground',
-          totalCharge: (24 + (weight * 4.0)).toFixed(2),
-          price: (24 + (weight * 4.0)).toFixed(2),
-          transitTime: '2-4 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: `rate_${timestamp}_7`,
-          carrierId: 'ups',
-          carrierName: 'UPS',
-          serviceName: 'Express Saver',
-          serviceType: 'express',
-          totalCharge: (38 + (weight * 5.2)).toFixed(2),
-          price: (38 + (weight * 5.2)).toFixed(2),
-          transitTime: '1-2 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        
-        // FedEx Options
-        {
-          id: `rate_${timestamp}_8`,
-          carrierId: 'fedex',
-          carrierName: 'FedEx',
-          serviceName: 'Ground',
-          serviceType: 'ground',
-          totalCharge: (26 + (weight * 4.2)).toFixed(2),
-          price: (26 + (weight * 4.2)).toFixed(2),
-          transitTime: '2-5 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: `rate_${timestamp}_9`,
-          carrierId: 'fedex',
-          carrierName: 'FedEx',
-          serviceName: 'Express',
-          serviceType: 'express',
-          totalCharge: (45 + (weight * 6.0)).toFixed(2),
-          price: (45 + (weight * 6.0)).toFixed(2),
-          transitTime: '1-2 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        
-        // DHL Options  
-        {
-          id: `rate_${timestamp}_10`,
-          carrierId: 'dhl',
-          carrierName: 'DHL',
-          serviceName: 'Express',
-          serviceType: 'express',
-          totalCharge: (52 + (weight * 7.5)).toFixed(2),
-          price: (52 + (weight * 7.5)).toFixed(2),
-          transitTime: '1-2 business days',
-          currency: 'CAD',
-          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+          {
+            rateId: `rate_${timestamp}_2`,
+            carrier: { name: 'Canada Post' },
+            service: { name: 'Expedited Parcel' },
+            baseCharge: { amount: Math.round(cpExpBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(cpExpBase * 0.12 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((cpExpBase + cpExpBase * 0.12) * 0.13 * 100) } }
+            ],
+            deliveryDays: 3,
+            transitTime: '2-3 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_3`,
+            carrier: { name: 'Canada Post' },
+            service: { name: 'Xpresspost' },
+            baseCharge: { amount: Math.round(cpXpressBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(cpXpressBase * 0.12 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((cpXpressBase + cpXpressBase * 0.12) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-2 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_4`,
+            carrier: { name: 'Purolator' },
+            service: { name: 'Ground' },
+            baseCharge: { amount: Math.round(puroGroundBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(puroGroundBase * 0.14 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((puroGroundBase + puroGroundBase * 0.14) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-3 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_5`,
+            carrier: { name: 'Purolator' },
+            service: { name: 'Express' },
+            baseCharge: { amount: Math.round(puroExpBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(puroExpBase * 0.14 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((puroExpBase + puroExpBase * 0.14) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-2 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_6`,
+            carrier: { name: 'UPS' },
+            service: { name: 'Ground' },
+            baseCharge: { amount: Math.round(upsGroundBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(upsGroundBase * 0.15 * 100) } },
+              { name: 'Residential Delivery', price: { amount: 500 } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((upsGroundBase + upsGroundBase * 0.15 + 5) * 0.13 * 100) } }
+            ],
+            deliveryDays: 3,
+            transitTime: '2-4 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_7`,
+            carrier: { name: 'UPS' },
+            service: { name: 'Express Saver' },
+            baseCharge: { amount: Math.round(upsExpBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(upsExpBase * 0.15 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((upsExpBase + upsExpBase * 0.15) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-2 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_8`,
+            carrier: { name: 'FedEx' },
+            service: { name: 'Ground' },
+            baseCharge: { amount: Math.round(fedexGroundBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(fedexGroundBase * 0.16 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((fedexGroundBase + fedexGroundBase * 0.16) * 0.13 * 100) } }
+            ],
+            deliveryDays: 4,
+            transitTime: '2-5 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_9`,
+            carrier: { name: 'FedEx' },
+            service: { name: 'Express' },
+            baseCharge: { amount: Math.round(fedexExpBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(fedexExpBase * 0.16 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((fedexExpBase + fedexExpBase * 0.16) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-2 business days'
+          },
+          {
+            rateId: `rate_${timestamp}_10`,
+            carrier: { name: 'DHL' },
+            service: { name: 'Express' },
+            baseCharge: { amount: Math.round(dhlExpBase * 100) },
+            surcharges: [
+              { name: 'Fuel Surcharge', price: { amount: Math.round(dhlExpBase * 0.18 * 100) } }
+            ],
+            taxes: [
+              { price: { amount: Math.round((dhlExpBase + dhlExpBase * 0.18) * 0.13 * 100) } }
+            ],
+            deliveryDays: 2,
+            transitTime: '1-2 business days'
+          }
+        ];
       }
       
+      // Apply markup to sample rates just like real API rates
+      const markedUpSampleRates = await rateMarkupService.applyMarkups(sampleRates);
+      
       res.json({
-        rates: sampleRates,
+        rates: markedUpSampleRates,
         note: 'Sample rates - API credentials need configuration'
       });
     }
