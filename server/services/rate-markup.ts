@@ -29,7 +29,7 @@ interface MarkedUpRate extends ShipTimeRate {
 }
 
 export class RateMarkupService {
-  private defaultMarkupPercentage = 25; // 25% default markup
+  private defaultMarkupPercentage = 15; // 15% default markup
 
   /**
    * Apply markup rules to shipping rates

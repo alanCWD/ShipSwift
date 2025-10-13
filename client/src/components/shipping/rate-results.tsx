@@ -4,11 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import ShipmentForm from './shipment-form';
 import PickupOptions from './pickup-options';
 import InsuranceModal from './insurance-modal';
 import { CarrierLogo } from '@/components/ui/carrier-logo';
-import { Clock, Truck, Shield, Edit } from 'lucide-react';
+import { Clock, Truck, Shield, Edit, Info } from 'lucide-react';
 
 interface RateResultsProps {
   rates: any[];
@@ -191,20 +197,62 @@ export default function RateResults({ rates }: RateResultsProps) {
                         <div className="text-sm text-gray-900">{rate.deliveryDays || rate.transitTime}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-lg font-bold text-gray-900">
-                            ${pricing.subtotal.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
+                        <div className="flex items-start gap-2">
+                          <div>
+                            <div className="text-lg font-bold text-gray-900">
+                              ${pricing.subtotal.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
+                            </div>
+                            {pricing.tax > 0 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                + ${pricing.tax.toFixed(2)} tax
+                              </div>
+                            )}
+                            {pricing.tax > 0 && (
+                              <div className="text-xs font-medium text-gray-700 mt-0.5">
+                                Total: ${pricing.total.toFixed(2)}
+                              </div>
+                            )}
                           </div>
-                          {pricing.tax > 0 && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              + ${pricing.tax.toFixed(2)} tax
-                            </div>
-                          )}
-                          {pricing.tax > 0 && (
-                            <div className="text-xs font-medium text-gray-700 mt-0.5">
-                              Total: ${pricing.total.toFixed(2)}
-                            </div>
-                          )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="mt-1 text-gray-400 hover:text-gray-600 transition-colors">
+                                  <Info className="w-4 h-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs p-4" side="left">
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
+                                  {rate.originalBaseCharge !== undefined && (
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">Base Rate:</span>
+                                      <span className="font-medium">${rate.originalBaseCharge.toFixed(2)}</span>
+                                    </div>
+                                  )}
+                                  {rate.markup !== undefined && rate.markup > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">Markup:</span>
+                                      <span className="font-medium text-blue-600">+${rate.markup.toFixed(2)}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between text-sm pt-2 border-t">
+                                    <span className="font-semibold">Subtotal (before tax):</span>
+                                    <span className="font-bold">${pricing.subtotal.toFixed(2)}</span>
+                                  </div>
+                                  {pricing.tax > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">Tax:</span>
+                                      <span className="font-medium">${pricing.tax.toFixed(2)}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between text-base pt-2 border-t">
+                                    <span className="font-bold">Total:</span>
+                                    <span className="font-bold text-lg">${pricing.total.toFixed(2)}</span>
+                                  </div>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
