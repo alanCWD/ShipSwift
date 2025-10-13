@@ -22,11 +22,17 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 **Rate Markup System (October 2025 - New Feature):**
 - Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates
 - Created RateMarkupService that queries carrier-specific markup rules from database
-- Default 25% markup applied when no carrier-specific rule exists
+- Default 15% markup applied when no carrier-specific rule exists
 - Markup applied to base rates only (excluding taxes) for accurate comparison
 - Frontend displays pre-tax subtotal as main price (matching ShipTime display)
 - Taxes shown as separate line item ("+ $X.XX tax") below subtotal
 - Final total displayed clearly ("Total: $X.XX")
+- Added information tooltip (?) on hover showing detailed rate breakdown:
+  - Base rate (before markup)
+  - Markup amount
+  - Subtotal (with markup, before tax) - bolded
+  - Tax amount
+  - Total (with markup and tax) - bolded
 - Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
 - Enables apples-to-apples rate comparison between GoABLP and ShipTime interface
 - Admin can configure carrier-specific markup rules via existing rateMarkups table
