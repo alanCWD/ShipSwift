@@ -2343,7 +2343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         apiEndpoint: `${apiUrl}rates`,
         authHeaderSample: authHeader ? `Basic ${authHeader.substring(6, 15)}...` : 'NOT SET',
         encodingTest: {
-          originalLength: username ? username.length + password.length : 0,
+          originalLength: (username?.length || 0) + (password?.length || 0),
           base64Length: credentials.length,
           sampleEncoded: credentials.substring(0, 20) + '...'
         }
