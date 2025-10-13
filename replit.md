@@ -27,12 +27,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Frontend displays pre-tax subtotal as main price (matching ShipTime display)
 - Taxes shown as separate line item ("+ $X.XX tax") below subtotal
 - Final total displayed clearly ("Total: $X.XX")
-- Added information tooltip (?) on hover showing detailed rate breakdown:
-  - Base rate (before markup)
-  - Markup amount
-  - Subtotal (with markup, before tax) - bolded
-  - Tax amount
-  - Total (with markup and tax) - bolded
+- Added information tooltip (?) on hover showing detailed rate breakdown with all charges:
+  - Base (includes markup) - shipping base rate with 15% markup applied
+  - Individual surcharges (Tailgate Delivery, Fuel Surcharge, etc.) - shown by name
+  - Before Tax Total - sum of base with markup and all surcharges - bolded
+  - Tax amount - Canadian taxes
+  - After Tax Total - final price including everything - bolded in larger font
 - Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
 - Enables apples-to-apples rate comparison between GoABLP and ShipTime interface
 - Admin can configure carrier-specific markup rules via existing rateMarkups table
