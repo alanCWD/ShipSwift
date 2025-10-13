@@ -225,10 +225,8 @@ export default function RateResults({ rates }: RateResultsProps) {
                                   <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
                                   
                                   {(() => {
-                                    const surchargesTotal = (rate.surcharges || []).reduce((sum: number, s: any) => 
-                                      sum + ((s.price?.amount || 0) / 100), 0
-                                    );
-                                    const baseRate = pricing.subtotal - surchargesTotal;
+                                    // Base Rate = originalBaseCharge + markup (both include markup applied to base only)
+                                    const baseRate = (rate.originalBaseCharge || 0) + (rate.markup || 0);
                                     
                                     return (
                                       <>

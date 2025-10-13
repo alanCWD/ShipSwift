@@ -51,13 +51,16 @@ export class RateMarkupService {
     // Find matching markup rule (most specific first)
     const matchingRule = this.findMatchingRule(carrierName, serviceName, rules);
 
-    // Calculate base charge (excluding taxes)
+    // Calculate base charge only (excluding surcharges and taxes)
     const baseChargeAmount = rate.baseCharge?.amount || 0;
+    const baseChargeInDollars = baseChargeAmount / 100; // Convert from cents
+    
+    // Calculate surcharges separately
     const surchargesAmount = (rate.surcharges || []).reduce(
       (sum, s) => sum + (s.price?.amount || 0), 
       0
     );
-    const baseTotal = (baseChargeAmount + surchargesAmount) / 100; // Convert from cents
+    const surchargesInDollars = surchargesAmount / 100; // Convert from cents
 
     // Calculate tax amount separately
     const taxAmount = (rate.taxes || []).reduce(
@@ -65,7 +68,7 @@ export class RateMarkupService {
       0
     ) / 100;
 
-    // Apply markup to base total only (not taxes)
+    // Apply markup to BASE CHARGE ONLY (not surcharges or taxes)
     let markup = 0;
     let markupType = 'default';
 
@@ -74,7 +77,7 @@ export class RateMarkupService {
       const markupValue = parseFloat(matchingRule.markupValue);
 
       if (matchingRule.markupType === 'percentage') {
-        markup = baseTotal * (markupValue / 100);
+        markup = baseChargeInDollars * (markupValue / 100);
       } else {
         markup = markupValue;
       }
@@ -89,21 +92,22 @@ export class RateMarkupService {
         markup = Math.min(markup, maxMarkup);
       }
     } else {
-      // Apply default markup percentage
-      markup = baseTotal * (this.defaultMarkupPercentage / 100);
+      // Apply default markup percentage to base charge only
+      markup = baseChargeInDollars * (this.defaultMarkupPercentage / 100);
       markupType = `default_${this.defaultMarkupPercentage}%`;
     }
 
-    // Calculate subtotal (base + markup, excluding taxes)
-    const subtotal = baseTotal + markup;
+    // Calculate subtotal: (base + markup) + surcharges (excluding taxes)
+    const baseWithMarkup = baseChargeInDollars + markup;
+    const subtotal = baseWithMarkup + surchargesInDollars;
 
     return {
       ...rate,
-      originalBaseCharge: baseTotal,
+      originalBaseCharge: baseChargeInDollars,
       markup,
       markupType,
       taxAmount,
-      subtotal, // This is what should be compared with ShipTime (pre-tax)
+      subtotal, // This is (base + markup + surcharges), before tax
       baseCharge: {
         ...rate.baseCharge,
         amount: Math.round(subtotal * 100) // Update baseCharge to include markup
