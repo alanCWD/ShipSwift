@@ -39,7 +39,7 @@ interface ShipTimeRate {
   carrier: { name: string };
   service: { name: string };
   baseCharge: { amount: number };
-  surcharges?: Array<{ price: { amount: number } }>;
+  surcharges?: Array<{ name?: string; price: { amount: number } }>;
   taxes?: Array<{ price: { amount: number } }>;
   deliveryDays?: number;
 }
