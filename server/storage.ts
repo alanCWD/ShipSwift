@@ -37,6 +37,7 @@ export interface IStorage {
   }): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   
   // Admin user management operations
   getAllUsers(filters?: { search?: string; role?: string; status?: string }): Promise<User[]>;
@@ -128,6 +129,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Replit Auth methods

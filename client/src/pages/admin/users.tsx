@@ -49,7 +49,8 @@ import {
   Plus,
   UserPlus,
   Mail,
-  AlertTriangle
+  AlertTriangle,
+  Trash
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
@@ -275,6 +276,35 @@ export default function AdminUsers() {
     },
   });
 
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete user');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Deleted",
+        description: "User has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users/stats'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete user.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -319,6 +349,12 @@ export default function AdminUsers() {
   const handleResetPassword = (user: User) => {
     setSelectedUser(user);
     setShowPasswordResetModal(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    if (confirm(`Are you sure you want to delete ${user.email}? This action cannot be undone.`)) {
+      deleteUserMutation.mutate(user.id);
+    }
   };
 
   const getRoleColor = (role: string) => {
@@ -688,6 +724,17 @@ export default function AdminUsers() {
                             title="Reset Password"
                           >
                             <Key className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user)}
+                            title="Delete User"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-user-${user.id}`}
+                            disabled={user.id === authStore.user?.id}
+                          >
+                            <Trash className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>

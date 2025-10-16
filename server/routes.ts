@@ -1818,6 +1818,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Prevent self-deletion
+      if (req.user?.id === id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      await storage.deleteUser(id);
+      
+      // Log user deletion activity
+      await storage.logUserActivity({
+        userId: req.user?.id || 'unknown',
+        activityType: 'user_deleted',
+        activityData: { deletedUserId: id },
+      });
+      
+      res.json({ message: "User deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   app.post("/api/admin/users", requireAdmin, async (req, res) => {
     try {
       console.log("Creating user - Request body:", req.body);
@@ -1836,8 +1861,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email already exists" });
       }
       
-      // Hash the password (in a real app, use bcrypt)
-      const hashedPassword = userData.password; // Simplified for demo
+      // Hash the password with bcrypt
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
       
       const user = await storage.createUser({
         ...userData,
@@ -1870,8 +1895,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Password must be at least 8 characters" });
       }
       
-      // Hash the password (in a real app, use bcrypt)
-      const hashedPassword = newPassword; // Simplified for demo
+      // Hash the password with bcrypt
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
       
       await storage.updateUser(id, { password: hashedPassword });
       

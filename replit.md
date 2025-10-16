@@ -51,7 +51,21 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 **Role-Based Access Control Fix (October 2025 - Bug Fix):**
 - Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
 - Previously only 'admin' role had admin panel access, causing lockout when changing to 'ablp_admin'
+- Fixed frontend navbar and admin page route protection to recognize both admin roles
 - System now correctly supports three user roles: customer, admin, ablp_admin (both admin types have full access)
+
+**Password Security Enhancement (October 2025 - Security Fix):**
+- Fixed admin user creation to properly hash passwords with bcrypt before storage
+- Fixed password reset functionality to use bcrypt hashing
+- Previously passwords were stored in plain text when created by admins, causing login failures
+- All user passwords now properly hashed with bcrypt (10 salt rounds) for security
+
+**User Management Enhancement (October 2025 - New Feature):**
+- Added delete user functionality to admin panel
+- Admins can now delete user accounts with confirmation dialog
+- Self-deletion prevention: users cannot delete their own account
+- Delete action logged in user activity for audit trail
+- User stats automatically updated after deletion
 
 **API Credentials Validation (October 2025 - Bug Fix):**
 - Fixed ShipTime API authentication failures caused by whitespace in credentials
