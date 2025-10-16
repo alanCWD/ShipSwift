@@ -2400,11 +2400,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
-      if (user?.role !== 'admin') {
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { service } = req.params;
+      
+      console.log(`🧪 Test connection request received for service: ${service}`);
+      console.log(`  - User: ${user?.email} (${user?.role})`);
       
       if (service === 'shiptime') {
         try {
@@ -2492,35 +2495,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           console.log('  - Sending test request...');
+          console.log('  - Request payload:', JSON.stringify(testPayload, null, 2));
           
           fetchOptions.body = JSON.stringify(testPayload);
           const response = await fetch(`${apiUrl}rates`, fetchOptions);
 
           const responseText = await response.text();
           console.log('  - Response status:', response.status);
-          console.log('  - Response preview:', responseText.substring(0, 200));
+          console.log('  - Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+          console.log('  - Response body (first 500 chars):', responseText.substring(0, 500));
           
           if (!response.ok) {
             // Try to parse error response
             let errorDetails = responseText;
+            let parsedError = null;
             try {
-              const errorJson = JSON.parse(responseText);
-              errorDetails = JSON.stringify(errorJson, null, 2);
+              parsedError = JSON.parse(responseText);
+              errorDetails = JSON.stringify(parsedError, null, 2);
             } catch (e) {
-              // Response is not JSON
+              // Response is not JSON - might be HTML error page
+              console.error('  - Response is not JSON, likely an HTML error page');
             }
             
-            console.error('❌ ShipTime API Error:', errorDetails);
+            console.error('❌ ShipTime API Error:');
+            console.error('  - Full error details:', errorDetails);
+            console.error('  - Status:', response.status);
+            console.error('  - Status text:', response.statusText);
+            
+            // Create user-friendly error message
+            let userMessage = `ShipTime API connection failed (${response.status})`;
+            if (response.status === 401) {
+              userMessage = 'Authentication failed. Please verify your ShipTime credentials are correct.';
+            } else if (response.status === 404) {
+              userMessage = 'ShipTime API endpoint not found. Check if credentials are for the correct environment (sandbox/production).';
+            } else if (parsedError?.message) {
+              userMessage = `ShipTime API error: ${parsedError.message}`;
+            }
             
             return res.status(400).json({ 
-              message: `ShipTime API returned ${response.status}: ${response.statusText}`,
+              message: userMessage,
               isAuthenticationError: response.status === 401,
               errorDetails: errorDetails.substring(0, 500),
               debug: {
                 statusCode: response.status,
+                statusText: response.statusText,
                 environment,
                 apiUrl,
-                usernamePrefix: username.substring(0, 3)
+                usernamePrefix: username.substring(0, 3),
+                isHtmlResponse: responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')
               }
             });
           }
