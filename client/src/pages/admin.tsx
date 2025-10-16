@@ -15,7 +15,7 @@ export default function Admin() {
 
   useEffect(() => {
     // If not loading and user is not admin, redirect to home
-    if (!isLoading && (!user || user.role !== 'admin')) {
+    if (!isLoading && (!user || (user.role !== 'admin' && user.role !== 'ablp_admin'))) {
       setLocation('/');
     }
   }, [user, isLoading, setLocation]);
@@ -30,7 +30,7 @@ export default function Admin() {
   }
 
   // Don't render admin panel if not authorized (will redirect)
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'ablp_admin')) {
     return null;
   }
 
