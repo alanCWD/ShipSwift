@@ -125,7 +125,12 @@ export default function Profile() {
                 </h3>
                 <p className="text-gray-600 text-sm">{user?.email}</p>
                 <Badge className={`mt-2 ${getRoleBadgeColor(user?.role || 'customer')}`}>
-                  {user?.role === 'admin' ? (
+                  {user?.role === 'ablp_admin' ? (
+                    <>
+                      <Shield className="w-3 h-3 mr-1" />
+                      ABLP Administrator
+                    </>
+                  ) : user?.role === 'admin' ? (
                     <>
                       <Shield className="w-3 h-3 mr-1" />
                       Administrator

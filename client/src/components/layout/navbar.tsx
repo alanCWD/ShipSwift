@@ -129,7 +129,7 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  {user.role === 'admin' ? (
+                  {(user.role === 'admin' || user.role === 'ablp_admin') ? (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="flex w-full">
                         <Settings className="mr-2 h-4 w-4" />
