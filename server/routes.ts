@@ -1633,12 +1633,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { username, password, environment = 'production' } = req.body;
       
-      if (!username || !password) {
+      // Trim whitespace from credentials (common when copy-pasting)
+      const trimmedUsername = username?.trim();
+      const trimmedPassword = password?.trim();
+      
+      if (!trimmedUsername || !trimmedPassword) {
         return res.status(400).json({ message: "Username and password are required" });
       }
 
-      await storage.setSetting('SHIPTIME_USERNAME', username, userId);
-      await storage.setSetting('SHIPTIME_PASSWORD', password, userId);
+      await storage.setSetting('SHIPTIME_USERNAME', trimmedUsername, userId);
+      await storage.setSetting('SHIPTIME_PASSWORD', trimmedPassword, userId);
       await storage.setSetting('SHIPTIME_ENVIRONMENT', environment, userId);
 
       res.json({ message: "Credentials saved successfully" });
@@ -1659,21 +1663,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { publishableKey, secretKey, environment = 'test' } = req.body;
       
-      if (!publishableKey || !secretKey) {
+      // Trim whitespace from credentials (common when copy-pasting)
+      const trimmedPublishableKey = publishableKey?.trim();
+      const trimmedSecretKey = secretKey?.trim();
+      
+      if (!trimmedPublishableKey || !trimmedSecretKey) {
         return res.status(400).json({ message: "Publishable key and secret key are required" });
       }
 
       // Validate key formats
-      if (!publishableKey.startsWith('pk_')) {
+      if (!trimmedPublishableKey.startsWith('pk_')) {
         return res.status(400).json({ message: "Invalid publishable key format (must start with pk_)" });
       }
 
-      if (!secretKey.startsWith('sk_')) {
+      if (!trimmedSecretKey.startsWith('sk_')) {
         return res.status(400).json({ message: "Invalid secret key format (must start with sk_)" });
       }
 
-      await storage.setSetting('STRIPE_PUBLISHABLE_KEY', publishableKey, userId);
-      await storage.setSetting('STRIPE_SECRET_KEY', secretKey, userId);
+      await storage.setSetting('STRIPE_PUBLISHABLE_KEY', trimmedPublishableKey, userId);
+      await storage.setSetting('STRIPE_SECRET_KEY', trimmedSecretKey, userId);
       await storage.setSetting('STRIPE_ENVIRONMENT', environment, userId);
 
       res.json({ message: "Stripe credentials saved successfully" });
@@ -1695,17 +1703,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { apiKey, fromEmail, fromName } = req.body;
 
-      if (!apiKey || !fromEmail || !fromName) {
+      // Trim whitespace from credentials (common when copy-pasting)
+      const trimmedApiKey = apiKey?.trim();
+      const trimmedFromEmail = fromEmail?.trim();
+      const trimmedFromName = fromName?.trim();
+
+      if (!trimmedApiKey || !trimmedFromEmail || !trimmedFromName) {
         return res.status(400).json({ message: "All SendGrid fields are required" });
       }
 
-      if (!apiKey.startsWith('SG.')) {
+      if (!trimmedApiKey.startsWith('SG.')) {
         return res.status(400).json({ message: "Invalid API key format (must start with SG.)" });
       }
 
-      await storage.setSetting('SENDGRID_API_KEY', apiKey, userId);
-      await storage.setSetting('SENDGRID_FROM_EMAIL', fromEmail, userId);
-      await storage.setSetting('SENDGRID_FROM_NAME', fromName, userId);
+      await storage.setSetting('SENDGRID_API_KEY', trimmedApiKey, userId);
+      await storage.setSetting('SENDGRID_FROM_EMAIL', trimmedFromEmail, userId);
+      await storage.setSetting('SENDGRID_FROM_NAME', trimmedFromName, userId);
 
       res.json({ message: "SendGrid credentials saved successfully" });
     } catch (error) {

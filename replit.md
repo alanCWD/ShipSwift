@@ -48,6 +48,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Province dropdowns ensure 2-letter codes (AB, BC, ON) for API validation
 - Automatic postal code formatting (uppercase with space: A1A 1A1)
 
+**API Credentials Validation (October 2025 - Bug Fix):**
+- Fixed ShipTime API authentication failures caused by whitespace in credentials
+- Added automatic `.trim()` sanitization for all API credentials when saved (ShipTime, Stripe, SendGrid)
+- Prevents 401 errors from leading/trailing spaces copied from external systems
+- Ensures reliable API authentication for production deployments
+
 **Authentication & Navigation (August 2025 - Resolved):**
 - Fixed logout redirect functionality across all pages using immediate window.location.href navigation
 - Enhanced navbar logout with proper session handling and immediate redirect
