@@ -48,6 +48,11 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Province dropdowns ensure 2-letter codes (AB, BC, ON) for API validation
 - Automatic postal code formatting (uppercase with space: A1A 1A1)
 
+**Role-Based Access Control Fix (October 2025 - Bug Fix):**
+- Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
+- Previously only 'admin' role had admin panel access, causing lockout when changing to 'ablp_admin'
+- System now correctly supports three user roles: customer, admin, ablp_admin (both admin types have full access)
+
 **API Credentials Validation (October 2025 - Bug Fix):**
 - Fixed ShipTime API authentication failures caused by whitespace in credentials
 - Added automatic `.trim()` sanitization for all API credentials when saved (ShipTime, Stripe, SendGrid)
