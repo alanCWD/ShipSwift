@@ -52,19 +52,22 @@ export class RateMarkupService {
     const matchingRule = this.findMatchingRule(carrierName, serviceName, rules);
 
     // Calculate base charge only (excluding surcharges and taxes)
-    const baseChargeAmount = rate.baseCharge?.amount || 0;
+    // Ensure baseChargeAmount is a number (convert strings to numbers)
+    const baseChargeAmount = Number(rate.baseCharge?.amount || 0);
     const baseChargeInDollars = baseChargeAmount / 100; // Convert from cents
     
     // Calculate surcharges separately
+    // Ensure each surcharge amount is a number
     const surchargesAmount = (rate.surcharges || []).reduce(
-      (sum, s) => sum + (s.price?.amount || 0), 
+      (sum, s) => sum + Number(s.price?.amount || 0), 
       0
     );
     const surchargesInDollars = surchargesAmount / 100; // Convert from cents
 
     // Calculate tax amount separately
+    // Ensure each tax amount is a number
     const taxAmount = (rate.taxes || []).reduce(
-      (sum, tax) => sum + (tax.price?.amount || 0), 
+      (sum, tax) => sum + Number(tax.price?.amount || 0), 
       0
     ) / 100;
 
@@ -100,6 +103,39 @@ export class RateMarkupService {
     // Calculate subtotal: (base + markup) + surcharges (excluding taxes)
     const baseWithMarkup = baseChargeInDollars + markup;
     const subtotal = baseWithMarkup + surchargesInDollars;
+    
+    // Safety check: If any calculation resulted in NaN, log error and use fallback
+    if (isNaN(subtotal) || isNaN(taxAmount)) {
+      console.error('⚠️ Rate calculation produced NaN:', {
+        carrier: carrierName,
+        service: serviceName,
+        baseChargeAmount,
+        baseChargeInDollars,
+        surchargesAmount,
+        surchargesInDollars,
+        taxAmount,
+        markup,
+        subtotal,
+        rawRate: JSON.stringify(rate, null, 2)
+      });
+      
+      // Fallback to safe values
+      const fallbackSubtotal = isNaN(subtotal) ? 0 : subtotal;
+      const fallbackTaxAmount = isNaN(taxAmount) ? 0 : taxAmount;
+      
+      return {
+        ...rate,
+        originalBaseCharge: isNaN(baseChargeInDollars) ? 0 : baseChargeInDollars,
+        markup: isNaN(markup) ? 0 : markup,
+        markupType,
+        taxAmount: fallbackTaxAmount,
+        subtotal: fallbackSubtotal,
+        baseCharge: {
+          ...rate.baseCharge,
+          amount: Math.round(fallbackSubtotal * 100)
+        }
+      };
+    }
 
     return {
       ...rate,
