@@ -51,11 +51,15 @@ export default function RateResults({ rates }: RateResultsProps) {
     
     // Handle marked up API format (includes markup breakdown)
     if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+      // Ensure values are numbers (convert strings if needed)
+      const subtotal = Number(rate.subtotal);
+      const tax = Number(rate.taxAmount);
+      
       return {
-        subtotal: rate.subtotal, // Base + markup (pre-tax)
-        tax: rate.taxAmount,
-        total: rate.subtotal + rate.taxAmount,
-        markup: rate.markup || 0
+        subtotal, // Base + markup (pre-tax)
+        tax,
+        total: subtotal + tax,
+        markup: Number(rate.markup || 0)
       };
     }
     
