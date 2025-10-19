@@ -1592,7 +1592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
-      if (user?.role !== 'admin') {
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1627,7 +1627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
-      if (user?.role !== 'admin') {
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1657,7 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
-      if (user?.role !== 'admin') {
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1697,7 +1697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const user = await storage.getUser(userId);
       
-      if (user?.role !== 'admin') {
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
