@@ -56,6 +56,24 @@ export class RateMarkupService {
     const baseChargeAmount = Number(rate.baseCharge?.amount || 0);
     const baseChargeInDollars = baseChargeAmount / 100; // Convert from cents
     
+    // DEBUG: Log the raw rate data from ShipTime
+    console.log(`\n🔍 Processing rate for ${carrierName} - ${serviceName}`);
+    console.log('  Raw ShipTime data:');
+    console.log('    baseCharge.amount (cents):', rate.baseCharge?.amount);
+    console.log('    baseCharge in dollars:', baseChargeInDollars);
+    if (rate.surcharges && rate.surcharges.length > 0) {
+      console.log('    Surcharges:');
+      rate.surcharges.forEach(s => {
+        console.log(`      - ${s.name}: ${s.price?.amount} cents = $${(Number(s.price?.amount || 0) / 100).toFixed(2)}`);
+      });
+    }
+    if (rate.taxes && rate.taxes.length > 0) {
+      console.log('    Taxes:');
+      rate.taxes.forEach(t => {
+        console.log(`      - ${(t as any).name || 'Tax'}: ${t.price?.amount} cents = $${(Number(t.price?.amount || 0) / 100).toFixed(2)}`);
+      });
+    }
+    
     // Calculate surcharges separately
     // Ensure each surcharge amount is a number
     const surchargesAmount = (rate.surcharges || []).reduce(
@@ -103,6 +121,16 @@ export class RateMarkupService {
     // Calculate subtotal: (base + markup) + surcharges (excluding taxes)
     const baseWithMarkup = baseChargeInDollars + markup;
     const subtotal = baseWithMarkup + surchargesInDollars;
+    
+    // DEBUG: Log markup calculation results
+    console.log('  Markup calculation:');
+    console.log('    markup percentage:', this.defaultMarkupPercentage + '%');
+    console.log('    markup amount:', `$${markup.toFixed(2)}`);
+    console.log('    base + markup:', `$${baseWithMarkup.toFixed(2)}`);
+    console.log('    surcharges total:', `$${surchargesInDollars.toFixed(2)}`);
+    console.log('    subtotal (before tax):', `$${subtotal.toFixed(2)}`);
+    console.log('    tax amount:', `$${taxAmount.toFixed(2)}`);
+    console.log('    total (with tax):', `$${(subtotal + taxAmount).toFixed(2)}`);
     
     // Safety check: If any calculation resulted in NaN, log error and use fallback
     if (isNaN(subtotal) || isNaN(taxAmount)) {
