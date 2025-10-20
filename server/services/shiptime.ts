@@ -343,7 +343,7 @@ class ShipTimeService {
         shipDate: new Date().toISOString(),
       };
       
-      // Add LTL accessorial services for freight shipments
+      // Add LTL service options for freight shipments
       if (isPallet) {
         console.log('LTL Service Flags:', {
           fromResidential: request.packageDetails.fromResidential,
@@ -352,18 +352,18 @@ class ShipTimeService {
           toTailgate: request.packageDetails.toTailgate
         });
         
-        const accessorials: string[] = [];
+        const serviceOptions: string[] = [];
         
         if (request.packageDetails.fromTailgate) {
-          accessorials.push('TAILGATE_PICKUP');
+          serviceOptions.push('TAILGATE_PICKUP');
         }
         if (request.packageDetails.toTailgate) {
-          accessorials.push('TAILGATE_DELIVERY');
+          serviceOptions.push('TAILGATE_DELIVERY');
         }
         
-        if (accessorials.length > 0) {
-          payload.accessorials = accessorials;
-          console.log('Adding accessorials to payload:', accessorials);
+        if (serviceOptions.length > 0) {
+          payload.serviceOptions = serviceOptions;
+          console.log('Adding serviceOptions to payload:', serviceOptions);
         }
       }
       
