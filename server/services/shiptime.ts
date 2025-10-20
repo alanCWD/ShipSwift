@@ -270,13 +270,14 @@ class ShipTimeService {
         
         // For pallets, distribute total weight across all pallets
         // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
-        const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
+        // Round to 3 decimal places (ShipTime API requirement)
+        const weightPerPallet = Math.round((request.packageDetails.weight / request.packageDetails.palletCount) * 1000) / 1000;
         
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
-            length: request.packageDetails.length,
-            width: request.packageDetails.width,
-            height: request.packageDetails.height,
+            length: Math.round(request.packageDetails.length * 1000) / 1000,
+            width: Math.round(request.packageDetails.width * 1000) / 1000,
+            height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
           };
           
@@ -289,11 +290,12 @@ class ShipTimeService {
         }
       } else {
         // Standard package - single line item
+        // Round to 3 decimal places (ShipTime API requirement)
         lineItems.push({
-          length: request.packageDetails.length,
-          width: request.packageDetails.width,
-          height: request.packageDetails.height,
-          weight: request.packageDetails.weight,
+          length: Math.round(request.packageDetails.length * 1000) / 1000,
+          width: Math.round(request.packageDetails.width * 1000) / 1000,
+          height: Math.round(request.packageDetails.height * 1000) / 1000,
+          weight: Math.round(request.packageDetails.weight * 1000) / 1000,
         });
       }
       
@@ -378,13 +380,14 @@ class ShipTimeService {
         
         // For pallets, distribute total weight across all pallets
         // If total weight is 500kg and palletCount is 2, each pallet gets 250kg
-        const weightPerPallet = request.packageDetails.weight / request.packageDetails.palletCount;
+        // Round to 3 decimal places (ShipTime API requirement)
+        const weightPerPallet = Math.round((request.packageDetails.weight / request.packageDetails.palletCount) * 1000) / 1000;
         
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
-            length: request.packageDetails.length,
-            width: request.packageDetails.width,
-            height: request.packageDetails.height,
+            length: Math.round(request.packageDetails.length * 1000) / 1000,
+            width: Math.round(request.packageDetails.width * 1000) / 1000,
+            height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
           };
           
@@ -397,11 +400,12 @@ class ShipTimeService {
         }
       } else {
         // Standard package - single line item
+        // Round to 3 decimal places (ShipTime API requirement)
         lineItems.push({
-          length: request.packageDetails.length,
-          width: request.packageDetails.width,
-          height: request.packageDetails.height,
-          weight: request.packageDetails.weight,
+          length: Math.round(request.packageDetails.length * 1000) / 1000,
+          width: Math.round(request.packageDetails.width * 1000) / 1000,
+          height: Math.round(request.packageDetails.height * 1000) / 1000,
+          weight: Math.round(request.packageDetails.weight * 1000) / 1000,
         });
       }
 
