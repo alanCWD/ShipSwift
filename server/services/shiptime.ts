@@ -345,6 +345,13 @@ class ShipTimeService {
       
       // Add LTL accessorial services for freight shipments
       if (isPallet) {
+        console.log('LTL Service Flags:', {
+          fromResidential: request.packageDetails.fromResidential,
+          toResidential: request.packageDetails.toResidential,
+          fromTailgate: request.packageDetails.fromTailgate,
+          toTailgate: request.packageDetails.toTailgate
+        });
+        
         const accessorials: string[] = [];
         
         if (request.packageDetails.fromTailgate) {
@@ -356,6 +363,7 @@ class ShipTimeService {
         
         if (accessorials.length > 0) {
           payload.accessorials = accessorials;
+          console.log('Adding accessorials to payload:', accessorials);
         }
       }
       

@@ -711,6 +711,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       toAddress
     } = req.body;
 
+    console.log('Rate request received with packageDetails:', JSON.stringify(packageDetails, null, 2));
+
     if (!fromPostalCode || !toPostalCode || !packageDetails) {
       return res.status(400).json({ message: "Missing required shipping parameters" });
     }
