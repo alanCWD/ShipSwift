@@ -19,6 +19,11 @@ interface PackageDetails {
   palletType?: string;
   isStackable?: boolean;
   freightClass?: string;
+  // LTL accessorial services
+  fromResidential?: boolean;
+  toResidential?: boolean;
+  fromTailgate?: boolean;
+  toTailgate?: boolean;
 }
 
 interface RateRequest {
@@ -310,6 +315,10 @@ class ShipTimeService {
             state: request.from.state,
             attention: request.from.attention,
             phone: request.from.phone,
+          }),
+          // Add residential flag for pickup
+          ...(request.packageDetails.fromResidential !== undefined && {
+            residential: request.packageDetails.fromResidential
           })
         },
         to: {
@@ -322,6 +331,10 @@ class ShipTimeService {
             state: request.to.state,
             attention: request.to.attention,
             phone: request.to.phone,
+          }),
+          // Add residential flag for delivery
+          ...(request.packageDetails.toResidential !== undefined && {
+            residential: request.packageDetails.toResidential
           })
         },
         packageType,
@@ -329,6 +342,22 @@ class ShipTimeService {
         lineItems,
         shipDate: new Date().toISOString(),
       };
+      
+      // Add LTL accessorial services for freight shipments
+      if (isPallet) {
+        const accessorials: string[] = [];
+        
+        if (request.packageDetails.fromTailgate) {
+          accessorials.push('TAILGATE_PICKUP');
+        }
+        if (request.packageDetails.toTailgate) {
+          accessorials.push('TAILGATE_DELIVERY');
+        }
+        
+        if (accessorials.length > 0) {
+          payload.accessorials = accessorials;
+        }
+      }
       
       // Note: ShipTime API doesn't support palletType/stackable fields
       // The packageType: "PALLET" is sufficient to indicate pallet shipments

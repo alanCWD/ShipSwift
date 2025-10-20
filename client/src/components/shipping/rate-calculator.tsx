@@ -42,6 +42,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     palletType: 'standard',
     isStackable: 'yes',
     freightClass: '',
+    // LTL accessorial services
+    fromResidential: 'no',
+    toResidential: 'no',
+    fromTailgate: 'no',
+    toTailgate: 'no',
   });
   
   const [hasRates, setHasRates] = useState(false);
@@ -135,6 +140,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         if (data.freightClass) {
           packageDetails.freightClass = data.freightClass;
         }
+        // LTL accessorial services
+        packageDetails.fromResidential = data.fromResidential === 'yes';
+        packageDetails.toResidential = data.toResidential === 'yes';
+        packageDetails.fromTailgate = data.fromTailgate === 'yes';
+        packageDetails.toTailgate = data.toTailgate === 'yes';
       }
       
       const requestBody: any = {
@@ -709,6 +719,83 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                   <p className="text-xs text-gray-500 mt-1">
                     Leave blank if unknown. Freight class helps determine accurate pricing for LTL shipments.
                   </p>
+                </div>
+                
+                {/* LTL Accessorial Services */}
+                <div className="mt-6 pt-4 border-t">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Accessorial Services</h4>
+                  <p className="text-xs text-gray-600 mb-4">
+                    These options affect rate calculations. Residential and tailgate charges apply separately to pickup and delivery.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-700">Pickup Location</p>
+                      <div>
+                        <Label htmlFor="fromResidential">Residential Pickup</Label>
+                        <Select 
+                          value={formData.fromResidential}
+                          onValueChange={(value) => handleInputChange('fromResidential', value)}
+                        >
+                          <SelectTrigger data-testid="select-from-residential">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="no">No - Commercial</SelectItem>
+                            <SelectItem value="yes">Yes - Residential</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="fromTailgate">Tailgate at Pickup</Label>
+                        <Select 
+                          value={formData.fromTailgate}
+                          onValueChange={(value) => handleInputChange('fromTailgate', value)}
+                        >
+                          <SelectTrigger data-testid="select-from-tailgate">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="no">No - Dock Available</SelectItem>
+                            <SelectItem value="yes">Yes - Need Tailgate</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-700">Delivery Location</p>
+                      <div>
+                        <Label htmlFor="toResidential">Residential Delivery</Label>
+                        <Select 
+                          value={formData.toResidential}
+                          onValueChange={(value) => handleInputChange('toResidential', value)}
+                        >
+                          <SelectTrigger data-testid="select-to-residential">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="no">No - Commercial</SelectItem>
+                            <SelectItem value="yes">Yes - Residential</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="toTailgate">Tailgate at Delivery</Label>
+                        <Select 
+                          value={formData.toTailgate}
+                          onValueChange={(value) => handleInputChange('toTailgate', value)}
+                        >
+                          <SelectTrigger data-testid="select-to-tailgate">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="no">No - Dock Available</SelectItem>
+                            <SelectItem value="yes">Yes - Need Tailgate</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
