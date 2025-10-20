@@ -229,8 +229,18 @@ export default function RateResults({ rates }: RateResultsProps) {
                                   <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
                                   
                                   {(() => {
+                                    // Debug logging
+                                    console.log('Rate breakdown debug:', {
+                                      originalBaseCharge: rate.originalBaseCharge,
+                                      markup: rate.markup,
+                                      subtotal: rate.subtotal,
+                                      taxAmount: rate.taxAmount,
+                                      pricing
+                                    });
+                                    
                                     // Base Rate = originalBaseCharge + markup (both include markup applied to base only)
-                                    const baseRate = (rate.originalBaseCharge || 0) + (rate.markup || 0);
+                                    // Convert to numbers to prevent NaN
+                                    const baseRate = Number(rate.originalBaseCharge || 0) + Number(rate.markup || 0);
                                     
                                     return (
                                       <>
@@ -242,25 +252,25 @@ export default function RateResults({ rates }: RateResultsProps) {
                                         {rate.surcharges && rate.surcharges.length > 0 && rate.surcharges.map((surcharge: any, idx: number) => (
                                           <div key={idx} className="flex justify-between text-sm">
                                             <span className="text-gray-600">{surcharge.name || 'Surcharge'}:</span>
-                                            <span>${(surcharge.price.amount / 100).toFixed(2)}</span>
+                                            <span>${(Number(surcharge.price.amount) / 100).toFixed(2)}</span>
                                           </div>
                                         ))}
                                         
                                         <div className="flex justify-between text-sm pt-2 border-t">
                                           <span className="font-bold">Before Tax Total:</span>
-                                          <span className="font-bold">${pricing.subtotal.toFixed(2)}</span>
+                                          <span className="font-bold">${Number(pricing.subtotal).toFixed(2)}</span>
                                         </div>
                                         
                                         {pricing.tax > 0 && (
                                           <div className="flex justify-between text-sm">
                                             <span className="text-gray-600">Tax:</span>
-                                            <span>${pricing.tax.toFixed(2)}</span>
+                                            <span>${Number(pricing.tax).toFixed(2)}</span>
                                           </div>
                                         )}
                                         
                                         <div className="flex justify-between text-sm pt-2 border-t">
                                           <span className="font-bold">After Tax Total:</span>
-                                          <span className="font-bold">${pricing.total.toFixed(2)}</span>
+                                          <span className="font-bold">${Number(pricing.total).toFixed(2)}</span>
                                         </div>
                                       </>
                                     );
