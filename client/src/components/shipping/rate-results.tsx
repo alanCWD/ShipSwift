@@ -31,11 +31,22 @@ export default function RateResults({ rates }: RateResultsProps) {
 
 
   const calculatePricing = (rate: any) => {
-    console.log('calculatePricing called with rate:', rate);
+    // IMPORTANT: Check for marked up API format FIRST (has subtotal and taxAmount)
+    // This must come before totalCharge check because backend adds both
+    if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+      const subtotal = Number(rate.subtotal);
+      const tax = Number(rate.taxAmount);
+      
+      return {
+        subtotal, // Base + markup + surcharges (pre-tax)
+        tax,
+        total: subtotal + tax,
+        markup: Number(rate.markup || 0)
+      };
+    }
     
     // Handle sample rates format (has totalCharge or price as string)
     if (rate.totalCharge) {
-      console.log('Using totalCharge path');
       return {
         subtotal: parseFloat(rate.totalCharge),
         tax: 0,
@@ -44,7 +55,6 @@ export default function RateResults({ rates }: RateResultsProps) {
       };
     }
     if (rate.price) {
-      console.log('Using price path');
       return {
         subtotal: parseFloat(rate.price),
         tax: 0,
@@ -52,25 +62,6 @@ export default function RateResults({ rates }: RateResultsProps) {
         markup: 0
       };
     }
-    
-    // Handle marked up API format (includes markup breakdown)
-    if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
-      console.log('Using marked up API format path');
-      // Ensure values are numbers (convert strings if needed)
-      const subtotal = Number(rate.subtotal);
-      const tax = Number(rate.taxAmount);
-      
-      console.log('Converted values:', { subtotal, tax, total: subtotal + tax });
-      
-      return {
-        subtotal, // Base + markup (pre-tax)
-        tax,
-        total: subtotal + tax,
-        markup: Number(rate.markup || 0)
-      };
-    }
-    
-    console.log('Using legacy format path');
     
     // Handle legacy API format (has baseCharge.amount in cents)
     let subtotal = 0;
@@ -238,15 +229,6 @@ export default function RateResults({ rates }: RateResultsProps) {
                                   <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
                                   
                                   {(() => {
-                                    // Debug logging
-                                    console.log('Rate breakdown debug:', {
-                                      originalBaseCharge: rate.originalBaseCharge,
-                                      markup: rate.markup,
-                                      subtotal: rate.subtotal,
-                                      taxAmount: rate.taxAmount,
-                                      pricing
-                                    });
-                                    
                                     // Base Rate = originalBaseCharge + markup (both include markup applied to base only)
                                     // Convert to numbers to prevent NaN
                                     const baseRate = Number(rate.originalBaseCharge || 0) + Number(rate.markup || 0);
