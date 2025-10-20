@@ -721,9 +721,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                   </p>
                 </div>
                 
-                {/* LTL Accessorial Services */}
+                {/* LTL Services */}
                 <div className="mt-6 pt-4 border-t">
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Accessorial Services</h4>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">LTL Services</h4>
                   <p className="text-xs text-gray-600 mb-4">
                     These options affect rate calculations. Residential and tailgate charges apply separately to pickup and delivery.
                   </p>
@@ -731,7 +731,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     <div className="space-y-3">
                       <p className="text-sm font-medium text-gray-700">Pickup Location</p>
                       <div>
-                        <Label htmlFor="fromResidential">Residential Pickup</Label>
+                        <Label htmlFor="fromResidential">Commercial Pickup</Label>
                         <Select 
                           value={formData.fromResidential}
                           onValueChange={(value) => handleInputChange('fromResidential', value)}
@@ -740,8 +740,8 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="no">No - Commercial</SelectItem>
-                            <SelectItem value="yes">Yes - Residential</SelectItem>
+                            <SelectItem value="no">Yes - Commercial</SelectItem>
+                            <SelectItem value="yes">No - Residential</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -765,7 +765,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     <div className="space-y-3">
                       <p className="text-sm font-medium text-gray-700">Delivery Location</p>
                       <div>
-                        <Label htmlFor="toResidential">Residential Delivery</Label>
+                        <Label htmlFor="toResidential">Commercial Delivery</Label>
                         <Select 
                           value={formData.toResidential}
                           onValueChange={(value) => handleInputChange('toResidential', value)}
@@ -774,8 +774,8 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="no">No - Commercial</SelectItem>
-                            <SelectItem value="yes">Yes - Residential</SelectItem>
+                            <SelectItem value="no">Yes - Commercial</SelectItem>
+                            <SelectItem value="yes">No - Residential</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
