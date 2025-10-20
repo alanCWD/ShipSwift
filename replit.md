@@ -48,6 +48,17 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Province dropdowns ensure 2-letter codes (AB, BC, ON) for API validation
 - Automatic postal code formatting (uppercase with space: A1A 1A1)
 
+**LTL Accessorial Services (October 2025 - New Feature):**
+- Added comprehensive LTL service options for accurate freight rate calculations
+- Commercial/Residential designation for both pickup and delivery addresses
+- Tailgate service options for pickup (TAILGATE_ORIGIN) and delivery (TAILGATE_DESTINATION)
+- Frontend form defaults to commercial locations, only requires selection change if residential
+- Backend integration with ShipTime API serviceOptions field for accessorial charges
+- Residential and tailgate flags properly passed through to ShipTime API for accurate pricing
+- Surcharges (e.g., $78 liftgate pickup) correctly applied and displayed in rate breakdown
+- Solves LTL rate accuracy issue: ensures ShipTime returns rates with correct accessorial charges
+- UI labeled as "LTL Services" section with clear pickup/delivery location and tailgate options
+
 **Role-Based Access Control Fix (October 2025 - Bug Fix):**
 - Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
 - Previously only 'admin' role had admin panel access, causing lockout when changing to 'ablp_admin'

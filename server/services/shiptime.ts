@@ -345,13 +345,6 @@ class ShipTimeService {
       
       // Add LTL service options for freight shipments
       if (isPallet) {
-        console.log('LTL Service Flags:', {
-          fromResidential: request.packageDetails.fromResidential,
-          toResidential: request.packageDetails.toResidential,
-          fromTailgate: request.packageDetails.fromTailgate,
-          toTailgate: request.packageDetails.toTailgate
-        });
-        
         const serviceOptions: string[] = [];
         
         if (request.packageDetails.fromTailgate) {
@@ -363,7 +356,6 @@ class ShipTimeService {
         
         if (serviceOptions.length > 0) {
           payload.serviceOptions = serviceOptions;
-          console.log('Adding serviceOptions to payload:', serviceOptions);
         }
       }
       
