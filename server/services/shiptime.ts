@@ -355,10 +355,10 @@ class ShipTimeService {
         const serviceOptions: string[] = [];
         
         if (request.packageDetails.fromTailgate) {
-          serviceOptions.push('TAILGATE_PICKUP');
+          serviceOptions.push('TAILGATE_ORIGIN');
         }
         if (request.packageDetails.toTailgate) {
-          serviceOptions.push('TAILGATE_DELIVERY');
+          serviceOptions.push('TAILGATE_DESTINATION');
         }
         
         if (serviceOptions.length > 0) {
