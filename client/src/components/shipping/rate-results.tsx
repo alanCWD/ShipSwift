@@ -31,8 +31,11 @@ export default function RateResults({ rates }: RateResultsProps) {
 
 
   const calculatePricing = (rate: any) => {
+    console.log('calculatePricing called with rate:', rate);
+    
     // Handle sample rates format (has totalCharge or price as string)
     if (rate.totalCharge) {
+      console.log('Using totalCharge path');
       return {
         subtotal: parseFloat(rate.totalCharge),
         tax: 0,
@@ -41,6 +44,7 @@ export default function RateResults({ rates }: RateResultsProps) {
       };
     }
     if (rate.price) {
+      console.log('Using price path');
       return {
         subtotal: parseFloat(rate.price),
         tax: 0,
@@ -51,9 +55,12 @@ export default function RateResults({ rates }: RateResultsProps) {
     
     // Handle marked up API format (includes markup breakdown)
     if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+      console.log('Using marked up API format path');
       // Ensure values are numbers (convert strings if needed)
       const subtotal = Number(rate.subtotal);
       const tax = Number(rate.taxAmount);
+      
+      console.log('Converted values:', { subtotal, tax, total: subtotal + tax });
       
       return {
         subtotal, // Base + markup (pre-tax)
@@ -62,6 +69,8 @@ export default function RateResults({ rates }: RateResultsProps) {
         markup: Number(rate.markup || 0)
       };
     }
+    
+    console.log('Using legacy format path');
     
     // Handle legacy API format (has baseCharge.amount in cents)
     let subtotal = 0;
