@@ -769,16 +769,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Map common FSAs to cities (covers major Canadian cities)
         const fsaCityMap: Record<string, { city: string, province: string }> = {
-          // Ontario - Toronto
-          'M1A': { city: 'Toronto', province: 'ON' }, 'M1B': { city: 'Toronto', province: 'ON' },
-          'M1C': { city: 'Toronto', province: 'ON' }, 'M1E': { city: 'Toronto', province: 'ON' },
-          'M1G': { city: 'Toronto', province: 'ON' }, 'M1H': { city: 'Toronto', province: 'ON' },
-          'M1J': { city: 'Toronto', province: 'ON' }, 'M1K': { city: 'Toronto', province: 'ON' },
-          'M1L': { city: 'Toronto', province: 'ON' }, 'M1M': { city: 'Toronto', province: 'ON' },
-          'M1N': { city: 'Toronto', province: 'ON' }, 'M1P': { city: 'Toronto', province: 'ON' },
-          'M1R': { city: 'Toronto', province: 'ON' }, 'M1S': { city: 'Toronto', province: 'ON' },
-          'M1T': { city: 'Toronto', province: 'ON' }, 'M1V': { city: 'Toronto', province: 'ON' },
-          'M1W': { city: 'Toronto', province: 'ON' }, 'M1X': { city: 'Toronto', province: 'ON' },
+          // Ontario - Scarborough (M1 prefix)
+          'M1A': { city: 'Scarborough', province: 'ON' }, 'M1B': { city: 'Scarborough', province: 'ON' },
+          'M1C': { city: 'Scarborough', province: 'ON' }, 'M1E': { city: 'Scarborough', province: 'ON' },
+          'M1G': { city: 'Scarborough', province: 'ON' }, 'M1H': { city: 'Scarborough', province: 'ON' },
+          'M1J': { city: 'Scarborough', province: 'ON' }, 'M1K': { city: 'Scarborough', province: 'ON' },
+          'M1L': { city: 'Scarborough', province: 'ON' }, 'M1M': { city: 'Scarborough', province: 'ON' },
+          'M1N': { city: 'Scarborough', province: 'ON' }, 'M1P': { city: 'Scarborough', province: 'ON' },
+          'M1R': { city: 'Scarborough', province: 'ON' }, 'M1S': { city: 'Scarborough', province: 'ON' },
+          'M1T': { city: 'Scarborough', province: 'ON' }, 'M1V': { city: 'Scarborough', province: 'ON' },
+          'M1W': { city: 'Scarborough', province: 'ON' }, 'M1X': { city: 'Scarborough', province: 'ON' },
+          // Ontario - Toronto (M2-M9 prefix)
           'M2H': { city: 'Toronto', province: 'ON' }, 'M2J': { city: 'Toronto', province: 'ON' },
           'M2K': { city: 'Toronto', province: 'ON' }, 'M2L': { city: 'Toronto', province: 'ON' },
           'M2M': { city: 'Toronto', province: 'ON' }, 'M2N': { city: 'Toronto', province: 'ON' },

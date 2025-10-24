@@ -65,13 +65,15 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Backend now strips spaces and converts to uppercase (V2R4H1) before sending to ShipTime API
 - Prevents fallback to sample rates when API rejects spaced postal codes
 - Applied to both rate requests and shipment creation for consistency
-- **Package Shipping Fixes:**
+- **Package & Pallet Shipping Fixes:**
   - Fixed server crash bug when API errors occurred (rateRequest scope issue)
   - Added default ABLP origin address for package shipments (ShipTime requires full addresses for all shipment types)
   - Implemented postal code-to-city mapping for 100+ Forward Sortation Areas covering major Canadian cities
   - ShipTime strictly validates city names against postal codes; mapping ensures accurate city derivation
+  - Corrected Greater Toronto Area mapping: M1 prefix → Scarborough, M2-M9 → Toronto (critical for accuracy)
   - Fallback to province capitals for unmapped postal codes
-  - Package shipping now returns real rates from multiple carriers (GLS, Canpar, Loomis, FedEx, Purolator, Canada Post)
+  - Package shipping returns real rates from 15+ carriers (GLS, Canpar, Loomis, FedEx, Purolator, Canada Post)
+  - Pallet/LTL shipping returns real freight rates (GLS Freight, FedEx Freight, Day & Ross)
 
 **Role-Based Access Control Fix (October 2025 - Bug Fix):**
 - Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
