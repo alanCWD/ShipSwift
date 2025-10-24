@@ -59,13 +59,19 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Solves LTL rate accuracy issue: ensures ShipTime returns rates with correct accessorial charges
 - UI labeled as "LTL Services" section with clear pickup/delivery location and tailgate options
 
-**Postal Code Normalization Fix (October 2025 - Critical Bug Fix):**
+**Postal Code Normalization & Package Shipping Fix (October 2025 - Critical Bug Fixes):**
 - Fixed ShipTime API validation failures caused by postal codes with spaces
 - Frontend formats Canadian postal codes with space (V2R 4H1) for user-friendly display
 - Backend now strips spaces and converts to uppercase (V2R4H1) before sending to ShipTime API
 - Prevents fallback to sample rates when API rejects spaced postal codes
-- Ensures accurate, real-time rates for all pallet/freight and package shipments
 - Applied to both rate requests and shipment creation for consistency
+- **Package Shipping Fixes:**
+  - Fixed server crash bug when API errors occurred (rateRequest scope issue)
+  - Added default ABLP origin address for package shipments (ShipTime requires full addresses for all shipment types)
+  - Implemented postal code-to-city mapping for 100+ Forward Sortation Areas covering major Canadian cities
+  - ShipTime strictly validates city names against postal codes; mapping ensures accurate city derivation
+  - Fallback to province capitals for unmapped postal codes
+  - Package shipping now returns real rates from multiple carriers (GLS, Canpar, Loomis, FedEx, Purolator, Canada Post)
 
 **Role-Based Access Control Fix (October 2025 - Bug Fix):**
 - Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access

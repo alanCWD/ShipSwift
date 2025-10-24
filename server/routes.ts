@@ -715,15 +715,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ message: "Missing required shipping parameters" });
     }
 
+    // Declare rateRequest outside try block so it's accessible in catch block
+    let rateRequest: any;
+
     try {
-      const rateRequest: any = {
+      rateRequest = {
         from: { countryCode: fromCountry, postalCode: fromPostalCode },
         to: { countryCode: toCountry, postalCode: toPostalCode },
         packageDetails,
         shipmentType: shipmentType || 'package'
       };
 
-      // Add full address details for pallet shipments (required by ShipTime)
+      // ShipTime API requires full address details for ALL shipments (not just pallets)
+      // Add from address details
       if (fromAddress) {
         rateRequest.from = {
           ...rateRequest.from,
@@ -734,7 +738,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: fromAddress.phone,
           attention: fromAddress.attention
         };
+      } else {
+        // Provide default "from" address for package shipments
+        rateRequest.from = {
+          ...rateRequest.from,
+          companyName: 'ABLP Logistics',
+          streetAddress: '44322 Yale Rd #3',
+          city: 'Chilliwack',
+          state: 'BC',
+          phone: '1-800-225-7564',
+          attention: 'ABLP Logistics'
+        };
       }
+      
+      // Add to address details
       if (toAddress) {
         rateRequest.to = {
           ...rateRequest.to,
@@ -744,6 +761,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
           state: toAddress.state,
           phone: toAddress.phone,
           attention: toAddress.attention
+        };
+      } else {
+        // For package shipments without full address, derive city/province from postal code
+        // ShipTime strictly validates city names against postal codes
+        const fsa = toPostalCode.substring(0, 3).toUpperCase().replace(/\s/g, ''); // Forward Sortation Area
+        
+        // Map common FSAs to cities (covers major Canadian cities)
+        const fsaCityMap: Record<string, { city: string, province: string }> = {
+          // Ontario - Toronto
+          'M1A': { city: 'Toronto', province: 'ON' }, 'M1B': { city: 'Toronto', province: 'ON' },
+          'M1C': { city: 'Toronto', province: 'ON' }, 'M1E': { city: 'Toronto', province: 'ON' },
+          'M1G': { city: 'Toronto', province: 'ON' }, 'M1H': { city: 'Toronto', province: 'ON' },
+          'M1J': { city: 'Toronto', province: 'ON' }, 'M1K': { city: 'Toronto', province: 'ON' },
+          'M1L': { city: 'Toronto', province: 'ON' }, 'M1M': { city: 'Toronto', province: 'ON' },
+          'M1N': { city: 'Toronto', province: 'ON' }, 'M1P': { city: 'Toronto', province: 'ON' },
+          'M1R': { city: 'Toronto', province: 'ON' }, 'M1S': { city: 'Toronto', province: 'ON' },
+          'M1T': { city: 'Toronto', province: 'ON' }, 'M1V': { city: 'Toronto', province: 'ON' },
+          'M1W': { city: 'Toronto', province: 'ON' }, 'M1X': { city: 'Toronto', province: 'ON' },
+          'M2H': { city: 'Toronto', province: 'ON' }, 'M2J': { city: 'Toronto', province: 'ON' },
+          'M2K': { city: 'Toronto', province: 'ON' }, 'M2L': { city: 'Toronto', province: 'ON' },
+          'M2M': { city: 'Toronto', province: 'ON' }, 'M2N': { city: 'Toronto', province: 'ON' },
+          'M2P': { city: 'Toronto', province: 'ON' }, 'M2R': { city: 'Toronto', province: 'ON' },
+          'M3A': { city: 'Toronto', province: 'ON' }, 'M3B': { city: 'Toronto', province: 'ON' },
+          'M3C': { city: 'Toronto', province: 'ON' }, 'M3H': { city: 'Toronto', province: 'ON' },
+          'M3J': { city: 'Toronto', province: 'ON' }, 'M3K': { city: 'Toronto', province: 'ON' },
+          'M3L': { city: 'Toronto', province: 'ON' }, 'M3M': { city: 'Toronto', province: 'ON' },
+          'M3N': { city: 'Toronto', province: 'ON' }, 'M4A': { city: 'Toronto', province: 'ON' },
+          'M4B': { city: 'Toronto', province: 'ON' }, 'M4C': { city: 'Toronto', province: 'ON' },
+          'M4E': { city: 'Toronto', province: 'ON' }, 'M4G': { city: 'Toronto', province: 'ON' },
+          'M4H': { city: 'Toronto', province: 'ON' }, 'M4J': { city: 'Toronto', province: 'ON' },
+          'M4K': { city: 'Toronto', province: 'ON' }, 'M4L': { city: 'Toronto', province: 'ON' },
+          'M4M': { city: 'Toronto', province: 'ON' }, 'M4N': { city: 'Toronto', province: 'ON' },
+          'M4P': { city: 'Toronto', province: 'ON' }, 'M4R': { city: 'Toronto', province: 'ON' },
+          'M4S': { city: 'Toronto', province: 'ON' }, 'M4T': { city: 'Toronto', province: 'ON' },
+          'M4V': { city: 'Toronto', province: 'ON' }, 'M4W': { city: 'Toronto', province: 'ON' },
+          'M4X': { city: 'Toronto', province: 'ON' }, 'M4Y': { city: 'Toronto', province: 'ON' },
+          'M5A': { city: 'Toronto', province: 'ON' }, 'M5B': { city: 'Toronto', province: 'ON' },
+          'M5C': { city: 'Toronto', province: 'ON' }, 'M5E': { city: 'Toronto', province: 'ON' },
+          'M5G': { city: 'Toronto', province: 'ON' }, 'M5H': { city: 'Toronto', province: 'ON' },
+          'M5J': { city: 'Toronto', province: 'ON' }, 'M5K': { city: 'Toronto', province: 'ON' },
+          'M5L': { city: 'Toronto', province: 'ON' }, 'M5M': { city: 'Toronto', province: 'ON' },
+          'M5N': { city: 'Toronto', province: 'ON' }, 'M5P': { city: 'Toronto', province: 'ON' },
+          'M5R': { city: 'Toronto', province: 'ON' }, 'M5S': { city: 'Toronto', province: 'ON' },
+          'M5T': { city: 'Toronto', province: 'ON' }, 'M5V': { city: 'Toronto', province: 'ON' },
+          'M5W': { city: 'Toronto', province: 'ON' }, 'M5X': { city: 'Toronto', province: 'ON' },
+          'M6A': { city: 'Toronto', province: 'ON' }, 'M6B': { city: 'Toronto', province: 'ON' },
+          'M6C': { city: 'Toronto', province: 'ON' }, 'M6E': { city: 'Toronto', province: 'ON' },
+          'M6G': { city: 'Toronto', province: 'ON' }, 'M6H': { city: 'Toronto', province: 'ON' },
+          'M6J': { city: 'Toronto', province: 'ON' }, 'M6K': { city: 'Toronto', province: 'ON' },
+          'M6L': { city: 'Toronto', province: 'ON' }, 'M6M': { city: 'Toronto', province: 'ON' },
+          'M6N': { city: 'Toronto', province: 'ON' }, 'M6P': { city: 'Toronto', province: 'ON' },
+          'M6R': { city: 'Toronto', province: 'ON' }, 'M6S': { city: 'Toronto', province: 'ON' },
+          'M7A': { city: 'Toronto', province: 'ON' }, 'M8V': { city: 'Toronto', province: 'ON' },
+          'M8W': { city: 'Toronto', province: 'ON' }, 'M8X': { city: 'Toronto', province: 'ON' },
+          'M8Y': { city: 'Toronto', province: 'ON' }, 'M8Z': { city: 'Toronto', province: 'ON' },
+          'M9A': { city: 'Toronto', province: 'ON' }, 'M9B': { city: 'Toronto', province: 'ON' },
+          'M9C': { city: 'Toronto', province: 'ON' }, 'M9L': { city: 'Toronto', province: 'ON' },
+          'M9M': { city: 'Toronto', province: 'ON' }, 'M9N': { city: 'Toronto', province: 'ON' },
+          'M9P': { city: 'Toronto', province: 'ON' }, 'M9R': { city: 'Toronto', province: 'ON' },
+          'M9V': { city: 'Toronto', province: 'ON' }, 'M9W': { city: 'Toronto', province: 'ON' },
+          // Alberta - Calgary
+          'T2A': { city: 'Calgary', province: 'AB' }, 'T2B': { city: 'Calgary', province: 'AB' },
+          'T2C': { city: 'Calgary', province: 'AB' }, 'T2E': { city: 'Calgary', province: 'AB' },
+          'T2G': { city: 'Calgary', province: 'AB' }, 'T2H': { city: 'Calgary', province: 'AB' },
+          'T2J': { city: 'Calgary', province: 'AB' }, 'T2K': { city: 'Calgary', province: 'AB' },
+          'T2L': { city: 'Calgary', province: 'AB' }, 'T2M': { city: 'Calgary', province: 'AB' },
+          'T2N': { city: 'Calgary', province: 'AB' }, 'T2P': { city: 'Calgary', province: 'AB' },
+          'T2R': { city: 'Calgary', province: 'AB' }, 'T2S': { city: 'Calgary', province: 'AB' },
+          'T2T': { city: 'Calgary', province: 'AB' }, 'T2V': { city: 'Calgary', province: 'AB' },
+          'T2W': { city: 'Calgary', province: 'AB' }, 'T2X': { city: 'Calgary', province: 'AB' },
+          'T2Y': { city: 'Calgary', province: 'AB' }, 'T2Z': { city: 'Calgary', province: 'AB' },
+          'T3A': { city: 'Calgary', province: 'AB' }, 'T3B': { city: 'Calgary', province: 'AB' },
+          'T3C': { city: 'Calgary', province: 'AB' }, 'T3E': { city: 'Calgary', province: 'AB' },
+          'T3G': { city: 'Calgary', province: 'AB' }, 'T3H': { city: 'Calgary', province: 'AB' },
+          'T3J': { city: 'Calgary', province: 'AB' }, 'T3K': { city: 'Calgary', province: 'AB' },
+          'T3L': { city: 'Calgary', province: 'AB' }, 'T3M': { city: 'Calgary', province: 'AB' },
+          'T3N': { city: 'Calgary', province: 'AB' }, 'T3P': { city: 'Calgary', province: 'AB' },
+          'T3R': { city: 'Calgary', province: 'AB' }, 'T3S': { city: 'Calgary', province: 'AB' },
+          'T3Z': { city: 'Calgary', province: 'AB' },
+          // British Columbia - Vancouver
+          'V5A': { city: 'Vancouver', province: 'BC' }, 'V5B': { city: 'Vancouver', province: 'BC' },
+          'V5C': { city: 'Vancouver', province: 'BC' }, 'V5E': { city: 'Vancouver', province: 'BC' },
+          'V5G': { city: 'Vancouver', province: 'BC' }, 'V5H': { city: 'Vancouver', province: 'BC' },
+          'V5J': { city: 'Vancouver', province: 'BC' }, 'V5K': { city: 'Vancouver', province: 'BC' },
+          'V5L': { city: 'Vancouver', province: 'BC' }, 'V5M': { city: 'Vancouver', province: 'BC' },
+          'V5N': { city: 'Vancouver', province: 'BC' }, 'V5P': { city: 'Vancouver', province: 'BC' },
+          'V5R': { city: 'Vancouver', province: 'BC' }, 'V5S': { city: 'Vancouver', province: 'BC' },
+          'V5T': { city: 'Vancouver', province: 'BC' }, 'V5V': { city: 'Vancouver', province: 'BC' },
+          'V5W': { city: 'Vancouver', province: 'BC' }, 'V5X': { city: 'Vancouver', province: 'BC' },
+          'V5Y': { city: 'Vancouver', province: 'BC' }, 'V5Z': { city: 'Vancouver', province: 'BC' },
+          'V6A': { city: 'Vancouver', province: 'BC' }, 'V6B': { city: 'Vancouver', province: 'BC' },
+          'V6C': { city: 'Vancouver', province: 'BC' }, 'V6E': { city: 'Vancouver', province: 'BC' },
+          'V6G': { city: 'Vancouver', province: 'BC' }, 'V6H': { city: 'Vancouver', province: 'BC' },
+          'V6J': { city: 'Vancouver', province: 'BC' }, 'V6K': { city: 'Vancouver', province: 'BC' },
+          'V6L': { city: 'Vancouver', province: 'BC' }, 'V6M': { city: 'Vancouver', province: 'BC' },
+          'V6N': { city: 'Vancouver', province: 'BC' }, 'V6P': { city: 'Vancouver', province: 'BC' },
+          'V6R': { city: 'Vancouver', province: 'BC' }, 'V6S': { city: 'Vancouver', province: 'BC' },
+          'V6T': { city: 'Vancouver', province: 'BC' }, 'V6Z': { city: 'Vancouver', province: 'BC' },
+          'V7A': { city: 'Vancouver', province: 'BC' }, 'V7B': { city: 'Vancouver', province: 'BC' },
+          // New Brunswick - Saint John
+          'E2H': { city: 'Saint John', province: 'NB' }, 'E2J': { city: 'Saint John', province: 'NB' },
+          'E2K': { city: 'Saint John', province: 'NB' }, 'E2L': { city: 'Saint John', province: 'NB' },
+          'E2M': { city: 'Saint John', province: 'NB' }, 'E2N': { city: 'Saint John', province: 'NB' },
+        };
+        
+        // Get city/province from FSA or use province-based default
+        let derivedCity = 'City';
+        let derivedProvince = 'ON';
+        
+        if (fsaCityMap[fsa]) {
+          derivedCity = fsaCityMap[fsa].city;
+          derivedProvince = fsaCityMap[fsa].province;
+        } else {
+          // Fallback: use first letter to derive province
+          const firstLetter = fsa.substring(0, 1);
+          const provinceMap: Record<string, string> = {
+            'A': 'NL', 'B': 'NS', 'C': 'PE', 'E': 'NB',
+            'G': 'QC', 'H': 'QC', 'J': 'QC',
+            'K': 'ON', 'L': 'ON', 'M': 'ON', 'N': 'ON', 'P': 'ON',
+            'R': 'MB', 'S': 'SK',
+            'T': 'AB',
+            'V': 'BC',
+            'X': 'NU', 'Y': 'YT'
+          };
+          derivedProvince = provinceMap[firstLetter] || 'ON';
+          
+          // Use province capital as fallback city
+          const capitalMap: Record<string, string> = {
+            'ON': 'Toronto', 'BC': 'Vancouver', 'AB': 'Calgary',
+            'QC': 'Montreal', 'MB': 'Winnipeg', 'SK': 'Regina',
+            'NS': 'Halifax', 'NB': 'Saint John', 'NL': 'St Johns',
+            'PE': 'Charlottetown', 'YT': 'Whitehorse', 'NU': 'Iqaluit'
+          };
+          derivedCity = capitalMap[derivedProvince] || 'City';
+        }
+        
+        rateRequest.to = {
+          ...rateRequest.to,
+          companyName: 'Customer',
+          streetAddress: 'Main Street',
+          city: derivedCity,
+          state: derivedProvince,
+          phone: '555-555-5555',
+          attention: 'Customer'
         };
       }
 
