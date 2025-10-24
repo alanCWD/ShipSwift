@@ -719,10 +719,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let rateRequest: any;
 
     try {
+      // Map frontend field names to backend field names for LTL services
+      const mappedPackageDetails = {
+        ...packageDetails,
+        // Map tailgate fields
+        fromTailgate: packageDetails.requiresTailgatePickup,
+        toTailgate: packageDetails.requiresTailgateDelivery,
+        // Map residential fields
+        fromResidential: packageDetails.isResidentialPickup,
+        toResidential: packageDetails.isResidentialDelivery
+      };
+      
       rateRequest = {
         from: { countryCode: fromCountry, postalCode: fromPostalCode },
         to: { countryCode: toCountry, postalCode: toPostalCode },
-        packageDetails,
+        packageDetails: mappedPackageDetails,
         shipmentType: shipmentType || 'package'
       };
 

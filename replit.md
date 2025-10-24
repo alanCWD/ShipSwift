@@ -72,8 +72,10 @@ The project's vision is to streamline Canadian logistics for businesses by offer
   - ShipTime strictly validates city names against postal codes; mapping ensures accurate city derivation
   - Corrected Greater Toronto Area mapping: M1 prefix → Scarborough, M2-M9 → Toronto (critical for accuracy)
   - Fallback to province capitals for unmapped postal codes
+  - Fixed LTL service option field mapping (tailgate/residential flags now properly passed to ShipTime API)
   - Package shipping returns real rates from 15+ carriers (GLS, Canpar, Loomis, FedEx, Purolator, Canada Post)
-  - Pallet/LTL shipping returns real freight rates (GLS Freight, FedEx Freight, Day & Ross)
+  - Pallet/LTL shipping returns real freight rates with accurate accessorial charges (GLS Freight, FedEx Freight)
+  - Note: ShipTime API may return fewer carriers than web interface depending on account configuration and route availability
 
 **Role-Based Access Control Fix (October 2025 - Bug Fix):**
 - Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
