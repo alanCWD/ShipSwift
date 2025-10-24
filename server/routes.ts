@@ -747,14 +747,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
+      console.log('🚀 Requesting rates from ShipTime API...');
       const rates = await shiptimeService.getRates(rateRequest);
+      console.log(`✅ ShipTime returned ${rates.length} real rates`);
       
       // Apply markup rules to rates
       const markedUpRates = await rateMarkupService.applyMarkups(rates);
 
       res.json({ rates: markedUpRates });
     } catch (apiError: any) {
-      console.error("ShipTime API error, providing sample rates:", apiError);
+      console.error("❌ ShipTime API error, providing sample rates:", apiError);
+      console.error("Error details:", {
+        message: apiError.message,
+        stack: apiError.stack,
+        rateRequest: JSON.stringify(rateRequest, null, 2)
+      });
       
       // Calculate weight-based pricing for realistic rates
       const weight = packageDetails.weight || 1;

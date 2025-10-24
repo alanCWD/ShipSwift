@@ -261,6 +261,14 @@ class ShipTimeService {
       const isPallet = request.shipmentType === 'pallet';
       const packageType = isPallet ? 'PALLET' : 'PACKAGE';
       
+      // Normalize postal codes - ShipTime API requires no spaces
+      const normalizePostalCode = (code: string) => {
+        return code?.replace(/\s+/g, '').toUpperCase() || '';
+      };
+      
+      const fromPostalCode = normalizePostalCode(request.from.postalCode);
+      const toPostalCode = normalizePostalCode(request.to.postalCode);
+      
       // Build line items based on shipment type
       const lineItems: any[] = [];
       
@@ -307,7 +315,7 @@ class ShipTimeService {
       const payload: any = {
         from: {
           countryCode: request.from.countryCode,
-          postalCode: request.from.postalCode,
+          postalCode: fromPostalCode,
           ...(request.from.companyName && { companyName: request.from.companyName }),
           ...(request.from.streetAddress && {
             streetAddress: request.from.streetAddress,
@@ -323,7 +331,7 @@ class ShipTimeService {
         },
         to: {
           countryCode: request.to.countryCode,
-          postalCode: request.to.postalCode,
+          postalCode: toPostalCode,
           ...(request.to.companyName && { companyName: request.to.companyName }),
           ...(request.to.streetAddress && {
             streetAddress: request.to.streetAddress,
@@ -395,6 +403,14 @@ class ShipTimeService {
       const isPallet = request.shipmentType === 'pallet';
       const packageType = isPallet ? 'PALLET' : 'PACKAGE';
       
+      // Normalize postal codes - ShipTime API requires no spaces
+      const normalizePostalCode = (code: string) => {
+        return code?.replace(/\s+/g, '').toUpperCase() || '';
+      };
+      
+      const fromPostalCode = normalizePostalCode(request.from.postalCode);
+      const toPostalCode = normalizePostalCode(request.to.postalCode);
+      
       // Build line items based on shipment type
       const lineItems: any[] = [];
       
@@ -446,7 +462,7 @@ class ShipTimeService {
           city: request.from.city || 'Chilliwack',
           state: request.from.state || 'BC',
           countryCode: request.from.countryCode,
-          postalCode: request.from.postalCode,
+          postalCode: fromPostalCode,
           phone: request.from.phone || '1-800-225-7564',
         },
         to: {
@@ -455,7 +471,7 @@ class ShipTimeService {
           city: request.to.city!,
           state: request.to.state!,
           countryCode: request.to.countryCode,
-          postalCode: request.to.postalCode,
+          postalCode: toPostalCode,
           phone: request.to.phone || '',
         },
         packageType,
