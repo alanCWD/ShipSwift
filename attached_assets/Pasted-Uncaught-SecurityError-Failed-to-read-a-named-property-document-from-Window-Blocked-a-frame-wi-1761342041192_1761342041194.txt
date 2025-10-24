@@ -1,0 +1,289 @@
+Uncaught SecurityError: Failed to read a named property 'document' from 'Window': Blocked a frame with origin "https://js.stripe.com" from accessing a cross-origin frame.
+    at all.iife.js:24:93049Understand this error
+chrome-extension://j…tent/all.iife.js:24 Uncaught SecurityError: Failed to read a named property 'document' from 'Window': Blocked a frame with origin "https://js.stripe.com" from accessing a cross-origin frame.
+    at all.iife.js:24:93049Understand this error
+chrome-extension://j…tent/all.iife.js:24 Uncaught SecurityError: Failed to read a named property 'document' from 'Window': Blocked a frame with origin "https://m.stripe.network" from accessing a cross-origin frame.
+    at all.iife.js:24:93049Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 503 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/shipping/rates:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-Ck67UN_m.css:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
+index-D4YnoHAo.js:49  POST https://ship-swift-ablp.replit.app/api/shipping/rates 500 (Internal Server Error)
+xt @ index-D4YnoHAo.js:49
+mutationFn @ index-D4YnoHAo.js:348
+fn @ index-D4YnoHAo.js:49
+y @ index-D4YnoHAo.js:49
+start @ index-D4YnoHAo.js:49
+execute @ index-D4YnoHAo.js:49
+await in execute
+mutate @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:49
+(anonymous) @ index-D4YnoHAo.js:348
+(anonymous) @ index-D4YnoHAo.js:348
+setTimeout
+(anonymous) @ index-D4YnoHAo.js:348
+gd @ index-D4YnoHAo.js:41
+vi @ index-D4YnoHAo.js:41
+iy @ index-D4YnoHAo.js:41
+$s @ index-D4YnoHAo.js:39
+HA @ index-D4YnoHAo.js:41
+na @ index-D4YnoHAo.js:41
+Xw @ index-D4YnoHAo.js:41
+N @ index-D4YnoHAo.js:26
+S @ index-D4YnoHAo.js:26Understand this error
