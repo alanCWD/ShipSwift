@@ -160,6 +160,13 @@ export default function RateResults({ rates }: RateResultsProps) {
     );
   }
 
+  // Sort rates by total price (lowest to highest)
+  const sortedRates = [...rates].sort((a, b) => {
+    const pricingA = calculatePricing(a);
+    const pricingB = calculatePricing(b);
+    return pricingA.total - pricingB.total;
+  });
+
   return (
     <div className="bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,7 +184,7 @@ export default function RateResults({ rates }: RateResultsProps) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {rates.map((rate, index) => {
+                {sortedRates.map((rate, index) => {
                   const pricing = calculatePricing(rate);
                   // Handle both sample rates and real API format
                   const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
@@ -198,7 +205,11 @@ export default function RateResults({ rates }: RateResultsProps) {
                         <div className="text-sm text-gray-500">{rate.serviceType || 'Standard'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{rate.deliveryDays || rate.transitTime}</div>
+                        <div className="text-sm text-gray-900">
+                          {rate.transitDays 
+                            ? `${rate.transitDays} ${rate.transitUnit || 'business days'}`
+                            : (rate.deliveryDays || rate.transitTime || 'N/A')}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-start gap-2">

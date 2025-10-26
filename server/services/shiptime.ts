@@ -383,6 +383,8 @@ class ShipTimeService {
         console.log(`  Rate ${index + 1}: ${rate.carrier?.name || rate.carrierName} - ${rate.service?.name || rate.serviceName}`);
         console.log(`    baseCharge: ${rate.baseCharge?.amount || 'N/A'} (${rate.baseCharge?.currency || 'N/A'})`);
         console.log(`    Total surcharges: ${rate.surcharges?.length || 0}, Total taxes: ${rate.taxes?.length || 0}`);
+        console.log(`    Transit time fields: deliveryDays=${rate.deliveryDays}, transitTime=${rate.transitTime}, transitDays=${rate.transitDays}, estimatedDeliveryDate=${rate.estimatedDeliveryDate}`);
+        console.log(`    All rate keys:`, Object.keys(rate).join(', '));
       });
 
       return response.availableRates;
