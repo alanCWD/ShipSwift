@@ -59,6 +59,11 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Solves LTL rate accuracy issue: ensures ShipTime returns rates with correct accessorial charges
 - UI labeled as "LTL Services" section with clear pickup/delivery location and tailgate options
 
+**Rate Display Improvements (October 2025 - UI Enhancement):**
+- Fixed rate sorting to display from lowest to highest price (was showing highest first)
+- Added transit time display using ShipTime's transitDays field (e.g., "8 business days")
+- Enhanced debug logging to show all available rate fields for troubleshooting
+
 **Postal Code Normalization & Package Shipping Fix (October 2025 - Critical Bug Fixes):**
 - Fixed ShipTime API validation failures caused by postal codes with spaces
 - Frontend formats Canadian postal codes with space (V2R 4H1) for user-friendly display
