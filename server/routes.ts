@@ -2857,7 +2857,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Get Stallion credentials from database
           const apiToken = await storage.getSystemSetting('stallion_api_token');
-          const environment = await storage.getSystemSetting('stallion_environment') || 'production';
+          // Use environment from request body if provided, otherwise from database
+          const environment = req.body?.environment || await storage.getSystemSetting('stallion_environment') || 'production';
           
           console.log('🧪 Testing Stallion API connection');
           console.log('  - Environment:', environment);
