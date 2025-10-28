@@ -2861,6 +2861,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('🧪 Testing Stallion API connection');
           console.log('  - Environment:', environment);
           console.log('  - Token present:', !!apiToken);
+          console.log('  - Token length:', apiToken?.length || 0);
+          console.log('  - Token starts with:', apiToken?.substring(0, 10) + '...');
+          console.log('  - Token ends with:', '...' + apiToken?.substring(apiToken.length - 10));
           
           if (!apiToken) {
             return res.status(400).json({ 
@@ -2872,6 +2875,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const baseUrl = environment === 'sandbox' 
             ? 'https://sandbox.stallionexpress.ca/api/v4/'
             : 'https://ship.stallionexpress.ca/api/v4/';
+          
+          console.log('  - Testing URL:', `${baseUrl}locations`);
+          console.log('  - Authorization header:', `Bearer ${apiToken.substring(0, 20)}...`);
           
           // Test with a simple endpoint - getting locations
           const response = await fetch(`${baseUrl}locations`, {
