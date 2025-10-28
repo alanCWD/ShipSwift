@@ -39,6 +39,8 @@ export default function AdminSettings() {
   
   const [shiptimeUsername, setShiptimeUsername] = useState('');
   const [shiptimePassword, setShiptimePassword] = useState('');
+  const [stallionApiToken, setStallionApiToken] = useState('');
+  const [stallionEnvironment, setStallionEnvironment] = useState<'production' | 'sandbox'>('production');
   const [newMarkup, setNewMarkup] = useState<{
     carrierName: string;
     serviceName: string;
@@ -78,14 +80,18 @@ export default function AdminSettings() {
     queryKey: ['/api/admin/rate-markups'],
   });
 
-  // Load current ShipTime credentials
+  // Load current ShipTime and Stallion credentials
   useEffect(() => {
     if (settings && Array.isArray(settings)) {
       const username = settings.find((s: SystemSetting) => s.key === 'SHIPTIME_USERNAME');
       const password = settings.find((s: SystemSetting) => s.key === 'SHIPTIME_PASSWORD');
+      const stallionToken = settings.find((s: SystemSetting) => s.key === 'stallion_api_token');
+      const stallionEnv = settings.find((s: SystemSetting) => s.key === 'stallion_environment');
       
       if (username) setShiptimeUsername(username.value || '');
       if (password) setShiptimePassword(password.value || '');
+      if (stallionToken) setStallionApiToken(stallionToken.value || '');
+      if (stallionEnv) setStallionEnvironment(stallionEnv.value as 'production' | 'sandbox' || 'production');
     }
   }, [settings]);
 
@@ -105,6 +111,27 @@ export default function AdminSettings() {
       toast({
         title: "Error",
         description: error.message || "Failed to save credentials.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Save Stallion credentials
+  const saveStallionCredentialsMutation = useMutation({
+    mutationFn: async (data: { apiToken: string; environment: string }) => {
+      return await apiRequest('/api/admin/settings/stallion-credentials', 'POST', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Stallion Express credentials saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/settings'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save Stallion credentials.",
         variant: "destructive",
       });
     },
@@ -177,6 +204,22 @@ export default function AdminSettings() {
     });
   };
 
+  const handleSaveStallionCredentials = () => {
+    if (!stallionApiToken) {
+      toast({
+        title: "Error",
+        description: "Please provide Stallion API token.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    saveStallionCredentialsMutation.mutate({
+      apiToken: stallionApiToken,
+      environment: stallionEnvironment,
+    });
+  };
+
   const handleSaveMarkup = () => {
     if (!newMarkup.carrierName || newMarkup.markupValue <= 0) {
       toast({
@@ -209,8 +252,9 @@ export default function AdminSettings() {
       </div>
 
       <Tabs defaultValue="credentials" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="credentials">API Credentials</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="credentials">ShipTime API</TabsTrigger>
+          <TabsTrigger value="stallion">Stallion API</TabsTrigger>
           <TabsTrigger value="markups">Rate Markups</TabsTrigger>
         </TabsList>
 
@@ -232,6 +276,7 @@ export default function AdminSettings() {
                   value={shiptimeUsername}
                   onChange={(e) => setShiptimeUsername(e.target.value)}
                   placeholder="your-shiptime-email@domain.com"
+                  data-testid="input-shiptime-username"
                 />
               </div>
               <div>
@@ -242,15 +287,66 @@ export default function AdminSettings() {
                   value={shiptimePassword}
                   onChange={(e) => setShiptimePassword(e.target.value)}
                   placeholder="Your ShipTime password"
+                  data-testid="input-shiptime-password"
                 />
               </div>
               <Button 
                 onClick={handleSaveCredentials}
                 disabled={saveCredentialsMutation.isPending}
                 className="w-full"
+                data-testid="button-save-shiptime-credentials"
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saveCredentialsMutation.isPending ? 'Saving...' : 'Save Credentials'}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="stallion">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stallion Express API Configuration</CardTitle>
+              <CardDescription>
+                Configure Stallion Express API for multi-source rate comparison.
+                Stallion provides competitive parcel rates from multiple Canadian carriers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="stallion-token">Stallion API Token</Label>
+                <Input
+                  id="stallion-token"
+                  type="password"
+                  value={stallionApiToken}
+                  onChange={(e) => setStallionApiToken(e.target.value)}
+                  placeholder="Your Stallion API token from Account Settings"
+                  data-testid="input-stallion-token"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Find your API token in Stallion dashboard under Account Settings → API Token
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="stallion-env">Environment</Label>
+                <Select value={stallionEnvironment} onValueChange={(value: 'production' | 'sandbox') => setStallionEnvironment(value)}>
+                  <SelectTrigger data-testid="select-stallion-environment">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="production">Production</SelectItem>
+                    <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={handleSaveStallionCredentials}
+                disabled={saveStallionCredentialsMutation.isPending}
+                className="w-full"
+                data-testid="button-save-stallion-credentials"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saveStallionCredentialsMutation.isPending ? 'Saving...' : 'Save Stallion Credentials'}
               </Button>
             </CardContent>
           </Card>

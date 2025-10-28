@@ -698,7 +698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Shipping rates
+  // Shipping rates - Multi-source aggregation
   app.post("/api/shipping/rates", async (req, res) => {
     const {
       fromCountry,
@@ -920,12 +920,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      console.log('🚀 Requesting rates from ShipTime API...');
-      const rates = await shiptimeService.getRates(rateRequest);
-      console.log(`✅ ShipTime returned ${rates.length} real rates`);
-      
-      // Apply markup rules to rates
-      const markedUpRates = await rateMarkupService.applyMarkups(rates);
+      // Use rate aggregator for multi-source rate shopping
+      const rateAggregator = (await import('./services/rate-aggregator')).default;
+      const markedUpRates = await rateAggregator.getRates(rateRequest, storage);
 
       res.json({ rates: markedUpRates });
     } catch (apiError: any) {
@@ -1792,6 +1789,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           key: 'SHIPTIME_ENVIRONMENT', 
           value: await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production',
           description: 'ShipTime API environment (production/sandbox)'
+        },
+        { 
+          key: 'stallion_api_token', 
+          value: await storage.getSetting('stallion_api_token') || '',
+          description: 'Stallion Express API token'
+        },
+        { 
+          key: 'stallion_environment', 
+          value: await storage.getSetting('stallion_environment') || 'production',
+          description: 'Stallion API environment (production/sandbox)'
         }
       ];
 
@@ -1829,6 +1836,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error saving ShipTime credentials:", error);
       res.status(500).json({ message: "Failed to save credentials" });
+    }
+  });
+
+  app.post("/api/admin/settings/stallion-credentials", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { apiToken, environment = 'production' } = req.body;
+      
+      // Trim whitespace from credentials (common when copy-pasting)
+      const trimmedApiToken = apiToken?.trim();
+      
+      if (!trimmedApiToken) {
+        return res.status(400).json({ message: "API token is required" });
+      }
+
+      await storage.setSetting('stallion_api_token', trimmedApiToken, userId);
+      await storage.setSetting('stallion_environment', environment, userId);
+
+      res.json({ message: "Stallion credentials saved successfully" });
+    } catch (error) {
+      console.error("Error saving Stallion credentials:", error);
+      res.status(500).json({ message: "Failed to save Stallion credentials" });
     }
   });
 

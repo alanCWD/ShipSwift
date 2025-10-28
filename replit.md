@@ -59,6 +59,17 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 - Solves LTL rate accuracy issue: ensures ShipTime returns rates with correct accessorial charges
 - UI labeled as "LTL Services" section with clear pickup/delivery location and tailgate options
 
+**Multi-Source Rate Aggregation (October 2025 - Major Feature):**
+- Integrated Stallion Express API alongside ShipTime for competitive parcel rate comparison
+- Built rate aggregator service that queries multiple shipping APIs in parallel
+- Automatic rate deduplication: keeps best price when same carrier/service appears from multiple sources
+- Stallion provides access to Canada Post, Purolator, UPS, FedEx, Canpar, and more with discounted rates
+- Admin panel now includes Stallion API configuration (token + environment selection)
+- Markup rules applied equally to rates from all sources
+- Graceful degradation: if one API fails, rates from other sources still display
+- Package shipments benefit most from Stallion's competitive parcel rates
+- Pallet/LTL shipments continue using ShipTime exclusively (Stallion focuses on parcels)
+
 **Rate Display Improvements (October 2025 - UI Enhancement):**
 - Fixed rate sorting to display from lowest to highest price (was showing highest first)
 - Added transit time display using ShipTime's transitDays field (e.g., "8 business days")
