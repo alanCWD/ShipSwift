@@ -2852,6 +2852,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("SendGrid connection test failed:", error);
           res.status(400).json({ message: `SendGrid API connection failed: ${error.message}` });
         }
+      } else if (service === 'stallion') {
+        try {
+          // Get Stallion credentials from database
+          const apiToken = await storage.getSystemSetting('stallion_api_token');
+          const environment = await storage.getSystemSetting('stallion_environment') || 'production';
+          
+          console.log('🧪 Testing Stallion API connection');
+          console.log('  - Environment:', environment);
+          console.log('  - Token present:', !!apiToken);
+          
+          if (!apiToken) {
+            return res.status(400).json({ 
+              message: "Stallion API token not configured. Please save your API token first." 
+            });
+          }
+
+          // Test Stallion API connection
+          const baseUrl = environment === 'sandbox' 
+            ? 'https://sandbox.stallionexpress.ca/api/v4/'
+            : 'https://ship.stallionexpress.ca/api/v4/';
+          
+          // Test with a simple endpoint - getting locations
+          const response = await fetch(`${baseUrl}locations`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          console.log('  - Response status:', response.status);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Stallion API Error:', errorText);
+            
+            let userMessage = `Stallion API connection failed (${response.status})`;
+            if (response.status === 401 || response.status === 403) {
+              userMessage = 'Authentication failed. Please verify your Stallion API token is correct.';
+            }
+            
+            return res.status(400).json({ 
+              message: userMessage,
+              isAuthenticationError: response.status === 401 || response.status === 403,
+              debug: {
+                statusCode: response.status,
+                environment,
+                apiUrl: baseUrl
+              }
+            });
+          }
+          
+          const responseData = await response.json();
+          console.log('✅ Stallion connection successful!');
+          
+          res.json({ 
+            message: "Stallion API connection successful", 
+            status: "connected",
+            environment
+          });
+        } catch (error: any) {
+          console.error("❌ Stallion connection test failed:", error);
+          
+          res.status(400).json({ 
+            message: `Connection test failed: ${error.message}`,
+            errorType: error.name,
+          });
+        }
       } else {
         res.status(400).json({ message: "Unknown service" });
       }
