@@ -2629,7 +2629,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get current credentials for debugging
           const username = await storage.getSetting('SHIPTIME_USERNAME');
           const password = await storage.getSetting('SHIPTIME_PASSWORD');
-          const environment = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+          // Use environment from request body if provided, otherwise from database
+          const environment = req.body?.environment || await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
           
           console.log('🔍 ShipTime Test Connection Debug:');
           console.log('  - Username from DB:', username ? `${username.substring(0, 3)}***` : 'NOT SET');

@@ -156,17 +156,17 @@ export default function SettingsPanel() {
   });
 
   const testConnectionMutation = useMutation({
-    mutationFn: async (service: string) => {
-      const response = await apiRequest('POST', `/api/admin/test-connection/${service}`);
+    mutationFn: async ({ service, environment }: { service: string; environment?: string }) => {
+      const response = await apiRequest('POST', `/api/admin/test-connection/${service}`, { environment });
       return response.json();
     },
-    onSuccess: (data, service) => {
+    onSuccess: (data, { service }) => {
       toast({
         title: "Connection Test Successful",
         description: `${service} API connection is working properly.`,
       });
     },
-    onError: (error: any, service) => {
+    onError: (error: any, { service }) => {
       toast({
         title: "Connection Test Failed",
         description: error.message || `Failed to connect to ${service} API.`,
@@ -279,7 +279,15 @@ export default function SettingsPanel() {
   const handleTestConnection = async (service: string) => {
     setTestingConnection(true);
     try {
-      await testConnectionMutation.mutateAsync(service);
+      let environment;
+      if (service === 'shiptime') {
+        environment = shiptimeSettings.environment;
+      } else if (service === 'stallion') {
+        environment = stallionSettings.environment;
+      } else if (service === 'stripe') {
+        environment = stripeSettings.environment;
+      }
+      await testConnectionMutation.mutateAsync({ service, environment });
     } finally {
       setTestingConnection(false);
     }
