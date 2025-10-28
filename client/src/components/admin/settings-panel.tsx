@@ -42,6 +42,12 @@ export default function SettingsPanel() {
     fromName: 'GoABLP',
   });
 
+  // Stallion API Settings
+  const [stallionSettings, setStallionSettings] = useState({
+    apiToken: '',
+    environment: 'production',
+  });
+
   // Company Settings
   const [companySettings, setCompanySettings] = useState({
     companyName: 'GoABLP',
@@ -88,6 +94,11 @@ export default function SettingsPanel() {
         apiKey: settingsMap.SENDGRID_API_KEY || '',
         fromEmail: settingsMap.SENDGRID_FROM_EMAIL || 'noreply@ablplogistics.ca',
         fromName: settingsMap.SENDGRID_FROM_NAME || 'GoABLP',
+      });
+
+      setStallionSettings({
+        apiToken: settingsMap.stallion_api_token || '',
+        environment: settingsMap.stallion_environment || 'production',
       });
 
       setCompanySettings({
@@ -164,6 +175,26 @@ export default function SettingsPanel() {
     },
   });
 
+  const saveStallionSettings = useMutation({
+    mutationFn: async (credentials: { apiToken: string; environment: string }) => {
+      const response = await apiRequest('POST', '/api/admin/settings/stallion-credentials', credentials);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Stallion Credentials Saved",
+        description: "Stallion API credentials have been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save Stallion credentials.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const saveSendGridSettings = useMutation({
     mutationFn: async (credentials: { apiKey: string; fromEmail: string; fromName: string }) => {
       const response = await apiRequest('POST', '/api/admin/settings/sendgrid-credentials', credentials);
@@ -223,6 +254,13 @@ export default function SettingsPanel() {
       publishableKey: stripeSettings.publishableKey,
       secretKey: stripeSettings.secretKey,
       environment: stripeSettings.environment,
+    });
+  };
+
+  const handleSaveStallionSettings = () => {
+    saveStallionSettings.mutate({
+      apiToken: stallionSettings.apiToken,
+      environment: stallionSettings.environment,
     });
   };
 
@@ -294,10 +332,14 @@ export default function SettingsPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="shiptime">
             <Truck className="w-4 h-4 mr-2" />
             ShipTime API
+          </TabsTrigger>
+          <TabsTrigger value="stallion">
+            <Truck className="w-4 h-4 mr-2" />
+            Stallion API
           </TabsTrigger>
           <TabsTrigger value="guidelines">
             <Info className="w-4 h-4 mr-2" />
@@ -411,6 +453,102 @@ export default function SettingsPanel() {
 
         <TabsContent value="guidelines">
           <ShipTimeGuidelines />
+        </TabsContent>
+
+        <TabsContent value="stallion">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Truck className="w-5 h-5 mr-2" />
+                Stallion Express API Configuration
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Configure Stallion Express API for multi-source rate comparison. Stallion provides competitive parcel rates from multiple Canadian carriers.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Multi-Source Rate Aggregation:</strong> Stallion Express provides access to additional carriers like Intelcom, FleetOptics, and WhizDelivery. Rates from both ShipTime and Stallion are automatically compared to give customers the best price.
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="stallionToken">Stallion API Token</Label>
+                    <Input
+                      id="stallionToken"
+                      type="password"
+                      value={stallionSettings.apiToken}
+                      onChange={(e) => setStallionSettings({...stallionSettings, apiToken: e.target.value})}
+                      placeholder="Your Stallion API token"
+                      data-testid="input-stallion-token"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Find your API token in Stallion dashboard: Account Settings → API Token
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label>API Environment</Label>
+                    <Select 
+                      value={stallionSettings.environment}
+                      onValueChange={(value) => setStallionSettings({...stallionSettings, environment: value})}
+                    >
+                      <SelectTrigger data-testid="select-stallion-environment">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="production">Production (Live)</SelectItem>
+                        <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="bg-gray-50 border rounded-lg p-4">
+                    <h4 className="font-medium text-gray-800 mb-2">API Status</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• Environment: {stallionSettings.environment}</p>
+                      <p>• Endpoint: https://ship.stallionexpress.ca/api/v4/</p>
+                      <p>• Authentication: Bearer Token</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 mb-2">How It Works</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p>• Queries both ShipTime and Stallion APIs</p>
+                      <p>• Automatically removes duplicate rates</p>
+                      <p>• Shows customers the best price</p>
+                      <p>• Your markup applies equally to all sources</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <Button 
+                  onClick={handleSaveStallionSettings}
+                  disabled={saveStallionSettings.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-save-stallion-credentials"
+                >
+                  {saveStallionSettings.isPending ? 'Saving...' : 'Save Stallion Credentials'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleTestConnection('stallion')}
+                  disabled={testingConnection}
+                >
+                  {testingConnection ? 'Testing...' : 'Test Connection'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="stripe">
