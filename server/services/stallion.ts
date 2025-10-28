@@ -22,6 +22,12 @@ interface StallionRateRequest {
   origin: StallionAddress;
   destination: StallionAddress;
   parcels: StallionParcel[];
+  weight_unit: 'kg' | 'lb';
+  weight: number;
+  size_unit: 'cm' | 'in';
+  package_contents: string;
+  value: number;
+  currency: string;
 }
 
 interface StallionRate {
@@ -168,6 +174,10 @@ export class StallionService {
       return code?.replace(/\s+/g, '').toUpperCase() || '';
     };
 
+    // Calculate total weight and default value
+    const weight = packageDetails.weight || 1;
+    const declaredValue = packageDetails.declaredValue || (weight * 50); // Default $50/kg
+
     return {
       origin: {
         name: from.companyName || from.attention || 'Sender',
@@ -191,9 +201,15 @@ export class StallionService {
         length: packageDetails.length || 10,
         width: packageDetails.width || 10,
         height: packageDetails.height || 10,
-        weight: packageDetails.weight || 1,
+        weight: weight,
         description: 'Package',
       }],
+      weight_unit: 'kg', // Metric units (matching our standard)
+      weight: weight, // Total weight required at top level
+      size_unit: 'cm', // Metric units (matching our standard)
+      package_contents: packageDetails.description || 'General Merchandise',
+      value: declaredValue,
+      currency: 'CAD',
     };
   }
 
