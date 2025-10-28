@@ -19,15 +19,23 @@ interface StallionParcel {
 }
 
 interface StallionRateRequest {
-  origin: StallionAddress;
-  destination: StallionAddress;
-  parcels: StallionParcel[];
+  to_address: StallionAddress;
+  return_address?: StallionAddress;
   weight_unit: 'kg' | 'lb';
   weight: number;
+  length?: number;
+  width?: number;
+  height?: number;
   size_unit: 'cm' | 'in';
-  package_contents: string;
-  value: number;
-  currency: string;
+  package_type: string;
+  items?: Array<{
+    description: string;
+    quantity: number;
+    value: number;
+    weight: number;
+    hs_code?: string;
+    origin_country?: string;
+  }>;
 }
 
 interface StallionRate {
@@ -179,16 +187,7 @@ export class StallionService {
     const declaredValue = packageDetails.declaredValue || (weight * 50); // Default $50/kg
 
     return {
-      origin: {
-        name: from.companyName || from.attention || 'Sender',
-        street1: from.streetAddress || '',
-        city: from.city || '',
-        province_code: from.state || '',
-        postal_code: normalizePostalCode(from.postalCode),
-        country_code: from.countryCode || 'CA',
-        phone: from.phone,
-      },
-      destination: {
+      to_address: {
         name: to.companyName || to.attention || 'Recipient',
         street1: to.streetAddress || '',
         city: to.city || '',
@@ -197,19 +196,29 @@ export class StallionService {
         country_code: to.countryCode || 'CA',
         phone: to.phone,
       },
-      parcels: [{
-        length: packageDetails.length || 10,
-        width: packageDetails.width || 10,
-        height: packageDetails.height || 10,
-        weight: weight,
-        description: 'Package',
-      }],
+      return_address: {
+        name: from.companyName || from.attention || 'Sender',
+        street1: from.streetAddress || '',
+        city: from.city || '',
+        province_code: from.state || '',
+        postal_code: normalizePostalCode(from.postalCode),
+        country_code: from.countryCode || 'CA',
+        phone: from.phone,
+      },
       weight_unit: 'kg', // Metric units (matching our standard)
-      weight: weight, // Total weight required at top level
+      weight: weight,
+      length: packageDetails.length || 10,
+      width: packageDetails.width || 10,
+      height: packageDetails.height || 10,
       size_unit: 'cm', // Metric units (matching our standard)
-      package_contents: packageDetails.description || 'General Merchandise',
-      value: declaredValue,
-      currency: 'CAD',
+      package_type: 'Parcel', // Standard package type for Stallion
+      items: [{
+        description: packageDetails.description || 'General Merchandise',
+        quantity: 1,
+        value: declaredValue,
+        weight: weight,
+        origin_country: 'CA',
+      }],
     };
   }
 
