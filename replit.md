@@ -1,132 +1,8 @@
 # Overview
 
-GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolol, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
+GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing multi-carrier rate comparison, shipment management, and branded tracking experiences. It enables users to compare rates from major Canadian carriers (Canada Post, Purolator, UPS, FedEx, DHL), create shipments with integrated payment processing, and track packages via a white-labeled interface. The platform supports role-based access for customers and administrators, with admin functionalities including rate markup configuration, system settings management, and client branding customization for white-label services.
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
-
-## Recent Changes (October 2025)
-
-**Complete Rebranding to GoABLP (October 2025):**
-- Rebranded entire application from "ShipSwift" to "GoABLP"
-- Replaced all text references, logos, and branding elements throughout the platform
-- Updated navbar and footer with new GoABLP logo (500x300px version)
-- Implemented sticky header with dynamic logo sizing on scroll
-- Logo initially 120px tall, reduces to 108px on scroll (10% reduction, smooth 300ms transition)
-- Navbar container adjusts from 144px to 112px height on scroll
-- Footer logo set to 120px (matches header default)
-- Menu items positioned on left side, desktop-justified for consistency across all pages
-- Updated email templates, documentation, and all user-facing text
-- Changed tagline from "Subsidiary of ABLP Logistics" to "A Product of ABLP Logistics"
-- Comprehensive find-and-replace across frontend, backend, and documentation
-
-**Rate Markup System (October 2025 - New Feature):**
-- Implemented comprehensive rate markup system to apply profit margins to ShipTime API rates (backend only)
-- Created RateMarkupService that queries carrier-specific markup rules from database
-- Default 15% markup applied when no carrier-specific rule exists
-- Markup applied to base rates only (excluding taxes) for accurate comparison
-- Frontend displays pre-tax subtotal as main price (matching ShipTime display)
-- Taxes shown as separate line item ("+ $X.XX tax") below subtotal
-- Final total displayed clearly ("Total: $X.XX")
-- Added information tooltip (?) on hover showing detailed rate breakdown with all charges:
-  - Base Rate - shipping base rate
-  - Individual surcharges (Tailgate Delivery, Fuel Surcharge, etc.) - shown by name
-  - Before Tax Total - sum of base rate and all surcharges - bolded
-  - Tax amount - Canadian taxes
-  - After Tax Total - final price including everything - bolded
-- Customer-facing interface shows final rates without any mention of markup
-- Solves rate discrepancy issue: ShipTime shows pre-tax rates, app was showing post-tax totals
-- Enables apples-to-apples rate comparison between GoABLP and ShipTime interface
-- Admin can configure carrier-specific markup rules via existing rateMarkups table
-
-**Pallet/Freight Shipping (New Feature):**
-- Added pallet and freight (LTL) shipping capabilities alongside existing package shipping
-- Shipment type selector in UI allows users to choose between Package and Pallet/Freight shipping
-- Pallet-specific fields: number of pallets, pallet type (standard/euro/custom), stackability, freight class
-- Backend integration with ShipTime API for freight rate requests using PALLET packageType
-- Database schema uses shipment_type column to differentiate shipments, with pallet metadata stored in packageDetails JSONB field for flexibility
-- Design decision: Pallet-specific fields stored in packageDetails JSONB rather than dedicated columns for schema flexibility and easier evolution
-- Province dropdowns ensure 2-letter codes (AB, BC, ON) for API validation
-- Automatic postal code formatting (uppercase with space: A1A 1A1)
-
-**LTL Accessorial Services (October 2025 - New Feature):**
-- Added comprehensive LTL service options for accurate freight rate calculations
-- Commercial/Residential designation for both pickup and delivery addresses
-- Tailgate service options for pickup (TAILGATE_ORIGIN) and delivery (TAILGATE_DESTINATION)
-- Frontend form defaults to commercial locations, only requires selection change if residential
-- Backend integration with ShipTime API serviceOptions field for accessorial charges
-- Residential and tailgate flags properly passed through to ShipTime API for accurate pricing
-- Surcharges (e.g., $78 liftgate pickup) correctly applied and displayed in rate breakdown
-- Solves LTL rate accuracy issue: ensures ShipTime returns rates with correct accessorial charges
-- UI labeled as "LTL Services" section with clear pickup/delivery location and tailgate options
-
-**Multi-Source Rate Aggregation (October 2025 - Major Feature):**
-- Integrated Stallion Express API alongside ShipTime for competitive parcel rate comparison
-- Built rate aggregator service that queries multiple shipping APIs in parallel
-- Automatic rate deduplication: keeps best price when same carrier/service appears from multiple sources
-- Stallion provides access to Canada Post, Purolator, UPS, FedEx, Canpar, and more with discounted rates
-- Admin panel now includes Stallion API configuration (token + environment selection)
-- Markup rules applied equally to rates from all sources
-- Graceful degradation: if one API fails, rates from other sources still display
-- Package shipments benefit most from Stallion's competitive parcel rates
-- Pallet/LTL shipments continue using ShipTime exclusively (Stallion focuses on parcels)
-
-**Rate Display Improvements (October 2025 - UI Enhancement):**
-- Fixed rate sorting to display from lowest to highest price (was showing highest first)
-- Added transit time display using ShipTime's transitDays field (e.g., "8 business days")
-- Enhanced debug logging to show all available rate fields for troubleshooting
-
-**Postal Code Normalization & Package Shipping Fix (October 2025 - Critical Bug Fixes):**
-- Fixed ShipTime API validation failures caused by postal codes with spaces
-- Frontend formats Canadian postal codes with space (V2R 4H1) for user-friendly display
-- Backend now strips spaces and converts to uppercase (V2R4H1) before sending to ShipTime API
-- Prevents fallback to sample rates when API rejects spaced postal codes
-- Applied to both rate requests and shipment creation for consistency
-- **Package & Pallet Shipping Fixes:**
-  - Fixed server crash bug when API errors occurred (rateRequest scope issue)
-  - Added default ABLP origin address for package shipments (ShipTime requires full addresses for all shipment types)
-  - Implemented postal code-to-city mapping for 100+ Forward Sortation Areas covering major Canadian cities
-  - ShipTime strictly validates city names against postal codes; mapping ensures accurate city derivation
-  - Corrected Greater Toronto Area mapping: M1 prefix → Scarborough, M2-M9 → Toronto (critical for accuracy)
-  - Fallback to province capitals for unmapped postal codes
-  - Fixed LTL service option field mapping (tailgate/residential flags now properly passed to ShipTime API)
-  - Package shipping returns real rates from 15+ carriers (GLS, Canpar, Loomis, FedEx, Purolator, Canada Post)
-  - Pallet/LTL shipping returns real freight rates with accurate accessorial charges (GLS Freight, FedEx Freight)
-  - Note: ShipTime API may return fewer carriers than web interface depending on account configuration and route availability
-
-**Role-Based Access Control Fix (October 2025 - Bug Fix):**
-- Fixed admin middleware to recognize both 'admin' and 'ablp_admin' roles for admin access
-- Previously only 'admin' role had admin panel access, causing lockout when changing to 'ablp_admin'
-- Fixed frontend navbar and admin page route protection to recognize both admin roles
-- System now correctly supports three user roles: customer, admin, ablp_admin (both admin types have full access)
-
-**Password Security Enhancement (October 2025 - Security Fix):**
-- Fixed admin user creation to properly hash passwords with bcrypt before storage
-- Fixed password reset functionality to use bcrypt hashing
-- Previously passwords were stored in plain text when created by admins, causing login failures
-- All user passwords now properly hashed with bcrypt (10 salt rounds) for security
-
-**User Management Enhancement (October 2025 - New Feature):**
-- Added delete user functionality to admin panel
-- Admins can now delete user accounts with confirmation dialog
-- Self-deletion prevention: users cannot delete their own account
-- Delete action logged in user activity for audit trail
-- User stats automatically updated after deletion
-
-**API Credentials Validation (October 2025 - Bug Fix):**
-- Fixed ShipTime API authentication failures caused by whitespace in credentials
-- Added automatic `.trim()` sanitization for all API credentials when saved (ShipTime, Stripe, SendGrid)
-- Prevents 401 errors from leading/trailing spaces copied from external systems
-- Ensures reliable API authentication for production deployments
-
-**Authentication & Navigation (August 2025 - Resolved):**
-- Fixed logout redirect functionality across all pages using immediate window.location.href navigation
-- Enhanced navbar logout with proper session handling and immediate redirect
-
-**Logo Upload System (August 2025 - Resolved):**
-- Implemented comprehensive file upload system with multer middleware
-- Added extensive debugging and error handling for upload process
-- Fixed client-side event handling issues with proper HTML form semantics
-- Logo uploads now persist correctly in uploads directory and database
 
 # User Preferences
 
@@ -154,39 +30,33 @@ Preferred communication style: Simple, everyday language.
 - **Core Entities**: Users, Shipments, Client Branding, Rate Markups, Returns, System Settings.
 - **Key Features**: Comprehensive user management, detailed shipment tracking, white-label customization, dynamic rate markup rules, and configurable application settings.
 
-## Payment Processing
-- **Integration**: Stripe for complete payment flow using PaymentIntents API.
-- **Currency**: Canadian Dollar (CAD).
-- **Methods**: Card payments, Apple Pay, Google Pay.
-- **Security**: PCI-compliant through Stripe Elements.
-
 ## System Design Choices
-- **Pallet/Freight Shipping**: Full support for both package (parcel) and pallet/freight (LTL) shipments with dedicated UI for pallet-specific details (pallet count, type, stackability, freight class). Uses JSONB storage for flexible pallet metadata.
-- **ABLP Admin System**: Dedicated admin panel for internal ABLP management, including dynamic ShipTime API credential management (encrypted storage) and advanced rate markup configuration with conditional logic (cost/weight/location-based rules) for profit margin control.
-- **Client Branding System**: Allows ABLP clients to customize their shipping interface and tracking pages with their logos and color schemes for a white-label experience.
-- **Rate Calculation System**: Features auto-rate fetching with debounce, graceful API failure handling using sample rates as fallback, and dynamic loading of ABLP credentials.
-- **Insurance System**: Comprehensive insurance options with detailed terms and conditions, distinct from carrier liability, and proper acceptance mechanisms.
-- **Legal Policies**: Integrated Privacy Policy, Terms of Service, and Cookie Policy, generic to ABLP Logistics.
-- **UI/UX Enhancements**: Streamlined shipment workflow, enhanced tracking display, comprehensive shipment management page, and improved dashboard navigation.
-- **User Management**: Advanced admin panel for user creation, role assignment, password management, activity logging, and real-time user statistics.
-- **Carrier Logos**: Implementation of authentic, responsive carrier logos for major Canadian carriers.
-- **ShipTime API Integration**: Robust connection testing, proper sandbox/production environment support, and automatic cancellation of sandbox shipments.
-- **Pickup Options & Unit Conversion**: Integrated pickup scheduling, and automatic metric/imperial unit conversion for package dimensions.
-- **Iframe Embedding Support**: Full cross-origin iframe compatibility with CORS headers and session configuration optimized for embedding in third-party websites via shortcodes.
+- **Branding**: Complete rebranding to GoABLP with dynamic logo sizing and sticky header.
+- **Rate Markup System**: Implemented to apply profit margins to shipping rates with carrier-specific rules and a default 15% markup. Frontend displays detailed rate breakdowns.
+- **Shipment Capabilities**: Full support for both package (parcel) and pallet/freight (LTL) shipments, including pallet-specific fields and LTL accessorial services (e.g., tailgate, commercial/residential).
+- **Multi-Source Rate Aggregation**: Integrated ShipTime and Stallion Express APIs for competitive parcel rate comparison, with automatic deduplication and graceful degradation. Pallet/LTL uses ShipTime exclusively.
+- **Payment Processing**: Stripe integration for card payments, Apple Pay, and Google Pay in CAD, ensuring PCI compliance.
+- **ABLP Admin System**: Dedicated admin panel for internal management, including dynamic ShipTime API credential management and advanced rate markup configuration.
+- **Client Branding System**: Allows ABLP clients to customize their shipping interface and tracking pages with logos and color schemes for a white-label experience.
+- **Rate Calculation System**: Features auto-rate fetching with debounce, graceful API failure handling, and dynamic loading of ABLP credentials.
+- **Insurance System**: Comprehensive insurance options with detailed terms and conditions.
+- **Legal Policies**: Integrated Privacy Policy, Terms of Service, and Cookie Policy.
+- **User Management**: Advanced admin panel for user creation, role assignment, password management (bcrypt hashing), activity logging, and user deletion.
+- **API Credentials Validation**: Automatic `.trim()` sanitization for all API credentials to prevent authentication failures.
+- **Iframe Embedding Support**: Full cross-origin iframe compatibility with CORS headers and session configuration.
 
 # External Dependencies
 
 ## Shipping Integration
-- **ShipTime API**: Primary API for rates, label generation, and tracking.
-- **Multi-Carrier Support**: Canada Post, Purolator, UPS, FedEx, DHL, Canpar, Loomis, GLS (via ShipTime).
-- **API Endpoint**: https://restapi.shiptime.com/rest/ (Production).
+- **ShipTime API**: Primary API for rates, label generation, and tracking. Supports Canada Post, Purolator, UPS, FedEx, DHL, Canpar, Loomis, GLS.
+- **Stallion Express API**: Integrated for competitive parcel rates.
 
 ## Database & Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **connect-pg-simple**: PostgreSQL-based session management.
 
 ## Payment Processing
-- **Stripe**: Payment gateway for transactions, subscriptions, and financial operations.
+- **Stripe**: Payment gateway for transactions.
 - **Stripe Elements**: Frontend components for secure payment forms.
 
 ## Development & Deployment
