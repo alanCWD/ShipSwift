@@ -58,7 +58,7 @@ export default function AdminSettings() {
   });
 
   // Check if user is admin
-  if (!user || user?.role !== 'admin') {
+  if (!user || (user?.role !== 'admin' && user?.role !== 'ablp_admin')) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
