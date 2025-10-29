@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { CanadianTaxService } from './canadian-tax';
 
 interface RateMarkupRule {
   id: string;
@@ -33,18 +34,20 @@ export class RateMarkupService {
 
   /**
    * Apply markup rules to shipping rates
+   * @param rates - Array of rates to apply markup to
+   * @param destinationProvince - Two-letter destination province code for accurate tax calculation
    */
-  async applyMarkups(rates: ShipTimeRate[]): Promise<MarkedUpRate[]> {
+  async applyMarkups(rates: ShipTimeRate[], destinationProvince?: string): Promise<MarkedUpRate[]> {
     // Get all active markup rules from database
     const markupRules = await this.getMarkupRules();
 
-    return rates.map(rate => this.applyMarkupToRate(rate, markupRules));
+    return rates.map(rate => this.applyMarkupToRate(rate, markupRules, destinationProvince));
   }
 
   /**
    * Apply markup to a single rate
    */
-  private applyMarkupToRate(rate: ShipTimeRate, rules: RateMarkupRule[]): MarkedUpRate {
+  private applyMarkupToRate(rate: ShipTimeRate, rules: RateMarkupRule[], destinationProvince?: string): MarkedUpRate {
     const carrierName = rate.carrier?.name || 'Unknown';
     const serviceName = rate.service?.name || 'Unknown';
 
@@ -56,9 +59,9 @@ export class RateMarkupService {
     const baseChargeAmount = Number(rate.baseCharge?.amount || 0);
     const baseChargeInDollars = baseChargeAmount / 100; // Convert from cents
     
-    // DEBUG: Log the raw rate data from ShipTime
+    // DEBUG: Log the raw rate data from API
     console.log(`\n🔍 Processing rate for ${carrierName} - ${serviceName}`);
-    console.log('  Raw ShipTime data:');
+    console.log('  Raw API data:');
     console.log('    baseCharge.amount (cents):', rate.baseCharge?.amount);
     console.log('    baseCharge in dollars:', baseChargeInDollars);
     if (rate.surcharges && rate.surcharges.length > 0) {
@@ -67,11 +70,18 @@ export class RateMarkupService {
         console.log(`      - ${s.name}: ${s.price?.amount} cents = $${(Number(s.price?.amount || 0) / 100).toFixed(2)}`);
       });
     }
+    
+    // Log API-provided taxes (for comparison/validation)
+    const apiTaxAmount = (rate.taxes || []).reduce(
+      (sum, tax) => sum + Number(tax.price?.amount || 0), 
+      0
+    ) / 100;
     if (rate.taxes && rate.taxes.length > 0) {
-      console.log('    Taxes:');
+      console.log('    API-provided taxes:');
       rate.taxes.forEach(t => {
         console.log(`      - ${(t as any).name || 'Tax'}: ${t.price?.amount} cents = $${(Number(t.price?.amount || 0) / 100).toFixed(2)}`);
       });
+      console.log(`    Total API tax: $${apiTaxAmount.toFixed(2)}`);
     }
     
     // Calculate surcharges separately
@@ -81,13 +91,6 @@ export class RateMarkupService {
       0
     );
     const surchargesInDollars = surchargesAmount / 100; // Convert from cents
-
-    // Calculate tax amount separately
-    // Ensure each tax amount is a number
-    const taxAmount = (rate.taxes || []).reduce(
-      (sum, tax) => sum + Number(tax.price?.amount || 0), 
-      0
-    ) / 100;
 
     // Apply markup to BASE CHARGE ONLY (not surcharges or taxes)
     let markup = 0;
@@ -121,6 +124,20 @@ export class RateMarkupService {
     // Calculate subtotal: (base + markup) + surcharges (excluding taxes)
     const baseWithMarkup = baseChargeInDollars + markup;
     const subtotal = baseWithMarkup + surchargesInDollars;
+    
+    // Calculate accurate Canadian tax using official rates
+    // This OVERRIDES API-provided taxes to ensure 100% accuracy
+    const taxAmount = destinationProvince 
+      ? CanadianTaxService.calculateTax(subtotal, destinationProvince)
+      : apiTaxAmount; // Fallback to API tax if no province provided
+    
+    // Validate API tax against our calculated tax
+    if (destinationProvince && apiTaxAmount > 0) {
+      const validation = CanadianTaxService.validateApiTax(apiTaxAmount, subtotal, destinationProvince);
+      if (!validation.isValid) {
+        console.log(`   ⚠️  Using corrected tax: $${validation.correctTax.toFixed(2)} (API had $${validation.apiTax.toFixed(2)})`);
+      }
+    }
     
     // DEBUG: Log markup calculation results
     console.log('  Markup calculation:');

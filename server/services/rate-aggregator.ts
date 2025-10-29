@@ -112,8 +112,12 @@ export class RateAggregatorService {
     const deduplicatedRates = this.deduplicateRates(allRates);
     console.log(`📊 Total rates after deduplication: ${deduplicatedRates.length}`);
 
-    // Apply markup to all rates
-    const ratesWithMarkup = await rateMarkupService.applyMarkups(deduplicatedRates);
+    // Extract destination province for accurate tax calculation
+    const destinationProvince = to.state || to.province || to.provinceCode;
+    console.log(`📍 Destination province for tax calculation: ${destinationProvince || 'not provided'}`);
+
+    // Apply markup and calculate accurate Canadian taxes
+    const ratesWithMarkup = await rateMarkupService.applyMarkups(deduplicatedRates, destinationProvince);
 
     console.log(`✅ Multi-source rate aggregation complete\n`);
 
