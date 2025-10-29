@@ -44,6 +44,7 @@ Preferred communication style: Simple, everyday language.
 - **User Management**: Advanced admin panel for user creation, role assignment, password management (bcrypt hashing), activity logging, and user deletion.
 - **API Credentials Validation**: Automatic `.trim()` sanitization for all API credentials to prevent authentication failures.
 - **Iframe Embedding Support**: Full cross-origin iframe compatibility with CORS headers and session configuration.
+- **Canadian Tax Calculation**: Local tax calculation service using official 2025 provincial tax rates (destination-based). Calculates and validates taxes to ensure 100% accuracy, overriding API-provided taxes when necessary. Supports GST (5%), HST (13% ON, 15% Atlantic), and GST+QST (14.975% QC). Tax calculations are logged for transparency and auditing.
 
 # External Dependencies
 
