@@ -55,7 +55,7 @@ export class CanadianTaxService {
    */
   static calculateTax(subtotal: number, destinationProvince: string): number {
     if (!destinationProvince) {
-      console.warn('⚠️ No destination province provided for tax calculation, defaulting to 0% tax');
+      console.warn('⚠️ No destination province provided for tax calculation, returning 0% tax');
       return 0;
     }
 
@@ -63,8 +63,8 @@ export class CanadianTaxService {
     const taxRate = this.TAX_RATES[provinceCode];
 
     if (!taxRate) {
-      console.warn(`⚠️ Unknown province code: ${provinceCode}, defaulting to 5% GST`);
-      return subtotal * 0.05; // Default to GST if unknown province
+      console.warn(`⚠️ Unknown province code: "${provinceCode}" - not a Canadian province, returning 0% tax (prevents incorrect taxation on international shipments)`);
+      return 0; // Return 0% for non-Canadian provinces (e.g., U.S. states)
     }
 
     const taxAmount = subtotal * taxRate.rate;
@@ -89,11 +89,14 @@ export class CanadianTaxService {
    * Get tax rate percentage for a province
    * 
    * @param provinceCode - Two-letter province code
-   * @returns Tax rate as decimal (e.g., 0.13 for 13%) or 0.05 (GST) if unknown
+   * @returns Tax rate as decimal (e.g., 0.13 for 13%) or 0 if not a Canadian province
    */
   static getTaxRatePercentage(provinceCode: string): number {
     const taxRate = this.getTaxRate(provinceCode);
-    return taxRate ? taxRate.rate : 0.05; // Default to GST
+    if (!taxRate) {
+      console.warn(`⚠️ getTaxRatePercentage: Unknown province "${provinceCode}" - returning 0%`);
+    }
+    return taxRate ? taxRate.rate : 0; // Return 0% for non-Canadian provinces
   }
 
   /**
