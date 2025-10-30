@@ -222,22 +222,37 @@ export class StallionService {
     };
   }
 
-  // Normalize Stallion rate to standard format
+  // Normalize Stallion rate to standard format (matching ShipTime structure)
   normalizeRate(stallionRate: StallionRate): any {
     // Convert price from dollars to cents for consistency with ShipTime
     const totalInCents = Math.round(stallionRate.total_price * 100);
 
     return {
+      // Flat structure (for backward compatibility)
       carrierName: stallionRate.carrier_name,
       serviceName: stallionRate.service_name,
+      
+      // Nested structure (matching ShipTime format for frontend compatibility)
+      carrier: {
+        name: stallionRate.carrier_name,
+      },
+      service: {
+        name: stallionRate.service_name,
+      },
+      
       baseCharge: {
         amount: totalInCents,
         currency: stallionRate.currency || 'CAD',
       },
       surcharges: [],
       taxes: [],
+      
+      // Multiple transit time formats for frontend compatibility
       transitDays: stallionRate.delivery_days,
+      deliveryDays: stallionRate.delivery_days,
       transitUnit: 'business days',
+      transitTime: stallionRate.delivery_days ? `${stallionRate.delivery_days} business days` : undefined,
+      
       source: 'stallion',
       rateId: `stallion_${stallionRate.service_code}`,
     };
