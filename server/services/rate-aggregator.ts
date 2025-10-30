@@ -154,21 +154,40 @@ export class RateAggregatorService {
     packageDetails: any,
     storage: any
   ): Promise<any[]> {
-    // Load Stallion credentials
-    await stallionService.loadCredentials(storage);
+    try {
+      // Load Stallion credentials
+      console.log('📦 Loading Stallion credentials...');
+      await stallionService.loadCredentials(storage);
 
-    // Convert to Stallion format
-    const stallionRequest = stallionService.convertToStallionRequest(
-      from,
-      to,
-      packageDetails
-    );
+      // Convert to Stallion format
+      const stallionRequest = stallionService.convertToStallionRequest(
+        from,
+        to,
+        packageDetails
+      );
 
-    // Get rates from Stallion
-    const stallionRates = await stallionService.getRates(stallionRequest);
+      // Get rates from Stallion
+      const stallionRates = await stallionService.getRates(stallionRequest);
 
-    // Normalize to standard format
-    return stallionRates.map(rate => stallionService.normalizeRate(rate));
+      if (stallionRates.length === 0) {
+        console.log('⚠️  Stallion returned 0 rates - check credentials and request data');
+        return [];
+      }
+
+      // Normalize to standard format
+      const normalizedRates = stallionRates.map(rate => {
+        const normalized = stallionService.normalizeRate(rate);
+        console.log(`  ✅ Normalized: ${normalized.carrier?.name || normalized.carrierName} - ${normalized.service?.name || normalized.serviceName}`);
+        return normalized;
+      });
+
+      console.log(`✅ Stallion: ${normalizedRates.length} rates normalized successfully`);
+      return normalizedRates;
+    } catch (error: any) {
+      console.error('❌ Stallion rate fetch failed:', error.message);
+      // Don't throw - allow graceful degradation
+      return [];
+    }
   }
 
   // Deduplicate rates that have the same carrier + service
