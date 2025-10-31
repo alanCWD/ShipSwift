@@ -750,13 +750,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attention: fromAddress.attention
         };
       } else {
-        // Provide default "from" address for package shipments
+        // For package shipments without full address, lookup city/province from postal code
+        console.log(`🔍 Looking up FROM city/province for postal code: ${fromPostalCode}`);
+        const postalCodeLookup = (await import('./services/postal-code-lookup')).default;
+        const fromLookupResult = await postalCodeLookup.lookup(fromPostalCode);
+        
+        console.log(`📍 FROM postal code lookup result: ${fromLookupResult.city}, ${fromLookupResult.province} (source: ${fromLookupResult.source})`);
+        
         rateRequest.from = {
           ...rateRequest.from,
           companyName: 'ABLP Logistics',
           streetAddress: '44322 Yale Rd #3',
-          city: 'Chilliwack',
-          state: 'BC',
+          city: fromLookupResult.city,
+          state: fromLookupResult.province,
           phone: '1-800-225-7564',
           attention: 'ABLP Logistics'
         };
@@ -776,18 +782,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // For package shipments without full address, lookup city/province from postal code
         // This is critical because ShipTime strictly validates city names against postal codes
-        console.log(`🔍 Looking up city/province for postal code: ${toPostalCode}`);
+        console.log(`🔍 Looking up TO city/province for postal code: ${toPostalCode}`);
         const postalCodeLookup = (await import('./services/postal-code-lookup')).default;
-        const lookupResult = await postalCodeLookup.lookup(toPostalCode);
+        const toLookupResult = await postalCodeLookup.lookup(toPostalCode);
         
-        console.log(`📍 Postal code lookup result: ${lookupResult.city}, ${lookupResult.province} (source: ${lookupResult.source})`);
+        console.log(`📍 TO postal code lookup result: ${toLookupResult.city}, ${toLookupResult.province} (source: ${toLookupResult.source})`);
         
         rateRequest.to = {
           ...rateRequest.to,
           companyName: 'Customer',
           streetAddress: 'Main Street',
-          city: lookupResult.city,
-          state: lookupResult.province,
+          city: toLookupResult.city,
+          state: toLookupResult.province,
           phone: '555-555-5555',
           attention: 'Customer'
         };
