@@ -163,10 +163,12 @@ export class StallionService {
       }
 
       console.log(`✅ Stallion returned ${data.rates.length} rates`);
+      console.log('🔍 RAW STALLION API RESPONSE:', JSON.stringify(data, null, 2));
       data.rates.forEach((rate, index) => {
         console.log(`  Rate ${index + 1}: ${rate.carrier_name} - ${rate.service_name}`);
         console.log(`    Price: $${rate.total_price} ${rate.currency}`);
         console.log(`    Delivery: ${rate.delivery_days || 'N/A'} days`);
+        console.log(`    Raw rate object:`, JSON.stringify(rate, null, 2));
       });
 
       return data.rates;
