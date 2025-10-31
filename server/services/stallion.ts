@@ -175,6 +175,7 @@ export class StallionService {
 
       if (!data.rates || data.rates.length === 0) {
         console.log('⚠️ Stallion returned no rates');
+        console.log('Full Stallion API response:', JSON.stringify(data, null, 2));
         return [];
       }
 
