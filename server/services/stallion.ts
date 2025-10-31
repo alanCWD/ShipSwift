@@ -35,6 +35,7 @@ interface StallionRateRequest {
     weight: number;
     hs_code?: string;
     origin_country?: string;
+    currency?: string;
   }>;
 }
 
@@ -218,6 +219,7 @@ export class StallionService {
         value: declaredValue,
         weight: weight,
         origin_country: 'CA',
+        currency: 'CAD', // Required by Stallion API
       }],
     };
   }
