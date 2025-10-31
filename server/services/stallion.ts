@@ -40,12 +40,28 @@ interface StallionRateRequest {
 }
 
 interface StallionRate {
-  service_code: string;
-  service_name: string;
-  carrier_name: string;
-  total_price: number;
+  postage_type_id: number;
+  postage_type: string;
+  trackable: boolean;
+  package_type: string;
+  base_rate: number;
+  add_ons?: Array<{
+    name: string;
+    type: string;
+    cost: number;
+    currency: string;
+  }>;
+  rate: number;
+  gst: number;
+  pst: number;
+  hst: number;
+  qst: number;
+  tax: number;
+  duty: number;
+  duty_tax: number;
+  total: number;
   currency: string;
-  delivery_days?: number;
+  delivery_days?: string;
   delivery_date?: string;
 }
 
@@ -163,12 +179,11 @@ export class StallionService {
       }
 
       console.log(`✅ Stallion returned ${data.rates.length} rates`);
-      console.log('🔍 RAW STALLION API RESPONSE:', JSON.stringify(data, null, 2));
       data.rates.forEach((rate, index) => {
-        console.log(`  Rate ${index + 1}: ${rate.carrier_name} - ${rate.service_name}`);
-        console.log(`    Price: $${rate.total_price} ${rate.currency}`);
-        console.log(`    Delivery: ${rate.delivery_days || 'N/A'} days`);
-        console.log(`    Raw rate object:`, JSON.stringify(rate, null, 2));
+        console.log(`  Rate ${index + 1}: ${rate.postage_type}`);
+        console.log(`    Base Rate: $${rate.base_rate} ${rate.currency}`);
+        console.log(`    Total: $${rate.total} ${rate.currency}`);
+        console.log(`    Delivery: ${rate.delivery_days || 'N/A'}`);
       });
 
       return data.rates;
@@ -230,37 +245,73 @@ export class StallionService {
 
   // Normalize Stallion rate to standard format (matching ShipTime structure)
   normalizeRate(stallionRate: StallionRate): any {
-    // Convert price from dollars to cents for consistency with ShipTime
-    const totalInCents = Math.round(stallionRate.total_price * 100);
+    // Parse carrier name from postage_type (e.g., "Intelcom", "UPS Standard")
+    // For services like "UPS Standard", extract carrier and service separately
+    const postageType = stallionRate.postage_type || 'Unknown';
+    let carrierName = postageType;
+    let serviceName = postageType;
+    
+    // Known carrier prefixes
+    const carriers = ['UPS', 'Purolator', 'FedEx', 'ICS', 'Intelcom', 'Canada Post'];
+    for (const carrier of carriers) {
+      if (postageType.startsWith(carrier)) {
+        carrierName = carrier;
+        serviceName = postageType.substring(carrier.length).trim() || carrier;
+        break;
+      }
+    }
+    
+    // Convert base rate from dollars to cents for consistency with ShipTime
+    const baseRateInCents = Math.round(stallionRate.base_rate * 100);
+    
+    // Convert add-ons to surcharges format
+    const surcharges = (stallionRate.add_ons || []).map(addon => ({
+      name: addon.name,
+      price: {
+        amount: Math.round(addon.cost * 100),
+        currency: addon.currency,
+      }
+    }));
+
+    // Parse delivery days string (e.g., "5-9" -> use midpoint 7, "2" -> 2)
+    let deliveryDays: number | undefined;
+    if (stallionRate.delivery_days) {
+      if (stallionRate.delivery_days.includes('-')) {
+        const [min, max] = stallionRate.delivery_days.split('-').map(d => parseInt(d.trim()));
+        deliveryDays = Math.round((min + max) / 2);
+      } else {
+        deliveryDays = parseInt(stallionRate.delivery_days);
+      }
+    }
 
     return {
       // Flat structure (for backward compatibility)
-      carrierName: stallionRate.carrier_name,
-      serviceName: stallionRate.service_name,
+      carrierName: carrierName,
+      serviceName: serviceName,
       
       // Nested structure (matching ShipTime format for frontend compatibility)
       carrier: {
-        name: stallionRate.carrier_name,
+        name: carrierName,
       },
       service: {
-        name: stallionRate.service_name,
+        name: serviceName,
       },
       
       baseCharge: {
-        amount: totalInCents,
+        amount: baseRateInCents,
         currency: stallionRate.currency || 'CAD',
       },
-      surcharges: [],
-      taxes: [],
+      surcharges: surcharges,
+      taxes: [], // Taxes will be recalculated by our tax service
       
       // Multiple transit time formats for frontend compatibility
-      transitDays: stallionRate.delivery_days,
-      deliveryDays: stallionRate.delivery_days,
+      transitDays: deliveryDays,
+      deliveryDays: deliveryDays,
       transitUnit: 'business days',
-      transitTime: stallionRate.delivery_days ? `${stallionRate.delivery_days} business days` : undefined,
+      transitTime: deliveryDays ? `${deliveryDays} business days` : stallionRate.delivery_days,
       
       source: 'stallion',
-      rateId: `stallion_${stallionRate.service_code}`,
+      rateId: `stallion_${stallionRate.postage_type_id}`,
     };
   }
 }
