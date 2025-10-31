@@ -48,8 +48,9 @@ export class RateMarkupService {
    * Apply markup to a single rate
    */
   private applyMarkupToRate(rate: ShipTimeRate, rules: RateMarkupRule[], destinationProvince?: string): MarkedUpRate {
-    const carrierName = rate.carrier?.name || 'Unknown';
-    const serviceName = rate.service?.name || 'Unknown';
+    // Check both nested and flat structures for carrier/service names
+    const carrierName = rate.carrier?.name || (rate as any).carrierName || 'Unknown';
+    const serviceName = rate.service?.name || (rate as any).serviceName || 'Unknown';
 
     // Find matching markup rule (most specific first)
     const matchingRule = this.findMatchingRule(carrierName, serviceName, rules);

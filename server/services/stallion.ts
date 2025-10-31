@@ -187,7 +187,9 @@ export class StallionService {
 
     // Calculate total weight and default value
     const weight = packageDetails.weight || 1;
-    const declaredValue = packageDetails.declaredValue || (weight * 50); // Default $50/kg
+    // Default $50/kg, capped at Stallion's max of $1000
+    const calculatedValue = weight * 50;
+    const declaredValue = packageDetails.declaredValue || Math.min(calculatedValue, 1000);
 
     return {
       to_address: {
