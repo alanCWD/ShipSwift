@@ -738,25 +738,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // ShipTime API requires full address details for ALL shipments (not just pallets)
+      // ALWAYS lookup city/province from postal code to ensure accuracy (ShipTime validates strictly)
+      console.log(`🔍 Looking up FROM city/province for postal code: ${fromPostalCode}`);
+      const postalCodeLookup = (await import('./services/postal-code-lookup')).default;
+      const fromLookupResult = await postalCodeLookup.lookup(fromPostalCode);
+      
+      console.log(`📍 FROM postal code lookup result: ${fromLookupResult.city}, ${fromLookupResult.province} (source: ${fromLookupResult.source})`);
+      
       // Add from address details
       if (fromAddress) {
+        // Use street address from form, but city/province from postal code lookup
         rateRequest.from = {
           ...rateRequest.from,
           companyName: fromAddress.company,
           streetAddress: fromAddress.streetAddress,
-          city: fromAddress.city,
-          state: fromAddress.state,
+          city: fromLookupResult.city, // Always use validated city from postal code
+          state: fromLookupResult.province, // Always use validated province from postal code
           phone: fromAddress.phone,
           attention: fromAddress.attention
         };
       } else {
-        // For package shipments without full address, lookup city/province from postal code
-        console.log(`🔍 Looking up FROM city/province for postal code: ${fromPostalCode}`);
-        const postalCodeLookup = (await import('./services/postal-code-lookup')).default;
-        const fromLookupResult = await postalCodeLookup.lookup(fromPostalCode);
-        
-        console.log(`📍 FROM postal code lookup result: ${fromLookupResult.city}, ${fromLookupResult.province} (source: ${fromLookupResult.source})`);
-        
+        // No full address provided - use default with looked-up city/province
         rateRequest.from = {
           ...rateRequest.from,
           companyName: 'ABLP Logistics',
