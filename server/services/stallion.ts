@@ -1,7 +1,7 @@
 interface StallionAddress {
   name: string;
-  street1: string;
-  street2?: string;
+  address1: string;
+  address2?: string;
   city: string;
   province_code: string;
   postal_code: string;
