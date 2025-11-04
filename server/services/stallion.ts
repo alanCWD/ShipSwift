@@ -210,7 +210,7 @@ export class StallionService {
     return {
       to_address: {
         name: to.companyName || to.attention || 'Recipient',
-        street1: to.streetAddress || '',
+        address1: to.streetAddress || '',
         city: to.city || '',
         province_code: to.state || '',
         postal_code: normalizePostalCode(to.postalCode),
@@ -219,7 +219,7 @@ export class StallionService {
       },
       return_address: {
         name: from.companyName || from.attention || 'Sender',
-        street1: from.streetAddress || '',
+        address1: from.streetAddress || '',
         city: from.city || '',
         province_code: from.state || '',
         postal_code: normalizePostalCode(from.postalCode),
