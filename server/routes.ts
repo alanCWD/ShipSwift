@@ -770,26 +770,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
+      // ALWAYS lookup TO city/province from postal code to ensure accuracy (ShipTime validates strictly)
+      console.log(`🔍 Looking up TO city/province for postal code: ${toPostalCode}`);
+      const toLookupResult = await postalCodeLookup.lookup(toPostalCode);
+      
+      console.log(`📍 TO postal code lookup result: ${toLookupResult.city}, ${toLookupResult.province} (source: ${toLookupResult.source})`);
+      
       // Add to address details
       if (toAddress) {
+        // Use street address from form, but city/province from postal code lookup
         rateRequest.to = {
           ...rateRequest.to,
           companyName: toAddress.company,
           streetAddress: toAddress.streetAddress,
-          city: toAddress.city,
-          state: toAddress.state,
+          city: toLookupResult.city, // Always use validated city from postal code
+          state: toLookupResult.province, // Always use validated province from postal code
           phone: toAddress.phone,
           attention: toAddress.attention
         };
       } else {
-        // For package shipments without full address, lookup city/province from postal code
-        // This is critical because ShipTime strictly validates city names against postal codes
-        console.log(`🔍 Looking up TO city/province for postal code: ${toPostalCode}`);
-        const postalCodeLookup = (await import('./services/postal-code-lookup')).default;
-        const toLookupResult = await postalCodeLookup.lookup(toPostalCode);
-        
-        console.log(`📍 TO postal code lookup result: ${toLookupResult.city}, ${toLookupResult.province} (source: ${toLookupResult.source})`);
-        
+        // No full address provided - use default with looked-up city/province
         rateRequest.to = {
           ...rateRequest.to,
           companyName: 'Customer',
