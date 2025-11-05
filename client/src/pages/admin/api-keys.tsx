@@ -41,7 +41,8 @@ import { format } from 'date-fns';
 interface MerchantApiKey {
   id: string;
   userId: string;
-  apiKey: string;
+  keyPrefix: string; // First 12 chars for display
+  hashedApiKey: string; // Bcrypt hash - never displayed
   name: string;
   description: string | null;
   isActive: boolean;
@@ -51,13 +52,19 @@ interface MerchantApiKey {
   updatedAt: Date;
 }
 
+interface CreatedApiKeyResponse extends MerchantApiKey {
+  apiKey?: string; // Plaintext key, only returned once at creation
+  warning?: string;
+}
+
 export default function ApiKeysPage() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
   const [newKeyDescription, setNewKeyDescription] = useState('');
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+  const [showCreatedKeyDialog, setShowCreatedKeyDialog] = useState(false);
 
   const { data: apiKeys = [], isLoading } = useQuery<MerchantApiKey[]>({
     queryKey: ['/api/merchant/keys'],
@@ -65,17 +72,24 @@ export default function ApiKeysPage() {
 
   const createKeyMutation = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
-      return await apiRequest('/api/merchant/keys', {
+      return await apiRequest<CreatedApiKeyResponse>('/api/merchant/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: CreatedApiKeyResponse) => {
       queryClient.invalidateQueries({ queryKey: ['/api/merchant/keys'] });
       setIsCreateDialogOpen(false);
       setNewKeyName('');
       setNewKeyDescription('');
+      
+      // Show the newly created key in a dialog
+      if (data.apiKey) {
+        setNewlyCreatedKey(data.apiKey);
+        setShowCreatedKeyDialog(true);
+      }
+      
       toast({
         title: 'API Key Created',
         description: 'Your new API key has been generated successfully. Make sure to copy it now!',
@@ -159,23 +173,6 @@ export default function ApiKeysPage() {
       title: 'Copied!',
       description: 'API key copied to clipboard',
     });
-  };
-
-  const toggleKeyVisibility = (keyId: string) => {
-    setRevealedKeys((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(keyId)) {
-        newSet.delete(keyId);
-      } else {
-        newSet.add(keyId);
-      }
-      return newSet;
-    });
-  };
-
-  const maskApiKey = (apiKey: string) => {
-    if (apiKey.length <= 16) return '••••••••••••••••';
-    return `${apiKey.substring(0, 12)}${'•'.repeat(apiKey.length - 20)}${apiKey.substring(apiKey.length - 8)}`;
   };
 
   return (
@@ -282,33 +279,12 @@ export default function ApiKeysPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm">
                         <div className="flex items-center gap-2">
-                          <span>
-                            {revealedKeys.has(key.id) ? key.apiKey : maskApiKey(key.apiKey)}
+                          <span className="text-gray-600">
+                            {key.keyPrefix}••••••••••••••••
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleKeyVisibility(key.id)}
-                            data-testid={`button-toggle-visibility-${key.id}`}
-                          >
-                            {revealedKeys.has(key.id) ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyKey(key.apiKey)}
-                            data-testid={`button-copy-${key.id}`}
-                          >
-                            {copiedKey === key.apiKey ? (
-                              <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <Copy className="w-4 h-4" />
-                            )}
-                          </Button>
+                          <span className="text-xs text-gray-400 ml-2">
+                            (Hidden)
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -417,6 +393,58 @@ export default function ApiKeysPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog to show newly created API key (only shown once) */}
+      <Dialog open={showCreatedKeyDialog} onOpenChange={setShowCreatedKeyDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>API Key Created Successfully</DialogTitle>
+            <DialogDescription>
+              <span className="text-red-600 font-semibold">⚠️ Important: </span>
+              Save this API key now. You won't be able to see it again!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm font-mono break-all bg-white p-3 rounded border">
+                {newlyCreatedKey}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => newlyCreatedKey && handleCopyKey(newlyCreatedKey)}
+                data-testid="button-copy-new-key"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy to Clipboard
+              </Button>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+              <p className="text-xs text-gray-700">
+                <strong>Next steps:</strong>
+              </p>
+              <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
+                <li>Save this key in a secure location</li>
+                <li>Use it in your WooCommerce plugin or API integrations</li>
+                <li>Never share it publicly or commit it to version control</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreatedKeyDialog(false);
+                setNewlyCreatedKey(null);
+              }}
+              data-testid="button-close-new-key-dialog"
+            >
+              I've saved the key
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

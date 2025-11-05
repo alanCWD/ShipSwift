@@ -73,6 +73,72 @@ const csvUpload = multer({
   },
 });
 
+// Simple in-memory rate limiter for merchant API
+class MerchantRateLimiter {
+  private requests: Map<string, number[]> = new Map();
+  private readonly windowMs: number = 60 * 1000; // 1 minute window
+  private readonly maxRequests: number = 60; // 60 requests per minute
+  private readonly maxPrefixAttempts: number = 10; // Lower limit for unvalidated keys
+
+  // Rate limit by key prefix BEFORE bcrypt validation (prevents DoS)
+  isRateLimitedByPrefix(keyPrefix: string): boolean {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    const prefixKey = `prefix:${keyPrefix}`;
+    
+    let timestamps = this.requests.get(prefixKey) || [];
+    timestamps = timestamps.filter(t => t > windowStart);
+    
+    if (timestamps.length >= this.maxPrefixAttempts) {
+      return true;
+    }
+    
+    timestamps.push(now);
+    this.requests.set(prefixKey, timestamps);
+    return false;
+  }
+
+  // Rate limit by validated API key ID (after successful auth)
+  isRateLimitedById(apiKeyId: string): boolean {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    const idKey = `id:${apiKeyId}`;
+    
+    let timestamps = this.requests.get(idKey) || [];
+    timestamps = timestamps.filter(t => t > windowStart);
+    
+    if (timestamps.length >= this.maxRequests) {
+      return true;
+    }
+    
+    timestamps.push(now);
+    this.requests.set(idKey, timestamps);
+    return false;
+  }
+  
+  // Cleanup old entries periodically
+  cleanup() {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    
+    for (const [key, timestamps] of this.requests.entries()) {
+      const filtered = timestamps.filter(t => t > windowStart);
+      if (filtered.length === 0) {
+        this.requests.delete(key);
+      } else {
+        this.requests.set(key, filtered);
+      }
+    }
+  }
+}
+
+const merchantRateLimiter = new MerchantRateLimiter();
+
+// Cleanup rate limiter every 5 minutes
+setInterval(() => {
+  merchantRateLimiter.cleanup();
+}, 5 * 60 * 1000);
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Diagnostic endpoint to check session status (temporary for debugging)
@@ -2844,17 +2910,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate a secure random API key
       const crypto = await import('crypto');
-      const apiKey = `goablp_${crypto.randomBytes(32).toString('hex')}`;
+      const plaintextKey = `goablp_${crypto.randomBytes(32).toString('hex')}`;
+      
+      // Hash the key using bcrypt (same cost factor as passwords)
+      const hashedKey = await bcrypt.hash(plaintextKey, 10);
+      
+      // Store first 12 characters as key prefix for display purposes
+      const keyPrefix = plaintextKey.substring(0, 12);
 
       const newKey = await storage.createMerchantApiKey({
         userId,
-        apiKey,
+        keyPrefix,
+        hashedApiKey: hashedKey,
         name,
         description: description || null,
         isActive: true,
       });
 
-      res.status(201).json(newKey);
+      // IMPORTANT: Return the plaintext key ONLY ONCE at creation
+      // This is the only time the user will see the full key
+      res.status(201).json({
+        ...newKey,
+        apiKey: plaintextKey, // Plaintext key for user to save
+        warning: "Save this API key now. You won't be able to see it again!"
+      });
     } catch (error: any) {
       console.error("Error creating merchant API key:", error);
       res.status(500).json({ message: "Failed to create API key" });
@@ -2919,14 +2998,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
       
-      // Validate API key
+      // SECURITY: Rate limit by prefix BEFORE bcrypt validation (prevents DoS)
+      const keyPrefix = apiKey.substring(0, 12);
+      if (merchantRateLimiter.isRateLimitedByPrefix(keyPrefix)) {
+        return res.status(429).json({ 
+          error: "Rate limit exceeded",
+          message: "Too many requests. Please try again later."
+        });
+      }
+      
+      // Validate API key (single bcrypt comparison using prefix optimization)
       const merchantKey = await storage.getMerchantApiKey(apiKey);
       if (!merchantKey) {
         return res.status(401).json({ error: "Invalid API key" });
       }
 
-      // Update API key usage statistics
-      await storage.updateMerchantApiKeyUsage(apiKey);
+      // Check validated key rate limiting (60 requests per minute per API key)
+      if (merchantRateLimiter.isRateLimitedById(merchantKey.id)) {
+        return res.status(429).json({ 
+          error: "Rate limit exceeded",
+          message: "Maximum 60 requests per minute. Please try again later."
+        });
+      }
+
+      // Update API key usage statistics (optimized - no second bcrypt call)
+      await storage.updateMerchantApiKeyUsageById(merchantKey.id);
 
       // Parse request body
       const {

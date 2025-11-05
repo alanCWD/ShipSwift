@@ -105,6 +105,7 @@ export interface IStorage {
   updateMerchantApiKey(id: string, updates: Partial<MerchantApiKey>): Promise<MerchantApiKey>;
   deleteMerchantApiKey(id: string): Promise<void>;
   updateMerchantApiKeyUsage(apiKey: string): Promise<void>;
+  updateMerchantApiKeyUsageById(keyId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -724,14 +725,27 @@ export class DatabaseStorage implements IStorage {
 
   // Merchant API Key operations
   async getMerchantApiKey(apiKey: string): Promise<MerchantApiKey | undefined> {
-    const [key] = await db
+    // Extract keyPrefix from the provided key (first 12 chars)
+    const keyPrefix = apiKey.substring(0, 12);
+    
+    // Query only keys with matching prefix to narrow the search
+    const keys = await db
       .select()
       .from(merchantApiKeys)
       .where(and(
-        eq(merchantApiKeys.apiKey, apiKey),
+        eq(merchantApiKeys.keyPrefix, keyPrefix),
         eq(merchantApiKeys.isActive, true)
       ));
-    return key;
+    
+    // Compare provided key against only the narrowed set (typically 0-1 keys)
+    for (const key of keys) {
+      const isMatch = await bcrypt.compare(apiKey, key.hashedApiKey);
+      if (isMatch) {
+        return key;
+      }
+    }
+    
+    return undefined;
   }
 
   async getMerchantApiKeysByUser(userId: string): Promise<MerchantApiKey[]> {
@@ -772,13 +786,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMerchantApiKeyUsage(apiKey: string): Promise<void> {
+    // Find the matching API key first (using hash comparison)
+    const matchedKey = await this.getMerchantApiKey(apiKey);
+    if (!matchedKey) {
+      return; // Key not found or inactive
+    }
+    
+    // Update usage stats for the matched key
     await db
       .update(merchantApiKeys)
       .set({
         lastUsedAt: new Date(),
         requestCount: sql`${merchantApiKeys.requestCount} + 1`,
       })
-      .where(eq(merchantApiKeys.apiKey, apiKey));
+      .where(eq(merchantApiKeys.id, matchedKey.id));
+  }
+  
+  // Optimized version that accepts the already-validated key object
+  async updateMerchantApiKeyUsageById(keyId: string): Promise<void> {
+    await db
+      .update(merchantApiKeys)
+      .set({
+        lastUsedAt: new Date(),
+        requestCount: sql`${merchantApiKeys.requestCount} + 1`,
+      })
+      .where(eq(merchantApiKeys.id, keyId));
   }
 }
 

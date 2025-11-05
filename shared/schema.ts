@@ -175,7 +175,8 @@ export const returns = pgTable("returns", {
 export const merchantApiKeys = pgTable("merchant_api_keys", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  apiKey: varchar("api_key").unique().notNull(),
+  keyPrefix: varchar("key_prefix").notNull(), // First 12 chars of the key (e.g., "goablp_abc12") for display and prefix-based rate limiting
+  hashedApiKey: varchar("hashed_api_key").notNull(), // Bcrypt hash of the API key - never exposed
   name: varchar("name").notNull(), // Friendly name, e.g., "My WooCommerce Store"
   description: text("description"), // Optional description
   isActive: boolean("is_active").default(true),
