@@ -45,6 +45,8 @@ Preferred communication style: Simple, everyday language.
 - **API Credentials Validation**: Automatic `.trim()` sanitization for all API credentials to prevent authentication failures.
 - **Iframe Embedding Support**: Full cross-origin iframe compatibility with CORS headers and session configuration.
 - **Canadian Tax Calculation**: Local tax calculation service using official 2025 provincial tax rates (destination-based). Calculates and validates taxes to ensure 100% accuracy, overriding API-provided taxes when necessary. Supports GST (5%), HST (13% ON, 15% Atlantic), and GST+QST (14.975% QC). Tax calculations are logged for transparency and auditing.
+- **Merchant API System**: Secure API key management for external e-commerce integrations. Allows merchants to generate API keys and fetch real-time shipping rates for platforms like WooCommerce, Shopify, and others via authenticated REST API endpoint.
+- **WooCommerce Plugin**: Complete WordPress plugin providing real-time multi-carrier shipping rates at checkout. Features smart caching, fallback rates, debug logging, and delivery time display. Available in `/woocommerce-plugin/` directory.
 
 # External Dependencies
 
