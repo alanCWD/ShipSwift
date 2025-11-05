@@ -72,11 +72,8 @@ export default function ApiKeysPage() {
 
   const createKeyMutation = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
-      return await apiRequest<CreatedApiKeyResponse>('/api/merchant/keys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest('POST', '/api/merchant/keys', data);
+      return await res.json() as CreatedApiKeyResponse;
     },
     onSuccess: (data: CreatedApiKeyResponse) => {
       queryClient.invalidateQueries({ queryKey: ['/api/merchant/keys'] });
@@ -106,9 +103,7 @@ export default function ApiKeysPage() {
 
   const deleteKeyMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/merchant/keys/${id}`, {
-        method: 'DELETE',
-      });
+      await apiRequest('DELETE', `/api/merchant/keys/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/merchant/keys'] });
@@ -128,11 +123,7 @@ export default function ApiKeysPage() {
 
   const toggleKeyMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return await apiRequest(`/api/merchant/keys/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive }),
-      });
+      await apiRequest('PUT', `/api/merchant/keys/${id}`, { isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/merchant/keys'] });
