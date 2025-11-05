@@ -171,6 +171,20 @@ export const returns = pgTable("returns", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Merchant API Keys (for external integrations like WooCommerce)
+export const merchantApiKeys = pgTable("merchant_api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  apiKey: varchar("api_key").unique().notNull(),
+  name: varchar("name").notNull(), // Friendly name, e.g., "My WooCommerce Store"
+  description: text("description"), // Optional description
+  isActive: boolean("is_active").default(true),
+  lastUsedAt: timestamp("last_used_at"),
+  requestCount: integer("request_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -207,6 +221,14 @@ export const insertUserActivitySchema = createInsertSchema(userActivity).omit({
   createdAt: true,
 });
 
+export const insertMerchantApiKeySchema = createInsertSchema(merchantApiKeys).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastUsedAt: true,
+  requestCount: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -220,3 +242,5 @@ export type RateMarkup = typeof rateMarkups.$inferSelect;
 export type InsertRateMarkup = z.infer<typeof insertRateMarkupSchema>;
 export type Return = typeof returns.$inferSelect;
 export type InsertReturn = z.infer<typeof insertReturnSchema>;
+export type MerchantApiKey = typeof merchantApiKeys.$inferSelect;
+export type InsertMerchantApiKey = z.infer<typeof insertMerchantApiKeySchema>;

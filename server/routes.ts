@@ -2818,6 +2818,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== MERCHANT API KEY MANAGEMENT ROUTES (ADMIN ONLY) =====
+  
+  // Get all API keys for current user
+  app.get("/api/merchant/keys", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const keys = await storage.getMerchantApiKeysByUser(userId);
+      res.json(keys);
+    } catch (error: any) {
+      console.error("Error fetching merchant API keys:", error);
+      res.status(500).json({ message: "Failed to fetch API keys" });
+    }
+  });
+
+  // Create new API key
+  app.post("/api/merchant/keys", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { name, description } = req.body;
+
+      if (!name) {
+        return res.status(400).json({ message: "API key name is required" });
+      }
+
+      // Generate a secure random API key
+      const crypto = await import('crypto');
+      const apiKey = `goablp_${crypto.randomBytes(32).toString('hex')}`;
+
+      const newKey = await storage.createMerchantApiKey({
+        userId,
+        apiKey,
+        name,
+        description: description || null,
+        isActive: true,
+      });
+
+      res.status(201).json(newKey);
+    } catch (error: any) {
+      console.error("Error creating merchant API key:", error);
+      res.status(500).json({ message: "Failed to create API key" });
+    }
+  });
+
+  // Update API key (toggle active status or update description)
+  app.put("/api/merchant/keys/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const updates = req.body;
+
+      // Verify ownership
+      const keys = await storage.getMerchantApiKeysByUser(userId);
+      const keyExists = keys.find(k => k.id === id);
+      
+      if (!keyExists) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+
+      const updatedKey = await storage.updateMerchantApiKey(id, updates);
+      res.json(updatedKey);
+    } catch (error: any) {
+      console.error("Error updating merchant API key:", error);
+      res.status(500).json({ message: "Failed to update API key" });
+    }
+  });
+
+  // Delete API key
+  app.delete("/api/merchant/keys/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      // Verify ownership
+      const keys = await storage.getMerchantApiKeysByUser(userId);
+      const keyExists = keys.find(k => k.id === id);
+      
+      if (!keyExists) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+
+      await storage.deleteMerchantApiKey(id);
+      res.json({ message: "API key deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting merchant API key:", error);
+      res.status(500).json({ message: "Failed to delete API key" });
+    }
+  });
+
+  // ===== PUBLIC MERCHANT API ENDPOINT (FOR WOOCOMMERCE, ETC.) =====
+  
+  // Merchant API rate endpoint - authenticated via API key
+  app.post("/api/v1/merchant/rates", async (req, res) => {
+    try {
+      // Extract API key from Authorization header
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Missing or invalid Authorization header" });
+      }
+
+      const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
+      
+      // Validate API key
+      const merchantKey = await storage.getMerchantApiKey(apiKey);
+      if (!merchantKey) {
+        return res.status(401).json({ error: "Invalid API key" });
+      }
+
+      // Update API key usage statistics
+      await storage.updateMerchantApiKeyUsage(apiKey);
+
+      // Parse request body
+      const {
+        origin,
+        destination,
+        package: pkg,
+        shipmentType = 'package'
+      } = req.body;
+
+      // Validate required fields
+      if (!origin?.postalCode || !destination?.postalCode) {
+        return res.status(400).json({ 
+          error: "Missing required fields: origin.postalCode and destination.postalCode are required" 
+        });
+      }
+
+      if (!pkg?.weight || !pkg?.length || !pkg?.width || !pkg?.height) {
+        return res.status(400).json({ 
+          error: "Missing required package dimensions: weight, length, width, height" 
+        });
+      }
+
+      // Import rate services
+      const { rateAggregator } = await import('./services/rate-aggregator');
+
+      // Fetch rates from aggregator
+      const requestBody = {
+        fromCountry: origin.country || 'CA',
+        fromPostalCode: origin.postalCode,
+        toCountry: destination.country || 'CA',
+        toPostalCode: destination.postalCode,
+        shipmentType,
+        packageDetails: {
+          length: pkg.length,
+          width: pkg.width,
+          height: pkg.height,
+          weight: pkg.weight,
+        },
+        // Add full address details if provided (needed for pallet/LTL)
+        ...(origin.address && {
+          fromAddress: {
+            company: origin.company || '',
+            streetAddress: origin.address,
+            city: origin.city || '',
+            state: origin.province || origin.state || '',
+            phone: origin.phone || '',
+            attention: origin.attention || origin.company || ''
+          }
+        }),
+        ...(destination.address && {
+          toAddress: {
+            company: destination.company || '',
+            streetAddress: destination.address,
+            city: destination.city || '',
+            state: destination.province || destination.state || '',
+            phone: destination.phone || '',
+            attention: destination.attention || destination.company || ''
+          }
+        })
+      };
+
+      const aggregatedRates = await rateAggregator.getAggregatedRates(requestBody);
+
+      // Format response for WooCommerce compatibility
+      const formattedRates = aggregatedRates.rates.map((rate: any) => ({
+        service_name: `${rate.carrier} - ${rate.service}`,
+        service_code: rate.service.replace(/\s+/g, '_').toUpperCase(),
+        total_price: rate.totalPrice.toFixed(2),
+        currency: 'CAD',
+        delivery_days: rate.deliveryDays || null,
+        description: rate.deliveryDays ? `Estimated ${rate.deliveryDays} business days` : undefined,
+        carrier: rate.carrier,
+        details: {
+          base_price: rate.basePrice.toFixed(2),
+          fuel_surcharge: rate.fuelSurcharge?.toFixed(2) || '0.00',
+          taxes: rate.taxes.toFixed(2),
+          total: rate.totalPrice.toFixed(2)
+        }
+      }));
+
+      res.json({
+        success: true,
+        rates: formattedRates,
+        count: formattedRates.length
+      });
+
+    } catch (error: any) {
+      console.error("Merchant API error:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch shipping rates",
+        message: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

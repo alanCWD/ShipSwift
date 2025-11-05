@@ -6,6 +6,7 @@ import {
   rateMarkups,
   returns,
   systemSettings,
+  merchantApiKeys,
   type User,
   type InsertUser,
   type UserActivity,
@@ -18,6 +19,8 @@ import {
   type InsertRateMarkup,
   type Return,
   type InsertReturn,
+  type MerchantApiKey,
+  type InsertMerchantApiKey,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, or, count, sum, sql, ne, gt } from "drizzle-orm";
@@ -94,6 +97,14 @@ export interface IStorage {
     lastLoginAt: Date | null;
     loginCount: number;
   }>;
+  
+  // Merchant API Key operations
+  getMerchantApiKey(apiKey: string): Promise<MerchantApiKey | undefined>;
+  getMerchantApiKeysByUser(userId: string): Promise<MerchantApiKey[]>;
+  createMerchantApiKey(apiKeyData: InsertMerchantApiKey): Promise<MerchantApiKey>;
+  updateMerchantApiKey(id: string, updates: Partial<MerchantApiKey>): Promise<MerchantApiKey>;
+  deleteMerchantApiKey(id: string): Promise<void>;
+  updateMerchantApiKeyUsage(apiKey: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -709,6 +720,65 @@ export class DatabaseStorage implements IStorage {
       .from(shipments)
       .where(eq(shipments.trackingNumber, trackingNumber));
     return shipment;
+  }
+
+  // Merchant API Key operations
+  async getMerchantApiKey(apiKey: string): Promise<MerchantApiKey | undefined> {
+    const [key] = await db
+      .select()
+      .from(merchantApiKeys)
+      .where(and(
+        eq(merchantApiKeys.apiKey, apiKey),
+        eq(merchantApiKeys.isActive, true)
+      ));
+    return key;
+  }
+
+  async getMerchantApiKeysByUser(userId: string): Promise<MerchantApiKey[]> {
+    return await db
+      .select()
+      .from(merchantApiKeys)
+      .where(eq(merchantApiKeys.userId, userId))
+      .orderBy(desc(merchantApiKeys.createdAt));
+  }
+
+  async createMerchantApiKey(apiKeyData: InsertMerchantApiKey): Promise<MerchantApiKey> {
+    const [key] = await db
+      .insert(merchantApiKeys)
+      .values({
+        ...apiKeyData,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return key;
+  }
+
+  async updateMerchantApiKey(id: string, updates: Partial<MerchantApiKey>): Promise<MerchantApiKey> {
+    const [key] = await db
+      .update(merchantApiKeys)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(merchantApiKeys.id, id))
+      .returning();
+    return key;
+  }
+
+  async deleteMerchantApiKey(id: string): Promise<void> {
+    await db
+      .delete(merchantApiKeys)
+      .where(eq(merchantApiKeys.id, id));
+  }
+
+  async updateMerchantApiKeyUsage(apiKey: string): Promise<void> {
+    await db
+      .update(merchantApiKeys)
+      .set({
+        lastUsedAt: new Date(),
+        requestCount: sql`${merchantApiKeys.requestCount} + 1`,
+      })
+      .where(eq(merchantApiKeys.apiKey, apiKey));
   }
 }
 
