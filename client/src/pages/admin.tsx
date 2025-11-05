@@ -45,10 +45,11 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="settings">API & System Settings</TabsTrigger>
             <TabsTrigger value="markups">Intelligent Markup Rules</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="merchant-keys">Merchant API Keys</TabsTrigger>
           </TabsList>
           
           <TabsContent value="settings">
@@ -61,6 +62,20 @@ export default function Admin() {
           
           <TabsContent value="users">
             <AdminUsers />
+          </TabsContent>
+          
+          <TabsContent value="merchant-keys">
+            <div className="p-2">
+              <p className="text-gray-600 mb-4">
+                Manage API keys for external integrations like WooCommerce. These keys allow e-commerce platforms to fetch shipping rates in real-time.
+              </p>
+              <a 
+                href="/admin/api-keys" 
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+              >
+                Go to API Key Management →
+              </a>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
