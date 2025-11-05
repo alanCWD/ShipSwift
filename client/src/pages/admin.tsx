@@ -6,6 +6,7 @@ import Footer from '../components/layout/footer';
 import SettingsPanel from '../components/admin/settings-panel';
 import AdvancedMarkupConfig from '../components/admin/advanced-markup-config';
 import AdminUsers from './admin/users';
+import ApiKeysPage from './admin/api-keys';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Admin() {
@@ -65,17 +66,7 @@ export default function Admin() {
           </TabsContent>
           
           <TabsContent value="merchant-keys">
-            <div className="p-2">
-              <p className="text-gray-600 mb-4">
-                Manage API keys for external integrations like WooCommerce. These keys allow e-commerce platforms to fetch shipping rates in real-time.
-              </p>
-              <a 
-                href="/admin/api-keys" 
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-              >
-                Go to API Key Management →
-              </a>
-            </div>
+            <ApiKeysPage />
           </TabsContent>
         </Tabs>
       </div>
