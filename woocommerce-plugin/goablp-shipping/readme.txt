@@ -4,7 +4,7 @@ Tags: shipping, canada post, woocommerce, shipping rates, canada, purolator, ups
 Requires at least: 5.8
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,14 +110,18 @@ Rates are cached for 15 minutes by default (configurable in settings). This redu
 
 == Changelog ==
 
-= 1.0.0 - 2025-11-06 =
+= 1.0.8 - 2025-11-06 =
+* Fixed: JavaScript not loading on shipping zone settings modal
+* Fixed: Test API Connection button now works properly in all contexts
+* Improved: Script enqueuing to support both main settings page and zone modals
+
+= 1.0.7 - 2025-11-06 =
+* Added: Test API Connection button with AJAX handler
+* Added: External JavaScript file with comprehensive error handling
+* Improved: Settings page layout and user experience
+
+= 1.0.0 - 2025-11-01 =
 * Initial release
-* Multi-carrier real-time shipping rates
-* Support for Canadian and US destinations
-* Smart rate caching
-* Fallback rate option
-* Debug logging
-* Delivery time display
 
 == Upgrade Notice ==
 

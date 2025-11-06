@@ -147,8 +147,18 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
-        // Only load on WooCommerce settings pages
-        if ('woocommerce_page_wc-settings' !== $hook) {
+        // Load on WooCommerce settings pages (including shipping zone modals)
+        $allowed_hooks = array(
+            'woocommerce_page_wc-settings',
+            'admin_page_wc-settings',
+        );
+        
+        // Also check if we're on the settings page via query params
+        $is_wc_settings = (
+            isset($_GET['page']) && $_GET['page'] === 'wc-settings'
+        );
+        
+        if (!in_array($hook, $allowed_hooks) && !$is_wc_settings) {
             return;
         }
         
@@ -157,7 +167,7 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
             'goablp-admin',
             plugins_url('assets/js/admin.js', dirname(__FILE__)),
             array('jquery'),
-            '1.0.6',
+            '1.0.8',
             true
         );
         
