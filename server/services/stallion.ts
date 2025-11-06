@@ -234,7 +234,7 @@ export class StallionService {
       size_unit: 'cm', // Metric units (matching our standard)
       package_type: 'Parcel', // Standard package type for Stallion
       items: [{
-        description: packageDetails.description || 'General Merchandise',
+        description: packageDetails.description || 'Package',
         quantity: 1,
         value: declaredValue,
         weight: weight,
