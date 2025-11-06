@@ -147,27 +147,21 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
-        // Load on WooCommerce settings pages (including shipping zone modals)
-        $allowed_hooks = array(
-            'woocommerce_page_wc-settings',
-            'admin_page_wc-settings',
-        );
+        // Always load on admin pages for debugging
+        // We'll check if we're on WooCommerce settings in JavaScript instead
+        global $pagenow;
         
-        // Also check if we're on the settings page via query params
-        $is_wc_settings = (
-            isset($_GET['page']) && $_GET['page'] === 'wc-settings'
-        );
-        
-        if (!in_array($hook, $allowed_hooks) && !$is_wc_settings) {
+        // Only load on admin pages
+        if (!is_admin()) {
             return;
         }
         
-        // Enqueue the admin JavaScript file
+        // Enqueue the admin JavaScript file with cache busting
         wp_enqueue_script(
             'goablp-admin',
             plugins_url('assets/js/admin.js', dirname(__FILE__)),
             array('jquery'),
-            '1.0.8',
+            '1.0.8-' . time(), // Cache busting
             true
         );
         
@@ -175,6 +169,11 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         wp_localize_script('goablp-admin', 'goablp_admin', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('goablp_test_connection'),
+            'debug'    => array(
+                'hook' => $hook,
+                'pagenow' => $pagenow,
+                'is_wc_settings' => (isset($_GET['page']) && $_GET['page'] === 'wc-settings'),
+            ),
         ));
     }
     
