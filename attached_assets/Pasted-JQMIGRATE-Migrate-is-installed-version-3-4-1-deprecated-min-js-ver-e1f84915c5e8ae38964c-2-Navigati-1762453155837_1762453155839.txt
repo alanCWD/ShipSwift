@@ -1,0 +1,32 @@
+JQMIGRATE: Migrate is installed, version 3.4.1
+deprecated.min.js?ver=e1f84915c5e8ae38964c:2 Navigation store is deprecated.
+i @ deprecated.min.js?ver=e1f84915c5e8ae38964c:2
+t.<computed> @ index.js?ver=16f5ad62bf91f83eb490:2
+(anonymous) @ data.min.js?ver=fe6c4835cd00e12493c3:2
+(anonymous) @ index.js?ver=16f5ad62bf91f83eb490:2
+setTimeout
+(anonymous) @ index.js?ver=16f5ad62bf91f83eb490:2
+N.window.wcNavigation.historyPatched.e.pushState @ index.js?ver=cc18d1034647e047b447:1
+onSaveResponse @ wc-shipping-zone-methods.min.js?ver=10.3.4:1
+(anonymous) @ wc-shipping-zone-methods.min.js?ver=10.3.4:1
+c @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+fireWith @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+l @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+(anonymous) @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+XMLHttpRequest.send
+send @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+ajax @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+(anonymous) @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:7
+e.<computed> @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:7
+ce.<computed> @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+onConfigureShippingMethodSubmitted @ wc-shipping-zone-methods.min.js?ver=10.3.4:1
+dispatch @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+v.handle @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+trigger @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+(anonymous) @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+each @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+each @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+trigger @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+addButton @ backbone-modal.min.js?ver=10.3.4:1
+dispatch @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4
+v.handle @ load-scripts.php?c=0&load%5Bchunk_0%5D=wp-hooks,jquery-core,jquery-migrate,utils,jquery-ui-core,jquery-ui-mouse,wp-polyfill,jquery-ui-sortable&ver=6.8.3:4Understand this warning
