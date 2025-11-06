@@ -52,7 +52,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Shipping Integration
 - **ShipTime API**: Primary API for rates, label generation, and tracking. Supports Canada Post, Purolator, UPS, FedEx, DHL, Canpar, Loomis, GLS.
-- **Stallion Express API**: Integrated for competitive parcel rates.
+- **Stallion Express API**: Integrated for competitive parcel rates. **IMPORTANT**: Stallion has strict content validation for item descriptions. Safe default is "Package" - avoid terms like "General Merchandise" or "Parcel" which may be flagged as prohibited content.
 
 ## Database & Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting.
