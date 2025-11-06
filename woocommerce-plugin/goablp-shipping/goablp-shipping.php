@@ -3,7 +3,7 @@
  * Plugin Name: GoABLP Shipping
  * Plugin URI: https://goablp.com
  * Description: Real-time shipping rates from GoABLP for Canadian and US shipments. Get competitive rates from Canada Post, Purolator, UPS, FedEx, DHL, and more.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: ABLP Logistics
  * Author URI: https://ablplogistics.com
  * License: GPL v2 or later
@@ -112,7 +112,13 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'goablp_add_setti
  * AJAX handler for testing API connection
  */
 function goablp_test_connection_ajax() {
-    check_ajax_referer('goablp_test_connection', 'nonce');
+    // Verify nonce for security
+    if (!check_ajax_referer('goablp_test_connection', 'nonce', false)) {
+        wp_send_json_error(array(
+            'message' => __('Security check failed. Please refresh the page and try again.', 'goablp-shipping')
+        ));
+        wp_die();
+    }
     
     $api_url = isset($_POST['api_url']) ? sanitize_text_field($_POST['api_url']) : '';
     $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
@@ -121,6 +127,7 @@ function goablp_test_connection_ajax() {
         wp_send_json_error(array(
             'message' => __('Please enter both API URL and API Key before testing.', 'goablp-shipping')
         ));
+        wp_die();
     }
     
     // Test API connection with a simple request
@@ -140,29 +147,36 @@ function goablp_test_connection_ajax() {
             ),
         )),
         'timeout' => 30,
+        'sslverify' => true,
     ));
     
     if (is_wp_error($response)) {
         wp_send_json_error(array(
             'message' => sprintf(__('Connection failed: %s', 'goablp-shipping'), $response->get_error_message())
         ));
+        wp_die();
     }
     
     $status_code = wp_remote_retrieve_response_code($response);
     $body = wp_remote_retrieve_body($response);
     
     if ($status_code === 200) {
+        $decoded = json_decode($body, true);
+        $rate_count = isset($decoded['rates']) ? count($decoded['rates']) : 0;
         wp_send_json_success(array(
-            'message' => __('✓ Connection successful! API is responding correctly.', 'goablp-shipping')
+            'message' => sprintf(__('✓ Connection successful! API returned %d shipping rates.', 'goablp-shipping'), $rate_count)
         ));
+        wp_die();
     } elseif ($status_code === 401) {
         wp_send_json_error(array(
             'message' => __('Authentication failed. Please check your API key.', 'goablp-shipping')
         ));
+        wp_die();
     } elseif ($status_code === 429) {
         wp_send_json_error(array(
             'message' => __('Rate limit exceeded. Please wait a moment and try again.', 'goablp-shipping')
         ));
+        wp_die();
     } else {
         $error_message = '';
         $decoded_body = json_decode($body, true);
@@ -174,9 +188,10 @@ function goablp_test_connection_ajax() {
             'message' => sprintf(
                 __('Connection failed with status %d: %s', 'goablp-shipping'),
                 $status_code,
-                $error_message ?: __('Unknown error', 'goablp-shipping')
+                $error_message ?: $body
             )
         ));
+        wp_die();
     }
 }
 add_action('wp_ajax_goablp_test_connection', 'goablp_test_connection_ajax');
