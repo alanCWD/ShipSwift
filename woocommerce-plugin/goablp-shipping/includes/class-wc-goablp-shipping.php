@@ -178,14 +178,22 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
                             api_key: apiKey
                         },
                         success: function(response) {
-                            if (response.success) {
+                            console.log("GoABLP Test Response:", response);
+                            if (response && response.success) {
                                 $result.html("<div style=\"padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px;\">" + response.data.message + "</div>");
-                            } else {
+                            } else if (response && response.data && response.data.message) {
                                 $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">" + response.data.message + "</div>");
+                            } else {
+                                $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">Unexpected response format. Check browser console for details.</div>");
                             }
                         },
                         error: function(xhr, status, error) {
-                            $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">An unexpected error occurred: " + error + "</div>");
+                            console.log("GoABLP Test Error:", {xhr: xhr, status: status, error: error, responseText: xhr.responseText});
+                            var errorMsg = "AJAX error: " + error;
+                            if (xhr.responseText) {
+                                errorMsg += "<br><small>Response: " + xhr.responseText.substring(0, 200) + "</small>";
+                            }
+                            $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">" + errorMsg + "</div>");
                         },
                         complete: function() {
                             $button.prop("disabled", false).text("' . __('Test API Connection', 'goablp-shipping') . '");
