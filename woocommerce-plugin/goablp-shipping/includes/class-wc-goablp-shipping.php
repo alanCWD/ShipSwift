@@ -37,10 +37,10 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
      * Initialize settings
      */
     public function init() {
-        $this->init_form_fields();
-        $this->init_settings();
+        // Initialize instance form fields for shipping zones
+        $this->instance_form_fields = $this->get_instance_form_fields();
         
-        // Get settings
+        // Get settings - use instance settings for shipping zones
         $this->enabled              = $this->get_option('enabled');
         $this->title                = $this->get_option('title');
         $this->api_url              = $this->get_option('api_url');
@@ -51,15 +51,15 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         $this->cache_duration       = $this->get_option('cache_duration', 15);
         $this->show_delivery_time   = $this->get_option('show_delivery_time');
         
-        // Save settings hook
-        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
+        // Add JavaScript for test connection button
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
     
     /**
-     * Define settings form fields
+     * Define instance form fields for shipping zones
      */
-    public function init_form_fields() {
-        $this->form_fields = array(
+    public function get_instance_form_fields() {
+        return array(
             'enabled' => array(
                 'title'   => __('Enable/Disable', 'goablp-shipping'),
                 'type'    => 'checkbox',
@@ -134,6 +134,29 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
                 'desc_tip'    => true,
             ),
         );
+    }
+    
+    /**
+     * Enqueue admin scripts for test connection
+     */
+    public function enqueue_admin_scripts($hook) {
+        // Only load on shipping settings page
+        if ('woocommerce_page_wc-settings' !== $hook) {
+            return;
+        }
+        
+        wp_enqueue_script(
+            'goablp-admin',
+            plugins_url('assets/admin.js', dirname(__FILE__)),
+            array('jquery'),
+            '1.0.1',
+            true
+        );
+        
+        wp_localize_script('goablp-admin', 'goablp_admin', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('goablp_test_connection'),
+        ));
     }
     
     /**
