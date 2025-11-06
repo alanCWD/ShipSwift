@@ -50,9 +50,6 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         $this->debug_mode           = $this->get_option('debug_mode');
         $this->cache_duration       = $this->get_option('cache_duration', 15);
         $this->show_delivery_time   = $this->get_option('show_delivery_time');
-        
-        // Add JavaScript for test connection button
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
     
     /**
@@ -91,7 +88,7 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
             'test_connection' => array(
                 'title'       => __('Test Connection', 'goablp-shipping'),
                 'type'        => 'title',
-                'description' => '<button type="button" class="button" id="goablp_test_connection">' . __('Test API Connection', 'goablp-shipping') . '</button><div id="goablp_test_result" style="margin-top: 10px;"></div>',
+                'description' => $this->get_test_connection_html(),
             ),
             'fallback_enabled' => array(
                 'title'       => __('Enable Fallback Rate', 'goablp-shipping'),
@@ -137,26 +134,67 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
     }
     
     /**
-     * Enqueue admin scripts for test connection
+     * Get HTML for test connection button with inline JavaScript
      */
-    public function enqueue_admin_scripts($hook) {
-        // Only load on shipping settings page
-        if ('woocommerce_page_wc-settings' !== $hook) {
-            return;
-        }
+    private function get_test_connection_html() {
+        $ajax_url = admin_url('admin-ajax.php');
+        $nonce = wp_create_nonce('goablp_test_connection');
         
-        wp_enqueue_script(
-            'goablp-admin',
-            plugins_url('assets/admin.js', dirname(__FILE__)),
-            array('jquery'),
-            '1.0.1',
-            true
-        );
-        
-        wp_localize_script('goablp-admin', 'goablp_admin', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('goablp_test_connection'),
-        ));
+        return '
+            <button type="button" class="button" id="goablp_test_connection">' . __('Test API Connection', 'goablp-shipping') . '</button>
+            <div id="goablp_test_result" style="margin-top: 10px;"></div>
+            <script>
+            jQuery(document).ready(function($) {
+                $("#goablp_test_connection").off("click").on("click", function(e) {
+                    e.preventDefault();
+                    var $button = $(this);
+                    var $result = $("#goablp_test_result");
+                    var $form = $button.closest("form");
+                    
+                    // Get API credentials from form
+                    var apiUrl = $form.find("input[name*=\"api_url\"]").val();
+                    var apiKey = $form.find("input[name*=\"api_key\"]").val();
+                    
+                    // Clear previous results
+                    $result.html("");
+                    
+                    // Validate inputs
+                    if (!apiUrl || !apiKey) {
+                        $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">Please enter both API URL and API Key before testing.</div>");
+                        return;
+                    }
+                    
+                    // Disable button and show loading
+                    $button.prop("disabled", true).text("Testing...");
+                    
+                    // Send AJAX request
+                    $.ajax({
+                        url: "' . $ajax_url . '",
+                        type: "POST",
+                        data: {
+                            action: "goablp_test_connection",
+                            nonce: "' . $nonce . '",
+                            api_url: apiUrl,
+                            api_key: apiKey
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $result.html("<div style=\"padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px;\">" + response.data.message + "</div>");
+                            } else {
+                                $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">" + response.data.message + "</div>");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">An unexpected error occurred: " + error + "</div>");
+                        },
+                        complete: function() {
+                            $button.prop("disabled", false).text("' . __('Test API Connection', 'goablp-shipping') . '");
+                        }
+                    });
+                });
+            });
+            </script>
+        ';
     }
     
     /**
