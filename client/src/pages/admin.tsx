@@ -46,11 +46,21 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="settings">API & System Settings</TabsTrigger>
-            <TabsTrigger value="markups">Intelligent Markup Rules</TabsTrigger>
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="merchant-keys">Merchant API Keys</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 h-auto p-2">
+            <TabsTrigger value="settings" className="h-auto py-3" data-testid="tab-settings">
+              API & System Settings
+            </TabsTrigger>
+            <TabsTrigger value="markups" className="h-auto py-3" data-testid="tab-markups">
+              Intelligent Markup Rules
+            </TabsTrigger>
+            <TabsTrigger value="users" className="h-auto py-3" data-testid="tab-users">
+              User Management
+            </TabsTrigger>
+            {user.role === 'ablp_admin' && (
+              <TabsTrigger value="merchant-keys" className="h-auto py-3" data-testid="tab-merchant-keys">
+                Merchant API Keys
+              </TabsTrigger>
+            )}
           </TabsList>
           
           <TabsContent value="settings">
@@ -65,9 +75,11 @@ export default function Admin() {
             <AdminUsers />
           </TabsContent>
           
-          <TabsContent value="merchant-keys">
-            <ApiKeysPage />
-          </TabsContent>
+          {user.role === 'ablp_admin' && (
+            <TabsContent value="merchant-keys">
+              <ApiKeysPage />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
       
