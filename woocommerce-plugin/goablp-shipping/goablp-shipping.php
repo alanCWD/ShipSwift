@@ -3,7 +3,7 @@
  * Plugin Name: GoABLP Shipping
  * Plugin URI: https://goablp.com
  * Description: Real-time shipping rates from GoABLP for Canadian and US shipments. Get competitive rates from Canada Post, Purolator, UPS, FedEx, DHL, and more.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: ABLP Logistics
  * Author URI: https://ablplogistics.com
  * License: GPL v2 or later

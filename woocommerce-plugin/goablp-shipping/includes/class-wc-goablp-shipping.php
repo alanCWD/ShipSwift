@@ -50,6 +50,9 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         $this->debug_mode           = $this->get_option('debug_mode');
         $this->cache_duration       = $this->get_option('cache_duration', 15);
         $this->show_delivery_time   = $this->get_option('show_delivery_time');
+        
+        // Add test connection JavaScript to admin footer
+        add_action('admin_footer', array($this, 'output_test_connection_script'));
     }
     
     /**
@@ -134,75 +137,85 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
     }
     
     /**
-     * Get HTML for test connection button with inline JavaScript
+     * Get HTML for test connection button (without JavaScript - that's in admin_footer)
      */
     private function get_test_connection_html() {
+        return '<button type="button" class="button" id="goablp_test_connection">' . __('Test API Connection', 'goablp-shipping') . '</button><div id="goablp_test_result" style="margin-top: 10px;"></div>';
+    }
+    
+    /**
+     * Output test connection JavaScript in admin footer
+     */
+    public function output_test_connection_script() {
+        // Only output on WooCommerce settings pages
+        $screen = get_current_screen();
+        if (!$screen || $screen->id !== 'woocommerce_page_wc-settings') {
+            return;
+        }
+        
         $ajax_url = admin_url('admin-ajax.php');
         $nonce = wp_create_nonce('goablp_test_connection');
-        
-        return '
-            <button type="button" class="button" id="goablp_test_connection">' . __('Test API Connection', 'goablp-shipping') . '</button>
-            <div id="goablp_test_result" style="margin-top: 10px;"></div>
-            <script>
-            jQuery(document).ready(function($) {
-                $("#goablp_test_connection").off("click").on("click", function(e) {
-                    e.preventDefault();
-                    var $button = $(this);
-                    var $result = $("#goablp_test_result");
-                    var $form = $button.closest("form");
-                    
-                    // Get API credentials from form
-                    var apiUrl = $form.find("input[name*=\"api_url\"]").val();
-                    var apiKey = $form.find("input[name*=\"api_key\"]").val();
-                    
-                    // Clear previous results
-                    $result.html("");
-                    
-                    // Validate inputs
-                    if (!apiUrl || !apiKey) {
-                        $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">Please enter both API URL and API Key before testing.</div>");
-                        return;
-                    }
-                    
-                    // Disable button and show loading
-                    $button.prop("disabled", true).text("Testing...");
-                    
-                    // Send AJAX request
-                    $.ajax({
-                        url: "' . $ajax_url . '",
-                        type: "POST",
-                        data: {
-                            action: "goablp_test_connection",
-                            nonce: "' . $nonce . '",
-                            api_url: apiUrl,
-                            api_key: apiKey
-                        },
-                        success: function(response) {
-                            console.log("GoABLP Test Response:", response);
-                            if (response && response.success) {
-                                $result.html("<div style=\"padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px;\">" + response.data.message + "</div>");
-                            } else if (response && response.data && response.data.message) {
-                                $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">" + response.data.message + "</div>");
-                            } else {
-                                $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">Unexpected response format. Check browser console for details.</div>");
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.log("GoABLP Test Error:", {xhr: xhr, status: status, error: error, responseText: xhr.responseText});
-                            var errorMsg = "AJAX error: " + error;
-                            if (xhr.responseText) {
-                                errorMsg += "<br><small>Response: " + xhr.responseText.substring(0, 200) + "</small>";
-                            }
-                            $result.html("<div style=\"padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;\">" + errorMsg + "</div>");
-                        },
-                        complete: function() {
-                            $button.prop("disabled", false).text("' . __('Test API Connection', 'goablp-shipping') . '");
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $("#goablp_test_connection").off("click").on("click", function(e) {
+                e.preventDefault();
+                var $button = $(this);
+                var $result = $("#goablp_test_result");
+                var $form = $button.closest("form");
+                
+                // Get API credentials from form
+                var apiUrl = $form.find("input[name*='api_url']").val();
+                var apiKey = $form.find("input[name*='api_key']").val();
+                
+                // Clear previous results
+                $result.html("");
+                
+                // Validate inputs
+                if (!apiUrl || !apiKey) {
+                    $result.html("<div style='padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;'>Please enter both API URL and API Key before testing.</div>");
+                    return;
+                }
+                
+                // Disable button and show loading
+                $button.prop("disabled", true).text("Testing...");
+                
+                // Send AJAX request
+                $.ajax({
+                    url: "<?php echo esc_js($ajax_url); ?>",
+                    type: "POST",
+                    data: {
+                        action: "goablp_test_connection",
+                        nonce: "<?php echo esc_js($nonce); ?>",
+                        api_url: apiUrl,
+                        api_key: apiKey
+                    },
+                    success: function(response) {
+                        console.log("GoABLP Test Response:", response);
+                        if (response && response.success) {
+                            $result.html("<div style='padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px;'>" + response.data.message + "</div>");
+                        } else if (response && response.data && response.data.message) {
+                            $result.html("<div style='padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;'>" + response.data.message + "</div>");
+                        } else {
+                            $result.html("<div style='padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;'>Unexpected response format. Check browser console for details.</div>");
                         }
-                    });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("GoABLP Test Error:", {xhr: xhr, status: status, error: error, responseText: xhr.responseText});
+                        var errorMsg = "AJAX error: " + error;
+                        if (xhr.responseText) {
+                            errorMsg += "<br><small>Response: " + xhr.responseText.substring(0, 200) + "</small>";
+                        }
+                        $result.html("<div style='padding: 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;'>" + errorMsg + "</div>");
+                    },
+                    complete: function() {
+                        $button.prop("disabled", false).text("<?php echo esc_js(__('Test API Connection', 'goablp-shipping')); ?>");
+                    }
                 });
             });
-            </script>
-        ';
+        });
+        </script>
+        <?php
     }
     
     /**
