@@ -1738,6 +1738,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: 'ShipTime API environment (production/sandbox)'
         },
         { 
+          key: 'STRIPE_PUBLISHABLE_KEY', 
+          value: await storage.getSetting('STRIPE_PUBLISHABLE_KEY') || '',
+          description: 'Stripe publishable key'
+        },
+        { 
+          key: 'STRIPE_SECRET_KEY', 
+          value: await storage.getSetting('STRIPE_SECRET_KEY') || '',
+          description: 'Stripe secret key'
+        },
+        { 
+          key: 'STRIPE_ENVIRONMENT', 
+          value: await storage.getSetting('STRIPE_ENVIRONMENT') || 'test',
+          description: 'Stripe environment (test/live)'
+        },
+        { 
           key: 'stallion_api_token', 
           value: await storage.getSetting('stallion_api_token') || '',
           description: 'Stallion Express API token'
