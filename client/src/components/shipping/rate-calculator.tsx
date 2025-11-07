@@ -112,18 +112,49 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
 
   const ratesMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Convert to metric units for API (if needed)
-      let apiLength = parseFloat(data.length);
-      let apiWidth = parseFloat(data.width);
-      let apiHeight = parseFloat(data.height);
-      let apiWeight = parseFloat(data.weight);
+      // Envelope weight validation (max 2 lbs)
+      if (shipmentType === 'envelope') {
+        const weightInLbs = parseFloat(data.weight);
+        if (weightInLbs > 2) {
+          throw new Error('Envelope shipments must be 2 lbs or less');
+        }
+      }
       
-      if (units === 'imperial') {
-        // Convert from imperial to metric for API
-        apiLength = parseFloat(convertToMetric(data.length, 'length'));
-        apiWidth = parseFloat(convertToMetric(data.width, 'length'));
-        apiHeight = parseFloat(convertToMetric(data.height, 'length'));
-        apiWeight = parseFloat(convertToMetric(data.weight, 'weight'));
+      // Map envelope sizes to dimensions (in cm)
+      const envelopeDimensions: { [key: string]: { length: number; width: number; height: number } } = {
+        letter: { length: 21.6, width: 27.9, height: 1 },    // 8.5" × 11"
+        legal: { length: 21.6, width: 35.6, height: 1 },     // 8.5" × 14"
+        large: { length: 22.9, width: 30.5, height: 1 },     // 9" × 12"
+        flat: { length: 24.1, width: 31.8, height: 1 },      // 9.5" × 12.5"
+      };
+      
+      let apiLength: number;
+      let apiWidth: number;
+      let apiHeight: number;
+      let apiWeight: number;
+      
+      if (shipmentType === 'envelope') {
+        // Use pre-defined dimensions from envelope size
+        const dimensions = envelopeDimensions[envelopeSize];
+        apiLength = dimensions.length;
+        apiWidth = dimensions.width;
+        apiHeight = dimensions.height;
+        // Convert weight to kg (envelopes always in lbs in UI)
+        apiWeight = parseFloat(data.weight) * 0.453592;
+      } else {
+        // Package or pallet - use user-provided dimensions
+        apiLength = parseFloat(data.length);
+        apiWidth = parseFloat(data.width);
+        apiHeight = parseFloat(data.height);
+        apiWeight = parseFloat(data.weight);
+        
+        if (units === 'imperial') {
+          // Convert from imperial to metric for API
+          apiLength = parseFloat(convertToMetric(data.length, 'length'));
+          apiWidth = parseFloat(convertToMetric(data.width, 'length'));
+          apiHeight = parseFloat(convertToMetric(data.height, 'length'));
+          apiWeight = parseFloat(convertToMetric(data.weight, 'weight'));
+        }
       }
       
       const packageDetails: any = {
@@ -132,6 +163,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         height: apiHeight,
         weight: apiWeight,
       };
+      
+      // Add envelope size for reference
+      if (shipmentType === 'envelope') {
+        packageDetails.envelopeSize = envelopeSize;
+      }
       
       // Add pallet-specific fields if shipment type is pallet
       if (shipmentType === 'pallet') {

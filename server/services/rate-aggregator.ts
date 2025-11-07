@@ -6,7 +6,7 @@ interface AggregatedRateRequest {
   from: any;
   to: any;
   packageDetails: any;
-  shipmentType?: 'package' | 'pallet';
+  shipmentType?: 'package' | 'pallet' | 'envelope';
 }
 
 interface RateSource {
@@ -14,6 +14,7 @@ interface RateSource {
   enabled: boolean;
   supportsPackages: boolean;
   supportsPallets: boolean;
+  supportsEnvelopes: boolean;
 }
 
 export class RateAggregatorService {
@@ -25,13 +26,15 @@ export class RateAggregatorService {
         name: 'ShipTime', 
         enabled: true, 
         supportsPackages: true, 
-        supportsPallets: true 
+        supportsPallets: true,
+        supportsEnvelopes: false  // ShipTime not used for envelopes
       }],
       ['stallion', { 
         name: 'Stallion Express', 
         enabled: true, 
         supportsPackages: true, 
-        supportsPallets: false  // Stallion focuses on parcels
+        supportsPallets: false,  // Stallion focuses on parcels
+        supportsEnvelopes: true   // Stallion handles envelope shipments
       }],
     ]);
   }
@@ -62,6 +65,11 @@ export class RateAggregatorService {
 
       if (shipmentType === 'package' && !source.supportsPackages) {
         console.log(`⏭️  Skipping ${source.name} (doesn't support packages)`);
+        continue;
+      }
+
+      if (shipmentType === 'envelope' && !source.supportsEnvelopes) {
+        console.log(`⏭️  Skipping ${source.name} (doesn't support envelopes)`);
         continue;
       }
 
