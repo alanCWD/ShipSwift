@@ -50,7 +50,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
   });
   
   const [hasRates, setHasRates] = useState(false);
-  const [units, setUnits] = useState<'metric' | 'imperial'>('metric'); // cm/kg or in/lbs
+  const [units, setUnits] = useState<'metric' | 'imperial'>('imperial'); // cm/kg or in/lbs
 
   const { toast } = useToast();
 
