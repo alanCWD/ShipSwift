@@ -14,7 +14,8 @@ interface RateCalculatorProps {
 }
 
 export default function RateCalculator({ onRatesReceived }: RateCalculatorProps) {
-  const [shipmentType, setShipmentType] = useState<'package' | 'pallet'>('package');
+  const [shipmentType, setShipmentType] = useState<'package' | 'envelope' | 'pallet'>('package');
+  const [envelopeSize, setEnvelopeSize] = useState<string>('letter');
   const [formData, setFormData] = useState({
     fromCountry: 'CA',
     fromPostalCode: 'V2R 4H1',
@@ -552,111 +553,198 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
           {/* Shipment Type Selector */}
           <div className="border-t pt-6">
             <div className="space-y-4">
-              <Label htmlFor="shipmentType">Shipment Type</Label>
-              <Select 
-                value={shipmentType}
-                onValueChange={(value: 'package' | 'pallet') => {
-                  setShipmentType(value);
-                  setHasRates(false);
-                }}
-              >
-                <SelectTrigger data-testid="select-shipment-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="package" data-testid="option-package">📦 Package / Parcel</SelectItem>
-                  <SelectItem value="pallet" data-testid="option-pallet">🚛 Pallet / Freight (LTL)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Shipment Type</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  type="button"
+                  variant={shipmentType === 'package' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setShipmentType('package');
+                    setHasRates(false);
+                  }}
+                  className="h-auto py-4"
+                  data-testid="button-shipment-package"
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">📦</div>
+                    <div className="font-semibold">Package</div>
+                  </div>
+                </Button>
+                <Button
+                  type="button"
+                  variant={shipmentType === 'envelope' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setShipmentType('envelope');
+                    setHasRates(false);
+                  }}
+                  className="h-auto py-4"
+                  data-testid="button-shipment-envelope"
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">✉️</div>
+                    <div className="font-semibold">Envelope</div>
+                  </div>
+                </Button>
+                <Button
+                  type="button"
+                  variant={shipmentType === 'pallet' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setShipmentType('pallet');
+                    setHasRates(false);
+                  }}
+                  className="h-auto py-4"
+                  data-testid="button-shipment-pallet"
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🚛</div>
+                    <div className="font-semibold">Pallet</div>
+                  </div>
+                </Button>
+              </div>
               <p className="text-sm text-gray-500">
                 {shipmentType === 'package' 
                   ? 'For small to medium parcels shipped via courier services'
+                  : shipmentType === 'envelope'
+                  ? 'For documents and flat items (max 2 lbs) via Stallion Express'
                   : 'For large shipments on pallets via freight carriers'}
               </p>
             </div>
           </div>
 
-          {/* Package/Pallet Details */}
+          {/* Package/Pallet/Envelope Details */}
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Package className="w-5 h-5 mr-2 text-blue-600" />
-                {shipmentType === 'package' ? 'Package Details' : 'Pallet Details'}
+                {shipmentType === 'package' ? 'Package Details' : shipmentType === 'envelope' ? 'Envelope Details' : 'Pallet Details'}
               </h3>
               
-              {/* Unit Selector */}
-              <div className="flex items-center space-x-2">
-                <Label className="text-sm text-gray-600">Units:</Label>
-                <Select value={units} onValueChange={handleUnitChange}>
-                  <SelectTrigger className="w-32">
+              {/* Unit Selector - hidden for envelopes since they use standard sizes */}
+              {shipmentType !== 'envelope' && (
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm text-gray-600">Units:</Label>
+                  <Select value={units} onValueChange={handleUnitChange}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="metric">cm / kg</SelectItem>
+                      <SelectItem value="imperial">in / lbs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
+            {/* Envelope Size Selector */}
+            {shipmentType === 'envelope' && (
+              <div className="mb-4">
+                <Label htmlFor="envelopeSize">Envelope Size</Label>
+                <Select 
+                  value={envelopeSize} 
+                  onValueChange={(value) => {
+                    setEnvelopeSize(value);
+                    setHasRates(false);
+                  }}
+                >
+                  <SelectTrigger data-testid="select-envelope-size">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="metric">cm / kg</SelectItem>
-                    <SelectItem value="imperial">in / lbs</SelectItem>
+                    <SelectItem value="letter">Letter (8.5" × 11")</SelectItem>
+                    <SelectItem value="legal">Legal (8.5" × 14")</SelectItem>
+                    <SelectItem value="large">Large Envelope (9" × 12")</SelectItem>
+                    <SelectItem value="flat">Flat Rate (12.5" × 9.5")</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-gray-500 mt-1">Standard envelope dimensions are pre-set</p>
               </div>
-            </div>
+            )}
             
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="length">
-                  Length ({units === 'metric' ? 'cm' : 'in'})
-                </Label>
-                <Input
-                  id="length"
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={formData.length}
-                  onChange={(e) => handleInputChange('length', e.target.value)}
-                  required
-                />
+            {/* Dimensions - only show for package/pallet, not envelope */}
+            {shipmentType !== 'envelope' && (
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="length">
+                    Length ({units === 'metric' ? 'cm' : 'in'})
+                  </Label>
+                  <Input
+                    id="length"
+                    type="number"
+                    min="1"
+                    step="0.1"
+                    value={formData.length}
+                    onChange={(e) => handleInputChange('length', e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="width">
+                    Width ({units === 'metric' ? 'cm' : 'in'})
+                  </Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    min="1"
+                    step="0.1"
+                    value={formData.width}
+                    onChange={(e) => handleInputChange('width', e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="height">
+                    Height ({units === 'metric' ? 'cm' : 'in'})
+                  </Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    min="1"
+                    step="0.1"
+                    value={formData.height}
+                    onChange={(e) => handleInputChange('height', e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight">
+                    Weight ({units === 'metric' ? 'kg' : 'lbs'})
+                  </Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={formData.weight}
+                    onChange={(e) => handleInputChange('weight', e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="width">
-                  Width ({units === 'metric' ? 'cm' : 'in'})
-                </Label>
-                <Input
-                  id="width"
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={formData.width}
-                  onChange={(e) => handleInputChange('width', e.target.value)}
-                  required
-                />
+            )}
+            
+            {/* Weight only for envelope */}
+            {shipmentType === 'envelope' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="weight">
+                    Weight (lbs)
+                  </Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    min="0.1"
+                    max="2"
+                    step="0.1"
+                    value={formData.weight}
+                    onChange={(e) => handleInputChange('weight', e.target.value)}
+                    required
+                    data-testid="input-envelope-weight"
+                  />
+                  <p className="text-xs text-red-500 mt-1">Max 2 lbs for envelope shipments</p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="height">
-                  Height ({units === 'metric' ? 'cm' : 'in'})
-                </Label>
-                <Input
-                  id="height"
-                  type="number"
-                  min="1"
-                  step="0.1"
-                  value={formData.height}
-                  onChange={(e) => handleInputChange('height', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="weight">
-                  Weight ({units === 'metric' ? 'kg' : 'lbs'})
-                </Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  min="0.1"
-                  step="0.1"
-                  value={formData.weight}
-                  onChange={(e) => handleInputChange('weight', e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            )}
             
             {/* Pallet-Specific Fields */}
             {shipmentType === 'pallet' && (
