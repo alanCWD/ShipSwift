@@ -33,8 +33,8 @@ Preferred communication style: Simple, everyday language.
 ## System Design Choices
 - **Branding**: Complete rebranding to GoABLP with dynamic logo sizing and sticky header.
 - **Rate Markup System**: Implemented to apply profit margins to shipping rates with carrier-specific rules and a default 15% markup. Frontend displays detailed rate breakdowns.
-- **Shipment Capabilities**: Full support for both package (parcel) and pallet/freight (LTL) shipments, including pallet-specific fields and LTL accessorial services (e.g., tailgate, commercial/residential).
-- **Multi-Source Rate Aggregation**: Integrated ShipTime and Stallion Express APIs for competitive parcel rate comparison, with automatic deduplication and graceful degradation. Pallet/LTL uses ShipTime exclusively. Stallion uses separate API keys for sandbox and production environments (both available from dashboard).
+- **Shipment Capabilities**: Full support for package (parcel), envelope, and pallet/freight (LTL) shipments. Envelope shipments feature standard size presets (Letter, Legal, Large, Flat Rate) with automatic dimension mapping, 2 lb weight limit, and Stallion Express-exclusive routing. Package and pallet shipments include pallet-specific fields and LTL accessorial services (e.g., tailgate, commercial/residential).
+- **Multi-Source Rate Aggregation**: Integrated ShipTime and Stallion Express APIs for competitive parcel rate comparison, with automatic deduplication and graceful degradation. Envelope shipments use Stallion Express exclusively. Pallet/LTL uses ShipTime exclusively. Package shipments query both APIs. Stallion uses separate API keys for sandbox and production environments (both available from dashboard).
 - **Payment Processing**: Stripe integration for card payments, Apple Pay, and Google Pay in CAD, ensuring PCI compliance.
 - **ABLP Admin System**: Dedicated admin panel for internal management, including dynamic ShipTime API credential management and advanced rate markup configuration.
 - **Client Branding System**: Allows ABLP clients to customize their shipping interface and tracking pages with logos and color schemes for a white-label experience.
