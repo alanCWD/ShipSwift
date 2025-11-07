@@ -51,8 +51,8 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         $this->cache_duration       = $this->get_option('cache_duration', 15);
         $this->show_delivery_time   = $this->get_option('show_delivery_time');
         
-        // Enqueue admin scripts
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        // Add inline admin scripts to footer
+        add_action('admin_footer', array($this, 'add_inline_admin_scripts'));
     }
     
     /**
@@ -144,24 +144,26 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
     }
     
     /**
-     * Enqueue admin scripts - INLINE VERSION
+     * Add inline admin scripts to footer
      */
-    public function enqueue_admin_scripts($hook) {
-        // Only load on admin pages
+    public function add_inline_admin_scripts() {
+        // Only output on admin pages
         if (!is_admin()) {
             return;
         }
         
-        // Inline the JavaScript directly to bypass file loading issues
+        // Output the inline JavaScript
         ?>
         <script type="text/javascript">
+        console.log('GoABLP: Inline script loading...');
+        
         var goablp_admin = {
-            ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            ajax_url: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
             nonce: '<?php echo wp_create_nonce('goablp_test_connection'); ?>'
         };
         
         jQuery(document).ready(function($) {
-            console.log('GoABLP: Admin script loaded successfully (INLINE)');
+            console.log('GoABLP: Admin script loaded successfully (INLINE v1.0.10)');
             console.log('GoABLP: goablp_admin =', goablp_admin);
             
             // Test connection button handler

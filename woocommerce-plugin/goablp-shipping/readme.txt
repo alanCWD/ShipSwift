@@ -4,7 +4,7 @@ Tags: shipping, canada post, woocommerce, shipping rates, canada, purolator, ups
 Requires at least: 5.8
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.0.10
+Stable tag: 1.0.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,11 @@ Rates are cached for 15 minutes by default (configurable in settings). This redu
 4. Debug mode logging for troubleshooting
 
 == Changelog ==
+
+= 1.0.11 - 2025-11-06 =
+* Fixed: Changed to admin_footer hook for proper inline script rendering
+* This version correctly outputs JavaScript in the page footer
+* Scripts now appear in browser console and Test API Connection button works
 
 = 1.0.10 - 2025-11-06 =
 * Fixed: Complete rewrite using inline JavaScript to bypass external file loading issues
