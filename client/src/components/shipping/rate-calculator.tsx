@@ -112,11 +112,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
 
   const ratesMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Envelope weight validation (max 2 lbs)
+      // Envelope weight validation (max 2 lbs) - covers both manual submit and auto-fetch
       if (shipmentType === 'envelope') {
         const weightInLbs = parseFloat(data.weight);
         if (weightInLbs > 2) {
-          throw new Error('Envelope shipments must be 2 lbs or less');
+          throw new Error('Envelope shipments must be 2 lbs or less. Please reduce the weight or select Package instead.');
         }
       }
       
@@ -228,7 +228,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       let title = "Rate Calculation Failed";
       let description = "Unable to get shipping rates. Please try again.";
       
-      if (error.message.includes('503')) {
+      // Check for envelope weight validation error
+      if (error.message.includes('2 lbs or less')) {
+        title = "Weight Limit Exceeded";
+        description = error.message;
+      } else if (error.message.includes('503')) {
         title = "Service Temporarily Unavailable";
         description = "The shipping service is currently unavailable. Please contact support or try again later.";
       } else if (error.message.includes('authentication')) {
@@ -334,6 +338,19 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         variant: "destructive",
       });
       return;
+    }
+
+    // Validate envelope weight (max 2 lbs)
+    if (shipmentType === 'envelope') {
+      const weightInLbs = parseFloat(formData.weight);
+      if (weightInLbs > 2) {
+        toast({
+          title: "Weight Limit Exceeded",
+          description: "Envelope shipments must be 2 lbs or less. Please reduce the weight or select 'Package' instead.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     ratesMutation.mutate(formData);
