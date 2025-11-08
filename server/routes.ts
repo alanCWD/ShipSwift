@@ -3097,46 +3097,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rateAggregatorModule = await import('./services/rate-aggregator');
       const rateAggregator = rateAggregatorModule.default;
 
-      // Fetch rates from aggregator
+      // Fetch rates from aggregator (using same format as regular rate endpoint)
       const requestBody = {
-        fromCountry: origin.country || 'CA',
-        fromPostalCode: origin.postalCode,
-        toCountry: destination.country || 'CA',
-        toPostalCode: destination.postalCode,
-        shipmentType,
+        from: {
+          country: origin.country || 'CA',
+          postalCode: origin.postalCode,
+          ...(origin.address && {
+            address: {
+              company: origin.company || '',
+              streetAddress: origin.address,
+              city: origin.city || '',
+              state: origin.province || origin.state || '',
+              phone: origin.phone || '',
+              attention: origin.attention || origin.company || ''
+            }
+          })
+        },
+        to: {
+          country: destination.country || 'CA',
+          postalCode: destination.postalCode,
+          ...(destination.address && {
+            address: {
+              company: destination.company || '',
+              streetAddress: destination.address,
+              city: destination.city || '',
+              state: destination.province || destination.state || '',
+              phone: destination.phone || '',
+              attention: destination.attention || destination.company || ''
+            }
+          })
+        },
         packageDetails: {
           length: pkg.length,
           width: pkg.width,
           height: pkg.height,
           weight: pkg.weight,
         },
-        // Add full address details if provided (needed for pallet/LTL)
-        ...(origin.address && {
-          fromAddress: {
-            company: origin.company || '',
-            streetAddress: origin.address,
-            city: origin.city || '',
-            state: origin.province || origin.state || '',
-            phone: origin.phone || '',
-            attention: origin.attention || origin.company || ''
-          }
-        }),
-        ...(destination.address && {
-          toAddress: {
-            company: destination.company || '',
-            streetAddress: destination.address,
-            city: destination.city || '',
-            state: destination.province || destination.state || '',
-            phone: destination.phone || '',
-            attention: destination.attention || destination.company || ''
-          }
-        })
+        shipmentType
       };
 
-      const aggregatedRates = await rateAggregator.getAggregatedRates(requestBody);
+      const aggregatedRates = await rateAggregator.getRates(requestBody, storage);
 
       // Format response for WooCommerce compatibility
-      const formattedRates = aggregatedRates.rates.map((rate: any) => ({
+      const formattedRates = aggregatedRates.map((rate: any) => ({
         service_name: `${rate.carrier} - ${rate.service}`,
         service_code: rate.service.replace(/\s+/g, '_').toUpperCase(),
         total_price: rate.totalPrice.toFixed(2),
