@@ -276,13 +276,15 @@ export class StallionService {
 
     // Parse delivery days string (e.g., "5-9" -> use midpoint 7, "2" -> 2)
     let deliveryDays: number | undefined;
-    if (stallionRate.delivery_days) {
+    if (stallionRate.delivery_days && typeof stallionRate.delivery_days === 'string') {
       if (stallionRate.delivery_days.includes('-')) {
         const [min, max] = stallionRate.delivery_days.split('-').map(d => parseInt(d.trim()));
         deliveryDays = Math.round((min + max) / 2);
       } else {
         deliveryDays = parseInt(stallionRate.delivery_days);
       }
+    } else if (typeof stallionRate.delivery_days === 'number') {
+      deliveryDays = stallionRate.delivery_days;
     }
 
     return {
