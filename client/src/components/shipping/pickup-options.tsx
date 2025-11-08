@@ -19,20 +19,45 @@ import { cn } from '@/lib/utils';
 const pickupSchema = z.object({
   pickupOption: z.enum(['schedule_now', 'schedule_later', 'drop_off']),
   pickupDate: z.date().optional(),
-  contactName: z.string().min(2, 'Contact name is required'),
-  phoneNumber: z.string().min(10, 'Valid phone number is required'),
-  pickupLocation: z.string().min(1, 'Pickup location is required'),
+  contactName: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  pickupLocation: z.string().optional(),
   readyTime: z.object({
     hour: z.string(),
     minute: z.string(),
     period: z.enum(['AM', 'PM'])
-  }),
+  }).optional(),
   closingTime: z.object({
     hour: z.string(),
     minute: z.string(),
     period: z.enum(['AM', 'PM'])
-  }),
+  }).optional(),
   pickupInstructions: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Only validate pickup fields if not drop_off
+  if (data.pickupOption !== 'drop_off') {
+    if (!data.contactName || data.contactName.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Contact name is required',
+        path: ['contactName'],
+      });
+    }
+    if (!data.phoneNumber || data.phoneNumber.length < 10) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Valid phone number is required',
+        path: ['phoneNumber'],
+      });
+    }
+    if (!data.pickupLocation || data.pickupLocation.length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Pickup location is required',
+        path: ['pickupLocation'],
+      });
+    }
+  }
 });
 
 type PickupFormData = z.infer<typeof pickupSchema>;
