@@ -4,6 +4,11 @@ GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing m
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
+## Recent Bug Fixes (Nov 8, 2025)
+1. **Drop-Off Package Validation**: Fixed pickup options form to allow "Drop Off" selection without validation errors. Contact name, phone, location, and time fields are now only required when scheduling pickup (not for drop-off).
+2. **Dashboard Rate Calculator**: Updated to require and display full addresses (company, street, city, province, phone) for ALL shipment types (package, envelope, pallet), not just freight. This ensures ShipTime API receives complete data for accurate rate calculation.
+3. **API Payload**: Modified rate request payload to include fromAddress/toAddress for all shipment types, enabling proper multi-carrier rate aggregation.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
