@@ -10,7 +10,7 @@ import { MapPin, Package } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 interface RateCalculatorProps {
-  onRatesReceived: (rates: any[]) => void;
+  onRatesReceived: (rates: any[], addressData?: any) => void;
 }
 
 export default function RateCalculator({ onRatesReceived }: RateCalculatorProps) {
@@ -215,7 +215,26 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       return response.json();
     },
     onSuccess: (data) => {
-      onRatesReceived(data.rates);
+      // Pass both rates and address data to parent component
+      const addressData = {
+        fromCompany: formData.fromCompany,
+        fromStreet: formData.fromStreet,
+        fromCity: formData.fromCity,
+        fromProvince: formData.fromProvince,
+        fromPostalCode: formData.fromPostalCode,
+        fromCountry: formData.fromCountry,
+        fromPhone: formData.fromPhone,
+        fromAttention: formData.fromAttention,
+        toCompany: formData.toCompany,
+        toStreet: formData.toStreet,
+        toCity: formData.toCity,
+        toProvince: formData.toProvince,
+        toPostalCode: formData.toPostalCode,
+        toCountry: formData.toCountry,
+        toPhone: formData.toPhone,
+        toAttention: formData.toAttention,
+      };
+      onRatesReceived(data.rates, addressData);
       setHasRates(true);
       toast({
         title: "Rates Retrieved",

@@ -14,6 +14,7 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [rateResults, setRateResults] = useState<any[] | null>(null);
+  const [addressData, setAddressData] = useState<any>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,13 +66,16 @@ export default function Home() {
             <p className="text-lg text-gray-600">Compare rates from Canada's top carriers in seconds</p>
           </div>
           
-          <RateCalculator onRatesReceived={setRateResults} />
+          <RateCalculator onRatesReceived={(rates, address) => {
+            setRateResults(rates);
+            setAddressData(address);
+          }} />
         </div>
       </div>
 
       {/* Rate Results */}
       {rateResults && (
-        <RateResults rates={rateResults} />
+        <RateResults rates={rateResults} addressData={addressData} />
       )}
 
       {/* Features Section */}
