@@ -163,7 +163,7 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         };
         
         jQuery(document).ready(function($) {
-            console.log('GoABLP: Admin script loaded successfully (INLINE v1.0.10)');
+            console.log('GoABLP: Admin script loaded successfully (INLINE v1.0.12)');
             console.log('GoABLP: goablp_admin =', goablp_admin);
             
             // Test connection button handler
@@ -390,6 +390,7 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
             'headers' => array(
                 'Content-Type'  => 'application/json',
                 'Authorization' => 'Bearer ' . trim($this->api_key),
+                'X-Requested-With' => 'XMLHttpRequest',
             ),
             'body' => json_encode($request_data),
         ));
