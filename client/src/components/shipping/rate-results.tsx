@@ -18,9 +18,10 @@ import { Clock, Truck, Shield, Edit, Info } from 'lucide-react';
 
 interface RateResultsProps {
   rates: any[];
+  addressData?: any;
 }
 
-export default function RateResults({ rates }: RateResultsProps) {
+export default function RateResults({ rates, addressData }: RateResultsProps) {
   const [selectedRate, setSelectedRate] = useState(null);
   const [showPickupOptions, setShowPickupOptions] = useState(false);
   const [pickupDetails, setPickupDetails] = useState(null);
@@ -136,6 +137,7 @@ export default function RateResults({ rates }: RateResultsProps) {
       <>
         <PickupOptions 
           rate={selectedRate}
+          addressData={addressData}
           onPickupDetailsComplete={handlePickupDetailsComplete}
           onBack={handleBackFromPickup}
         />
@@ -155,6 +157,7 @@ export default function RateResults({ rates }: RateResultsProps) {
       <ShipmentForm 
         rate={selectedRate} 
         pickupDetails={pickupDetails}
+        addressData={addressData}
         onBack={handleBackFromShipment} 
       />
     );

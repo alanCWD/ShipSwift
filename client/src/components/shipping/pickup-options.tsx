@@ -80,9 +80,10 @@ interface PickupOptionsProps {
   onPickupDetailsComplete: (pickupDetails: PickupFormData) => void;
   onBack: () => void;
   rate: any;
+  addressData?: any;
 }
 
-export default function PickupOptions({ onPickupDetailsComplete, onBack, rate }: PickupOptionsProps) {
+export default function PickupOptions({ onPickupDetailsComplete, onBack, rate, addressData }: PickupOptionsProps) {
   const [selectedDate, setSelectedDate] = useState<Date>();
   
   const form = useForm<PickupFormData>({
