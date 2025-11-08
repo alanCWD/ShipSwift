@@ -204,6 +204,16 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       return;
     }
 
+    // Validate confirmation checkbox
+    if (!confirmationChecked) {
+      toast({
+        title: "Confirmation Required",
+        description: "Please confirm that all shipping information is correct before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate required fields
     const requiredFields = ['toName', 'toAddress', 'toCity', 'toProvince', 'toPostalCode', 'toPhone'];
     const missingFields = requiredFields.filter(field => !shippingDetails[field as keyof ShippingDetails]);
