@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -135,6 +135,13 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   
   console.log('🚢 ShipmentForm: Initial shippingDetails.toAddress:', shippingDetails.toAddress);
   console.log('🚢 ShipmentForm: Initial shippingDetails.toCity:', shippingDetails.toCity);
+
+  // Scroll to top when moving to payment step
+  useEffect(() => {
+    if (currentStep === 2) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep]);
 
   const calculateTotal = (rate: any) => {
     // Handle sample rates format (has totalCharge or price as string)
