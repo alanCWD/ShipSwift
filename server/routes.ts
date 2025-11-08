@@ -121,8 +121,8 @@ class MerchantRateLimiter {
     const now = Date.now();
     const windowStart = now - this.windowMs;
     
-    for (const [key, timestamps] of this.requests.entries()) {
-      const filtered = timestamps.filter(t => t > windowStart);
+    for (const [key, timestamps] of Array.from(this.requests.entries())) {
+      const filtered = timestamps.filter((t: number) => t > windowStart);
       if (filtered.length === 0) {
         this.requests.delete(key);
       } else {
