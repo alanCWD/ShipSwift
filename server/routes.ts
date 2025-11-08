@@ -3094,7 +3094,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Import rate services
-      const { rateAggregator } = await import('./services/rate-aggregator');
+      const rateAggregatorModule = await import('./services/rate-aggregator');
+      const rateAggregator = rateAggregatorModule.default;
 
       // Fetch rates from aggregator
       const requestBody = {
