@@ -193,25 +193,23 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         packageDetails
       };
 
-      // Add full address details for pallet shipments (required by ShipTime)
-      if (shipmentType === 'pallet') {
-        requestBody.fromAddress = {
-          company: data.fromCompany,
-          streetAddress: data.fromStreet,
-          city: data.fromCity,
-          state: data.fromProvince,
-          phone: data.fromPhone,
-          attention: data.fromAttention || data.fromCompany
-        };
-        requestBody.toAddress = {
-          company: data.toCompany,
-          streetAddress: data.toStreet,
-          city: data.toCity,
-          state: data.toProvince,
-          phone: data.toPhone,
-          attention: data.toAttention || data.toCompany
-        };
-      }
+      // Add full address details for all shipments (required by ShipTime)
+      requestBody.fromAddress = {
+        company: data.fromCompany,
+        streetAddress: data.fromStreet,
+        city: data.fromCity,
+        state: data.fromProvince,
+        phone: data.fromPhone,
+        attention: data.fromAttention || data.fromCompany
+      };
+      requestBody.toAddress = {
+        company: data.toCompany,
+        streetAddress: data.toStreet,
+        city: data.toCity,
+        state: data.toProvince,
+        phone: data.toPhone,
+        attention: data.toAttention || data.toCompany
+      };
 
       const response = await apiRequest('POST', '/api/shipping/rates', requestBody);
       return response.json();
