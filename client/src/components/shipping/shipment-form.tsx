@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Package, MapPin, CreditCard } from 'lucide-react';
@@ -17,6 +18,7 @@ const stripePromise = getStripe();
 interface ShipmentFormProps {
   rate: any;
   pickupDetails?: any;
+  addressData?: any;
   onBack: () => void;
 }
 
@@ -103,26 +105,27 @@ function PaymentForm({ clientSecret, onPaymentSuccess }: { clientSecret: string;
   );
 }
 
-export default function ShipmentForm({ rate, pickupDetails, onBack }: ShipmentFormProps) {
+export default function ShipmentForm({ rate, pickupDetails, addressData, onBack }: ShipmentFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [clientSecret, setClientSecret] = useState('');
+  const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
-    fromName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '',
-    fromAddress: '44322 Yale Rd #3',
-    fromCity: 'Chilliwack',
-    fromProvince: 'BC',
-    fromPostalCode: 'V2R 4H1',
-    fromCountry: 'CA',
-    fromPhone: '1-800-225-7564',
-    toName: '',
-    toAddress: '',
-    toCity: '',
-    toProvince: '',
-    toPostalCode: '',
-    toCountry: 'CA',
-    toPhone: '',
+    fromName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (addressData?.fromAttention || ''),
+    fromAddress: addressData?.fromStreet || '44322 Yale Rd #3',
+    fromCity: addressData?.fromCity || 'Chilliwack',
+    fromProvince: addressData?.fromProvince || 'BC',
+    fromPostalCode: addressData?.fromPostalCode || 'V2R 4H1',
+    fromCountry: addressData?.fromCountry || 'CA',
+    fromPhone: addressData?.fromPhone || '1-800-225-7564',
+    toName: addressData?.toAttention || '',
+    toAddress: addressData?.toStreet || '',
+    toCity: addressData?.toCity || '',
+    toProvince: addressData?.toProvince || '',
+    toPostalCode: addressData?.toPostalCode || '',
+    toCountry: addressData?.toCountry || 'CA',
+    toPhone: addressData?.toPhone || '',
   });
 
   const calculateTotal = (rate: any) => {
@@ -513,14 +516,42 @@ export default function ShipmentForm({ rate, pickupDetails, onBack }: ShipmentFo
                     <span>${total.toFixed(2)} CAD</span>
                   </div>
                   
+                  {/* Confirmation Checkbox */}
+                  <div className="flex items-start space-x-3 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Checkbox 
+                      id="confirm-details"
+                      checked={confirmationChecked}
+                      onCheckedChange={(checked) => setConfirmationChecked(checked as boolean)}
+                      className="mt-1"
+                      data-testid="checkbox-confirm-details"
+                    />
+                    <div className="flex-1">
+                      <Label 
+                        htmlFor="confirm-details" 
+                        className="text-sm font-medium text-gray-900 cursor-pointer"
+                      >
+                        I confirm that all shipping information is correct
+                      </Label>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Please verify all addresses and details before proceeding to payment
+                      </p>
+                    </div>
+                  </div>
+                  
                   {/* Continue to Payment Button moved below Total */}
                   <Button 
                     onClick={() => handleShippingSubmit(new Event('submit') as any)}
                     className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={shipmentMutation.isPending}
+                    disabled={shipmentMutation.isPending || !confirmationChecked}
+                    data-testid="button-continue-payment"
                   >
                     {shipmentMutation.isPending ? 'Creating Shipment...' : 'Continue to Payment'}
                   </Button>
+                  {!confirmationChecked && (
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      Please confirm the information is correct to continue
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>
