@@ -946,10 +946,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
             >
               {ratesMutation.isPending ? 'Comparing Rates...' : 'Fetch Shipping Rates'}
             </Button>
-            
-            <p className="text-sm text-gray-500 text-center">
-              Rates are automatically updated when you enter package details
-            </p>
           </div>
         </form>
       </CardContent>
