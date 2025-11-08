@@ -108,6 +108,11 @@ function PaymentForm({ clientSecret, onPaymentSuccess }: { clientSecret: string;
 export default function ShipmentForm({ rate, pickupDetails, addressData, onBack }: ShipmentFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  console.log('🚢 ShipmentForm: Received addressData:', addressData);
+  console.log('🚢 ShipmentForm: addressData.toStreet:', addressData?.toStreet);
+  console.log('🚢 ShipmentForm: addressData.toCity:', addressData?.toCity);
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [clientSecret, setClientSecret] = useState('');
   const [confirmationChecked, setConfirmationChecked] = useState(false);
@@ -127,6 +132,9 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
     toCountry: addressData?.toCountry || 'CA',
     toPhone: addressData?.toPhone || '',
   });
+  
+  console.log('🚢 ShipmentForm: Initial shippingDetails.toAddress:', shippingDetails.toAddress);
+  console.log('🚢 ShipmentForm: Initial shippingDetails.toCity:', shippingDetails.toCity);
 
   const calculateTotal = (rate: any) => {
     // Handle sample rates format (has totalCharge or price as string)

@@ -234,6 +234,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         toPhone: formData.toPhone,
         toAttention: formData.toAttention,
       };
+      console.log('📋 RateCalculator: Passing address data:', addressData);
       onRatesReceived(data.rates, addressData);
       setHasRates(true);
       toast({
