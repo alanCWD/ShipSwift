@@ -3139,21 +3139,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aggregatedRates = await rateAggregator.getRates(requestBody, storage);
 
       // Format response for WooCommerce compatibility
-      const formattedRates = aggregatedRates.map((rate: any) => ({
-        service_name: `${rate.carrier} - ${rate.service}`,
-        service_code: rate.service.replace(/\s+/g, '_').toUpperCase(),
-        total_price: rate.totalPrice.toFixed(2),
-        currency: 'CAD',
-        delivery_days: rate.deliveryDays || null,
-        description: rate.deliveryDays ? `Estimated ${rate.deliveryDays} business days` : undefined,
-        carrier: rate.carrier,
-        details: {
-          base_price: rate.basePrice.toFixed(2),
-          fuel_surcharge: rate.fuelSurcharge?.toFixed(2) || '0.00',
-          taxes: rate.taxes.toFixed(2),
-          total: rate.totalPrice.toFixed(2)
-        }
-      }));
+      const formattedRates = aggregatedRates.map((rate: any) => {
+        // Handle both string and object formats for carrier/service
+        const carrier = typeof rate.carrier === 'string' ? rate.carrier : rate.carrier?.name || 'Unknown';
+        const service = typeof rate.service === 'string' ? rate.service : rate.service?.name || 'Unknown';
+        
+        return {
+          service_name: `${carrier} - ${service}`,
+          service_code: service.replace(/\s+/g, '_').toUpperCase(),
+          total_price: rate.totalPrice.toFixed(2),
+          currency: 'CAD',
+          delivery_days: rate.deliveryDays || null,
+          description: rate.deliveryDays ? `Estimated ${rate.deliveryDays} business days` : undefined,
+          carrier: carrier,
+          details: {
+            base_price: rate.basePrice.toFixed(2),
+            fuel_surcharge: rate.fuelSurcharge?.toFixed(2) || '0.00',
+            taxes: rate.taxes.toFixed(2),
+            total: rate.totalPrice.toFixed(2)
+          }
+        };
+      });
 
       console.log(`✅ Merchant API: Successfully returned ${formattedRates.length} rates`);
       
