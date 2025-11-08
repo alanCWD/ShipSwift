@@ -3144,19 +3144,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const carrier = typeof rate.carrier === 'string' ? rate.carrier : rate.carrier?.name || 'Unknown';
         const service = typeof rate.service === 'string' ? rate.service : rate.service?.name || 'Unknown';
         
+        // Calculate prices from rate markup service properties
+        const totalPrice = (rate.subtotal || 0) + (rate.taxAmount || 0);
+        const basePrice = rate.originalBaseCharge || 0;
+        const taxes = rate.taxAmount || 0;
+        
         return {
           service_name: `${carrier} - ${service}`,
           service_code: service.replace(/\s+/g, '_').toUpperCase(),
-          total_price: rate.totalPrice.toFixed(2),
+          total_price: totalPrice.toFixed(2),
           currency: 'CAD',
-          delivery_days: rate.deliveryDays || null,
+          delivery_days: rate.deliveryDays || rate.transitDays || null,
           description: rate.deliveryDays ? `Estimated ${rate.deliveryDays} business days` : undefined,
           carrier: carrier,
           details: {
-            base_price: rate.basePrice.toFixed(2),
-            fuel_surcharge: rate.fuelSurcharge?.toFixed(2) || '0.00',
-            taxes: rate.taxes.toFixed(2),
-            total: rate.totalPrice.toFixed(2)
+            base_price: basePrice.toFixed(2),
+            markup: (rate.markup || 0).toFixed(2),
+            taxes: taxes.toFixed(2),
+            total: totalPrice.toFixed(2)
           }
         };
       });
