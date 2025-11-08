@@ -57,6 +57,20 @@ const pickupSchema = z.object({
         path: ['pickupLocation'],
       });
     }
+    if (!data.readyTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Ready time is required',
+        path: ['readyTime'],
+      });
+    }
+    if (!data.closingTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Closing time is required',
+        path: ['closingTime'],
+      });
+    }
   }
 });
 
