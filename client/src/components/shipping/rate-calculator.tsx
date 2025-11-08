@@ -368,92 +368,88 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 Ship From
               </h3>
               <div className="space-y-4">
-                {shipmentType === 'pallet' && (
-                  <>
-                    <div>
-                      <Label htmlFor="fromCompany">Company Name *</Label>
-                      <Input
-                        id="fromCompany"
-                        placeholder="e.g., ABLP Logistics"
-                        value={formData.fromCompany}
-                        onChange={(e) => handleInputChange('fromCompany', e.target.value)}
-                        required
-                        data-testid="input-from-company"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="fromStreet">Street Address *</Label>
-                      <Input
-                        id="fromStreet"
-                        placeholder="e.g., 44322 Yale Rd #3"
-                        value={formData.fromStreet}
-                        onChange={(e) => handleInputChange('fromStreet', e.target.value)}
-                        required
-                        data-testid="input-from-street"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="fromCity">City *</Label>
-                        <Input
-                          id="fromCity"
-                          placeholder="e.g., Chilliwack"
-                          value={formData.fromCity}
-                          onChange={(e) => handleInputChange('fromCity', e.target.value)}
-                          required
-                          data-testid="input-from-city"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="fromProvince">Province *</Label>
-                        <Select
-                          value={formData.fromProvince}
-                          onValueChange={(value) => handleInputChange('fromProvince', value)}
-                        >
-                          <SelectTrigger data-testid="select-from-province">
-                            <SelectValue placeholder="Select province" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AB">Alberta (AB)</SelectItem>
-                            <SelectItem value="BC">British Columbia (BC)</SelectItem>
-                            <SelectItem value="MB">Manitoba (MB)</SelectItem>
-                            <SelectItem value="NB">New Brunswick (NB)</SelectItem>
-                            <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
-                            <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
-                            <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
-                            <SelectItem value="NU">Nunavut (NU)</SelectItem>
-                            <SelectItem value="ON">Ontario (ON)</SelectItem>
-                            <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
-                            <SelectItem value="QC">Quebec (QC)</SelectItem>
-                            <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
-                            <SelectItem value="YT">Yukon (YT)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="fromPhone">Phone Number *</Label>
-                      <Input
-                        id="fromPhone"
-                        placeholder="e.g., 1-800-225-7564"
-                        value={formData.fromPhone}
-                        onChange={(e) => handleInputChange('fromPhone', e.target.value)}
-                        required
-                        data-testid="input-from-phone"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="fromAttention">Contact Person</Label>
-                      <Input
-                        id="fromAttention"
-                        placeholder="e.g., John Smith"
-                        value={formData.fromAttention}
-                        onChange={(e) => handleInputChange('fromAttention', e.target.value)}
-                        data-testid="input-from-attention"
-                      />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <Label htmlFor="fromCompany">Company Name *</Label>
+                  <Input
+                    id="fromCompany"
+                    placeholder="e.g., ABLP Logistics"
+                    value={formData.fromCompany}
+                    onChange={(e) => handleInputChange('fromCompany', e.target.value)}
+                    required
+                    data-testid="input-from-company"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fromStreet">Street Address *</Label>
+                  <Input
+                    id="fromStreet"
+                    placeholder="e.g., 44322 Yale Rd #3"
+                    value={formData.fromStreet}
+                    onChange={(e) => handleInputChange('fromStreet', e.target.value)}
+                    required
+                    data-testid="input-from-street"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="fromCity">City *</Label>
+                    <Input
+                      id="fromCity"
+                      placeholder="e.g., Chilliwack"
+                      value={formData.fromCity}
+                      onChange={(e) => handleInputChange('fromCity', e.target.value)}
+                      required
+                      data-testid="input-from-city"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="fromProvince">Province *</Label>
+                    <Select
+                      value={formData.fromProvince}
+                      onValueChange={(value) => handleInputChange('fromProvince', value)}
+                    >
+                      <SelectTrigger data-testid="select-from-province">
+                        <SelectValue placeholder="Select province" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AB">Alberta (AB)</SelectItem>
+                        <SelectItem value="BC">British Columbia (BC)</SelectItem>
+                        <SelectItem value="MB">Manitoba (MB)</SelectItem>
+                        <SelectItem value="NB">New Brunswick (NB)</SelectItem>
+                        <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
+                        <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
+                        <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
+                        <SelectItem value="NU">Nunavut (NU)</SelectItem>
+                        <SelectItem value="ON">Ontario (ON)</SelectItem>
+                        <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
+                        <SelectItem value="QC">Quebec (QC)</SelectItem>
+                        <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
+                        <SelectItem value="YT">Yukon (YT)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="fromPhone">Phone Number *</Label>
+                  <Input
+                    id="fromPhone"
+                    placeholder="e.g., 1-800-225-7564"
+                    value={formData.fromPhone}
+                    onChange={(e) => handleInputChange('fromPhone', e.target.value)}
+                    required
+                    data-testid="input-from-phone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fromAttention">Contact Person</Label>
+                  <Input
+                    id="fromAttention"
+                    placeholder="e.g., John Smith"
+                    value={formData.fromAttention}
+                    onChange={(e) => handleInputChange('fromAttention', e.target.value)}
+                    data-testid="input-from-attention"
+                  />
+                </div>
                 <div>
                   <Label htmlFor="fromCountry">Country</Label>
                   <Select 
@@ -488,92 +484,88 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 Ship To
               </h3>
               <div className="space-y-4">
-                {shipmentType === 'pallet' && (
-                  <>
-                    <div>
-                      <Label htmlFor="toCompany">Company Name *</Label>
-                      <Input
-                        id="toCompany"
-                        placeholder="e.g., Recipient Company"
-                        value={formData.toCompany}
-                        onChange={(e) => handleInputChange('toCompany', e.target.value)}
-                        required
-                        data-testid="input-to-company"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="toStreet">Street Address *</Label>
-                      <Input
-                        id="toStreet"
-                        placeholder="e.g., 123 Main St"
-                        value={formData.toStreet}
-                        onChange={(e) => handleInputChange('toStreet', e.target.value)}
-                        required
-                        data-testid="input-to-street"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="toCity">City *</Label>
-                        <Input
-                          id="toCity"
-                          placeholder="e.g., Kingston"
-                          value={formData.toCity}
-                          onChange={(e) => handleInputChange('toCity', e.target.value)}
-                          required
-                          data-testid="input-to-city"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="toProvince">Province *</Label>
-                        <Select
-                          value={formData.toProvince}
-                          onValueChange={(value) => handleInputChange('toProvince', value)}
-                        >
-                          <SelectTrigger data-testid="select-to-province">
-                            <SelectValue placeholder="Select province" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AB">Alberta (AB)</SelectItem>
-                            <SelectItem value="BC">British Columbia (BC)</SelectItem>
-                            <SelectItem value="MB">Manitoba (MB)</SelectItem>
-                            <SelectItem value="NB">New Brunswick (NB)</SelectItem>
-                            <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
-                            <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
-                            <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
-                            <SelectItem value="NU">Nunavut (NU)</SelectItem>
-                            <SelectItem value="ON">Ontario (ON)</SelectItem>
-                            <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
-                            <SelectItem value="QC">Quebec (QC)</SelectItem>
-                            <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
-                            <SelectItem value="YT">Yukon (YT)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="toPhone">Phone Number *</Label>
-                      <Input
-                        id="toPhone"
-                        placeholder="e.g., 613-555-1234"
-                        value={formData.toPhone}
-                        onChange={(e) => handleInputChange('toPhone', e.target.value)}
-                        required
-                        data-testid="input-to-phone"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="toAttention">Contact Person</Label>
-                      <Input
-                        id="toAttention"
-                        placeholder="e.g., Jane Doe"
-                        value={formData.toAttention}
-                        onChange={(e) => handleInputChange('toAttention', e.target.value)}
-                        data-testid="input-to-attention"
-                      />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <Label htmlFor="toCompany">Company Name *</Label>
+                  <Input
+                    id="toCompany"
+                    placeholder="e.g., Recipient Company"
+                    value={formData.toCompany}
+                    onChange={(e) => handleInputChange('toCompany', e.target.value)}
+                    required
+                    data-testid="input-to-company"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="toStreet">Street Address *</Label>
+                  <Input
+                    id="toStreet"
+                    placeholder="e.g., 123 Main St"
+                    value={formData.toStreet}
+                    onChange={(e) => handleInputChange('toStreet', e.target.value)}
+                    required
+                    data-testid="input-to-street"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="toCity">City *</Label>
+                    <Input
+                      id="toCity"
+                      placeholder="e.g., Kingston"
+                      value={formData.toCity}
+                      onChange={(e) => handleInputChange('toCity', e.target.value)}
+                      required
+                      data-testid="input-to-city"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="toProvince">Province *</Label>
+                    <Select
+                      value={formData.toProvince}
+                      onValueChange={(value) => handleInputChange('toProvince', value)}
+                    >
+                      <SelectTrigger data-testid="select-to-province">
+                        <SelectValue placeholder="Select province" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AB">Alberta (AB)</SelectItem>
+                        <SelectItem value="BC">British Columbia (BC)</SelectItem>
+                        <SelectItem value="MB">Manitoba (MB)</SelectItem>
+                        <SelectItem value="NB">New Brunswick (NB)</SelectItem>
+                        <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
+                        <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
+                        <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
+                        <SelectItem value="NU">Nunavut (NU)</SelectItem>
+                        <SelectItem value="ON">Ontario (ON)</SelectItem>
+                        <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
+                        <SelectItem value="QC">Quebec (QC)</SelectItem>
+                        <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
+                        <SelectItem value="YT">Yukon (YT)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="toPhone">Phone Number *</Label>
+                  <Input
+                    id="toPhone"
+                    placeholder="e.g., 613-555-1234"
+                    value={formData.toPhone}
+                    onChange={(e) => handleInputChange('toPhone', e.target.value)}
+                    required
+                    data-testid="input-to-phone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="toAttention">Contact Person</Label>
+                  <Input
+                    id="toAttention"
+                    placeholder="e.g., Jane Doe"
+                    value={formData.toAttention}
+                    onChange={(e) => handleInputChange('toAttention', e.target.value)}
+                    data-testid="input-to-attention"
+                  />
+                </div>
                 <div>
                   <Label htmlFor="toCountry">Country</Label>
                   <Select 
