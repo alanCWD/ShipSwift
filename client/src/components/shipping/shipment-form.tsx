@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -108,6 +108,7 @@ function PaymentForm({ clientSecret, onPaymentSuccess }: { clientSecret: string;
 export default function ShipmentForm({ rate, pickupDetails, addressData, onBack }: ShipmentFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const paymentSectionRef = useRef<HTMLDivElement>(null);
   
   console.log('🚢 ShipmentForm: Received addressData:', addressData);
   console.log('🚢 ShipmentForm: addressData.toStreet:', addressData?.toStreet);
@@ -136,10 +137,10 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   console.log('🚢 ShipmentForm: Initial shippingDetails.toAddress:', shippingDetails.toAddress);
   console.log('🚢 ShipmentForm: Initial shippingDetails.toCity:', shippingDetails.toCity);
 
-  // Scroll to top when moving to payment step
+  // Scroll to payment section when moving to payment step
   useEffect(() => {
-    if (currentStep === 2) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (currentStep === 2 && paymentSectionRef.current) {
+      paymentSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentStep]);
 
@@ -584,7 +585,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
         )}
 
         {currentStep === 2 && clientSecret && (
-          <div className="max-w-md mx-auto">
+          <div ref={paymentSectionRef} className="max-w-md mx-auto">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
