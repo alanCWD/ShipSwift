@@ -648,7 +648,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 {shipmentType === 'package' 
                   ? 'For small to medium parcels shipped via courier services'
                   : shipmentType === 'envelope'
-                  ? 'For documents and flat items (max 2 lbs) via Stallion Express'
+                  ? 'For documents and flat items (max 2 lbs)'
                   : 'For large shipments on pallets via freight carriers'}
               </p>
             </div>
@@ -784,7 +784,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     required
                     data-testid="input-envelope-weight"
                   />
-                  <p className="text-xs text-red-500 mt-1">Max 2 lbs for envelope shipments</p>
                 </div>
               </div>
             )}

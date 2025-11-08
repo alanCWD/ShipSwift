@@ -13,6 +13,10 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 
 Preferred communication style: Simple, everyday language.
 
+**UI/UX Preferences**:
+- Do not reference carrier names (Stallion Express, ShipTime, etc.) in customer-facing UI
+- Keep carrier information internal to backend services and admin panels only
+
 # System Architecture
 
 ## Frontend Architecture
