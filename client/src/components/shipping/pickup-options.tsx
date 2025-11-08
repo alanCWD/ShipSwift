@@ -143,7 +143,19 @@ export default function PickupOptions({ onPickupDetailsComplete, onBack, rate }:
               <div className="text-sm text-gray-600">{rate.serviceName || rate.service?.name}</div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold">${(rate.totalCharge || rate.price || '0').toString()}</div>
+              <div className="text-lg font-bold">
+                ${(() => {
+                  // Check for marked-up rate format (has subtotal and taxAmount)
+                  if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+                    const total = Number(rate.subtotal) + Number(rate.taxAmount);
+                    return total.toFixed(2);
+                  }
+                  // Fallback to legacy formats
+                  if (rate.totalCharge) return Number(rate.totalCharge).toFixed(2);
+                  if (rate.price) return Number(rate.price).toFixed(2);
+                  return '0.00';
+                })()}
+              </div>
               <div className="text-sm text-gray-600">CAD</div>
             </div>
           </div>
