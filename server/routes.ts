@@ -3005,9 +3005,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Merchant API rate endpoint - authenticated via API key
   app.post("/api/v1/merchant/rates", async (req, res) => {
     try {
+      // Log incoming merchant API request for debugging
+      console.log('📦 Merchant API Request:', {
+        headers: {
+          origin: req.headers.origin || 'not set',
+          referer: req.headers.referer || 'not set',
+          'x-requested-with': req.headers['x-requested-with'] || 'not set',
+          'user-agent': req.headers['user-agent']?.substring(0, 50) || 'not set'
+        },
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Set permissive CORS for merchant API (Origin/Referer optional for server-to-server)
+      // API key authentication is the security boundary, not CORS
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header('Access-Control-Allow-Credentials', 'false'); // No cookies for merchant API
+      
       // Extract API key from Authorization header
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('❌ Merchant API: Missing Authorization header');
         return res.status(401).json({ error: "Missing or invalid Authorization header" });
       }
 
@@ -3118,6 +3136,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }));
 
+      console.log(`✅ Merchant API: Successfully returned ${formattedRates.length} rates`);
+      
       res.json({
         success: true,
         rates: formattedRates,

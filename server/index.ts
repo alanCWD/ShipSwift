@@ -11,34 +11,43 @@ app.use(express.urlencoded({ extended: false }));
 
 // CORS and iframe embedding support
 app.use((req, res, next) => {
-  // Allow credentials for cross-origin requests
-  res.header('Access-Control-Allow-Credentials', 'true');
+  // Merchant API endpoints use API-key auth and need permissive CORS for server-to-server requests
+  const isMerchantAPI = req.path.startsWith('/api/v1/merchant');
   
-  // Allow embedding in iframes from any domain
-  res.removeHeader('X-Frame-Options'); // Remove default frame restrictions
-  
-  // Set CORS headers for API requests - strict allowlist with exact matching
-  const origin = req.headers.origin;
+  if (isMerchantAPI) {
+    // Merchant API: Permissive CORS (server-to-server doesn't send Origin/Referer)
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'false');
+  } else {
+    // Regular API: Strict CORS with allowlist
+    res.header('Access-Control-Allow-Credentials', 'true');
     
-  if (origin && isAllowedOrigin(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  } else if (!origin) {
-    // For iframe contexts without Origin header, validate referring domain
-    const referer = req.headers.referer;
-    if (referer) {
-      try {
-        const refererUrl = new URL(referer);
-        if (isAllowedOrigin(refererUrl.origin)) {
-          res.header('Access-Control-Allow-Origin', refererUrl.origin);
+    // Allow embedding in iframes from any domain
+    res.removeHeader('X-Frame-Options'); // Remove default frame restrictions
+    
+    // Set CORS headers for API requests - strict allowlist with exact matching
+    const origin = req.headers.origin;
+      
+    if (origin && isAllowedOrigin(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    } else if (!origin) {
+      // For iframe contexts without Origin header, validate referring domain
+      const referer = req.headers.referer;
+      if (referer) {
+        try {
+          const refererUrl = new URL(referer);
+          if (isAllowedOrigin(refererUrl.origin)) {
+            res.header('Access-Control-Allow-Origin', refererUrl.origin);
+          }
+          // Don't set ACAO header for disallowed referers
+        } catch (e) {
+          // Don't set ACAO header for invalid referers
         }
-        // Don't set ACAO header for disallowed referers
-      } catch (e) {
-        // Don't set ACAO header for invalid referers
       }
+      // Don't set ACAO header when no Origin or Referer
     }
-    // Don't set ACAO header when no Origin or Referer
+    // Don't set ACAO header for disallowed origins
   }
-  // Don't set ACAO header for disallowed origins
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie');
