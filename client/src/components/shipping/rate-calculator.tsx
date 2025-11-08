@@ -300,8 +300,8 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       parseFloat(height) > 0 && 
       parseFloat(weight) > 0;
     
-    // For pallet shipments, require full addresses
-    const hasValidPalletAddresses = shipmentType !== 'pallet' || (
+    // Require full addresses for ALL shipment types (ShipTime needs them)
+    const hasValidFullAddresses = (
       fromCompany.trim().length > 0 &&
       fromStreet.trim().length > 0 &&
       fromCity.trim().length > 0 &&
@@ -314,7 +314,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       toPhone.trim().length > 0
     );
     
-    if (hasValidPostalCodes && hasValidDimensions && hasValidPalletAddresses && !ratesMutation.isPending && !hasRates) {
+    if (hasValidPostalCodes && hasValidDimensions && hasValidFullAddresses && !ratesMutation.isPending && !hasRates) {
       ratesMutation.mutate(formData);
     }
   }, [formData, ratesMutation, hasRates, shipmentType]);
