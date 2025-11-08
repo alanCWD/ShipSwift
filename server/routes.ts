@@ -3029,11 +3029,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Missing or invalid Authorization header" });
       }
 
-      const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
+      const apiKey = authHeader.substring(7).trim(); // Remove "Bearer " prefix and trim whitespace
+      
+      console.log('🔑 API Key Details:', {
+        length: apiKey.length,
+        prefix: apiKey.substring(0, 15) + '...',
+        startsWithGoablp: apiKey.startsWith('goablp_')
+      });
       
       // SECURITY: Rate limit by prefix BEFORE bcrypt validation (prevents DoS)
       const keyPrefix = apiKey.substring(0, 12);
       if (merchantRateLimiter.isRateLimitedByPrefix(keyPrefix)) {
+        console.log('❌ Rate limited by prefix:', keyPrefix);
         return res.status(429).json({ 
           error: "Rate limit exceeded",
           message: "Too many requests. Please try again later."
@@ -3041,10 +3048,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate API key (single bcrypt comparison using prefix optimization)
+      console.log('🔍 Looking up API key with prefix:', keyPrefix);
       const merchantKey = await storage.getMerchantApiKey(apiKey);
       if (!merchantKey) {
+        console.log('❌ No matching API key found for prefix:', keyPrefix);
         return res.status(401).json({ error: "Invalid API key" });
       }
+      
+      console.log('✅ API key validated successfully:', {
+        keyId: merchantKey.id,
+        keyName: merchantKey.name,
+        userId: merchantKey.userId
+      });
 
       // Check validated key rate limiting (60 requests per minute per API key)
       if (merchantRateLimiter.isRateLimitedById(merchantKey.id)) {
