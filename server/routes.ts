@@ -1185,6 +1185,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const totalCost = parseFloat(shipmentData.baseCost) + markupCost;
 
+      // Load Stripe credentials from database before processing payment
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(400).json({ 
+          message: "Stripe payment credentials not configured. Please configure Stripe API keys in admin settings." 
+        });
+      }
+
       // Process payment with Stripe
       const paymentIntent = await stripeService.createPaymentIntent(totalCost * 100); // Convert to cents
 
