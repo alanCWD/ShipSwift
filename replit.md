@@ -4,7 +4,7 @@ GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing m
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
-## Recent Updates (Nov 8, 2025)
+## Recent Updates (Nov 10, 2025)
 
 ### Bug Fixes
 1. **Drop-Off Package Validation**: Fixed pickup options form to allow "Drop Off" selection without validation errors. Contact name, phone, location, and time fields are now only required when scheduling pickup (not for drop-off).
@@ -12,11 +12,13 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 3. **API Payload**: Modified rate request payload to include fromAddress/toAddress for all shipment types, enabling proper multi-carrier rate aggregation.
 4. **Pickup Options Display**: Fixed rate display in pickup options to correctly calculate total from `subtotal + taxAmount` instead of using undefined `totalCharge` property.
 5. **Same-Day Pickup**: Fixed pickup date calendar to allow same-day pickup scheduling. Previously, the minimum selectable date was hardcoded to "tomorrow", preventing same-day pickups for all carriers. Now uses "today" as minimum date with proper midnight normalization for reliable date comparison.
+6. **Transit Time Display**: Fixed transit time display to show accurate carrier-guaranteed ranges instead of calculated midpoints. Stallion API ranges like "2-3 days" now display as "2-3 business days" instead of being collapsed to "3 business days". This provides customers with accurate delivery expectations matching carrier service guarantees (e.g., Canada Post Expedited's 2-3 day guarantee).
 
 ### New Features
 1. **Address Data Persistence**: Implemented complete data flow from rate calculator through to order summary. Ship-to address details (street, city, province, postal code, phone) are now automatically pre-filled in the shipment form, eliminating the need for users to re-enter information.
 2. **Order Confirmation Checkbox**: Added mandatory confirmation checkbox in the order summary before payment continuation. Users must explicitly confirm all shipping information is correct before proceeding to payment. The "Continue to Payment" button is disabled until checkbox is checked, with both UI and backend validation.
 3. **Payment Section Scroll**: Implemented automatic smooth scrolling to Payment Details section when user clicks "Continue to Payment". Previously scrolled to wrong section, now correctly targets the payment form.
+4. **Dual-Format Transit Times**: Implemented dual-field transit time system providing both string ranges for UI display and numeric values for API compatibility. Rates now include `transitTime` (e.g., "2-3 business days") for accurate customer-facing display and `deliveryDays` (numeric midpoint) for WooCommerce plugin compatibility and sorting algorithms.
 
 # User Preferences
 
