@@ -3149,13 +3149,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const basePrice = rate.originalBaseCharge || 0;
         const taxes = rate.taxAmount || 0;
         
+        // Transit time handling:
+        // - Prefer transitTime string for description (preserves ranges like "2-3 business days")
+        // - Provide deliveryDays numeric for API compatibility and sorting
+        const deliveryDaysNumeric = rate.deliveryDays || rate.transitDays || null;
+        let description: string | undefined;
+        
+        if (rate.transitTime && rate.transitTime !== 'N/A') {
+          // Use full transit time string if available (includes ranges)
+          description = `Estimated ${rate.transitTime}`;
+        } else if (deliveryDaysNumeric) {
+          // Fallback to numeric value
+          description = `Estimated ${deliveryDaysNumeric} business days`;
+        }
+        
         return {
           service_name: `${carrier} - ${service}`,
           service_code: service.replace(/\s+/g, '_').toUpperCase(),
           total_price: totalPrice.toFixed(2),
           currency: 'CAD',
-          delivery_days: rate.deliveryDays || rate.transitDays || null,
-          description: rate.deliveryDays ? `Estimated ${rate.deliveryDays} business days` : undefined,
+          delivery_days: deliveryDaysNumeric,
+          description: description,
           carrier: carrier,
           details: {
             base_price: basePrice.toFixed(2),

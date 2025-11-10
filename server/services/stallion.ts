@@ -274,36 +274,35 @@ export class StallionService {
       }
     }));
 
-    // Parse delivery days string and preserve original range
-    // e.g., "2-3" -> transitTime: "2-3 business days", sortValue: 2.5
-    // e.g., "5" -> transitTime: "5 business days", sortValue: 5
+    // Parse delivery days and provide BOTH string and numeric formats
+    // - transitTime: String with range for UI display (e.g., "2-3 business days")
+    // - deliveryDays: Numeric midpoint for API compatibility and sorting (e.g., 3)
     let transitTimeDisplay: string;
-    let deliveryDaysSortValue: number | undefined;
+    let deliveryDaysNumeric: number | undefined;
     
     if (stallionRate.delivery_days && typeof stallionRate.delivery_days === 'string') {
       const deliveryDaysStr = stallionRate.delivery_days.trim();
       
       if (deliveryDaysStr.includes('-')) {
-        // Range format: preserve the range in display
+        // Range format: preserve range for display, calculate midpoint for sorting/API
         transitTimeDisplay = `${deliveryDaysStr} business days`;
         
-        // Calculate midpoint for sorting purposes only
         const [min, max] = deliveryDaysStr.split('-').map(d => parseInt(d.trim()));
-        deliveryDaysSortValue = Math.round((min + max) / 2);
+        deliveryDaysNumeric = Math.round((min + max) / 2);
       } else {
-        // Single value: use as-is
+        // Single value: use as-is for both display and numeric
         const days = parseInt(deliveryDaysStr);
         transitTimeDisplay = `${days} business days`;
-        deliveryDaysSortValue = days;
+        deliveryDaysNumeric = days;
       }
     } else if (typeof stallionRate.delivery_days === 'number') {
-      // Numeric format
+      // Numeric format: use directly
       transitTimeDisplay = `${stallionRate.delivery_days} business days`;
-      deliveryDaysSortValue = stallionRate.delivery_days;
+      deliveryDaysNumeric = stallionRate.delivery_days;
     } else {
       // No delivery days provided
       transitTimeDisplay = 'N/A';
-      deliveryDaysSortValue = undefined;
+      deliveryDaysNumeric = undefined;
     }
 
     return {
@@ -326,12 +325,12 @@ export class StallionService {
       surcharges: surcharges,
       taxes: [], // Taxes will be recalculated by our tax service
       
-      // Transit time - preserve original range string
+      // Transit time fields (dual format for different use cases):
+      // - transitTime: String with range for accurate UI display (e.g., "2-3 business days")
+      // - deliveryDays: Numeric midpoint for merchant API, sorting, and SLA calculations
       transitTime: transitTimeDisplay,
+      deliveryDays: deliveryDaysNumeric,
       transitUnit: 'business days',
-      
-      // Internal sort value for rate comparison (not displayed)
-      deliveryDaysSortValue: deliveryDaysSortValue,
       
       source: 'stallion',
       rateId: `stallion_${stallionRate.postage_type_id}`,
