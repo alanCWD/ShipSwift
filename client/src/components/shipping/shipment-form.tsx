@@ -110,10 +110,6 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   const { toast } = useToast();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
   
-  console.log('🚢 ShipmentForm: Received addressData:', addressData);
-  console.log('🚢 ShipmentForm: addressData.toStreet:', addressData?.toStreet);
-  console.log('🚢 ShipmentForm: addressData.toCity:', addressData?.toCity);
-  
   const [currentStep, setCurrentStep] = useState(1);
   const [clientSecret, setClientSecret] = useState('');
   const [confirmationChecked, setConfirmationChecked] = useState(false);
@@ -133,9 +129,6 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
     toCountry: addressData?.toCountry || 'CA',
     toPhone: addressData?.toPhone || '',
   });
-  
-  console.log('🚢 ShipmentForm: Initial shippingDetails.toAddress:', shippingDetails.toAddress);
-  console.log('🚢 ShipmentForm: Initial shippingDetails.toCity:', shippingDetails.toCity);
 
   // Scroll to payment section when moving to payment step
   useEffect(() => {

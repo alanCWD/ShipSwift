@@ -116,8 +116,8 @@ export default function PickupOptions({ onPickupDetailsComplete, onBack, rate, a
     onPickupDetailsComplete(pickupDetails);
   };
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight for proper date comparison
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -263,7 +263,7 @@ export default function PickupOptions({ onPickupDetailsComplete, onBack, rate, a
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        disabled={(date) => date < tomorrow}
+                        disabled={(date) => date < today}
                         initialFocus
                       />
                     </PopoverContent>
