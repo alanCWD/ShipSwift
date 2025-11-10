@@ -11,10 +11,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 2. **Dashboard Rate Calculator**: Updated to require and display full addresses (company, street, city, province, phone) for ALL shipment types (package, envelope, pallet), not just freight. This ensures ShipTime API receives complete data for accurate rate calculation.
 3. **API Payload**: Modified rate request payload to include fromAddress/toAddress for all shipment types, enabling proper multi-carrier rate aggregation.
 4. **Pickup Options Display**: Fixed rate display in pickup options to correctly calculate total from `subtotal + taxAmount` instead of using undefined `totalCharge` property.
+5. **Same-Day Pickup**: Fixed pickup date calendar to allow same-day pickup scheduling. Previously, the minimum selectable date was hardcoded to "tomorrow", preventing same-day pickups for all carriers. Now uses "today" as minimum date with proper midnight normalization for reliable date comparison.
 
 ### New Features
 1. **Address Data Persistence**: Implemented complete data flow from rate calculator through to order summary. Ship-to address details (street, city, province, postal code, phone) are now automatically pre-filled in the shipment form, eliminating the need for users to re-enter information.
 2. **Order Confirmation Checkbox**: Added mandatory confirmation checkbox in the order summary before payment continuation. Users must explicitly confirm all shipping information is correct before proceeding to payment. The "Continue to Payment" button is disabled until checkbox is checked, with both UI and backend validation.
+3. **Payment Section Scroll**: Implemented automatic smooth scrolling to Payment Details section when user clicks "Continue to Payment". Previously scrolled to wrong section, now correctly targets the payment form.
 
 # User Preferences
 
