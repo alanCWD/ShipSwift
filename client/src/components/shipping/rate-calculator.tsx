@@ -716,7 +716,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     <SelectItem value="letter">Letter (8.5" × 11")</SelectItem>
                     <SelectItem value="legal">Legal (8.5" × 14")</SelectItem>
                     <SelectItem value="large">Large Envelope (9" × 12")</SelectItem>
-                    <SelectItem value="flat">Flat Rate (12.5" × 9.5")</SelectItem>
+                    <SelectItem value="flat">Extra Large (12.5" × 9.5")</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">Standard envelope dimensions are pre-set</p>
