@@ -274,17 +274,36 @@ export class StallionService {
       }
     }));
 
-    // Parse delivery days string (e.g., "5-9" -> use midpoint 7, "2" -> 2)
-    let deliveryDays: number | undefined;
+    // Parse delivery days string and preserve original range
+    // e.g., "2-3" -> transitTime: "2-3 business days", sortValue: 2.5
+    // e.g., "5" -> transitTime: "5 business days", sortValue: 5
+    let transitTimeDisplay: string;
+    let deliveryDaysSortValue: number | undefined;
+    
     if (stallionRate.delivery_days && typeof stallionRate.delivery_days === 'string') {
-      if (stallionRate.delivery_days.includes('-')) {
-        const [min, max] = stallionRate.delivery_days.split('-').map(d => parseInt(d.trim()));
-        deliveryDays = Math.round((min + max) / 2);
+      const deliveryDaysStr = stallionRate.delivery_days.trim();
+      
+      if (deliveryDaysStr.includes('-')) {
+        // Range format: preserve the range in display
+        transitTimeDisplay = `${deliveryDaysStr} business days`;
+        
+        // Calculate midpoint for sorting purposes only
+        const [min, max] = deliveryDaysStr.split('-').map(d => parseInt(d.trim()));
+        deliveryDaysSortValue = Math.round((min + max) / 2);
       } else {
-        deliveryDays = parseInt(stallionRate.delivery_days);
+        // Single value: use as-is
+        const days = parseInt(deliveryDaysStr);
+        transitTimeDisplay = `${days} business days`;
+        deliveryDaysSortValue = days;
       }
     } else if (typeof stallionRate.delivery_days === 'number') {
-      deliveryDays = stallionRate.delivery_days;
+      // Numeric format
+      transitTimeDisplay = `${stallionRate.delivery_days} business days`;
+      deliveryDaysSortValue = stallionRate.delivery_days;
+    } else {
+      // No delivery days provided
+      transitTimeDisplay = 'N/A';
+      deliveryDaysSortValue = undefined;
     }
 
     return {
@@ -307,11 +326,12 @@ export class StallionService {
       surcharges: surcharges,
       taxes: [], // Taxes will be recalculated by our tax service
       
-      // Multiple transit time formats for frontend compatibility
-      transitDays: deliveryDays,
-      deliveryDays: deliveryDays,
+      // Transit time - preserve original range string
+      transitTime: transitTimeDisplay,
       transitUnit: 'business days',
-      transitTime: deliveryDays ? `${deliveryDays} business days` : stallionRate.delivery_days,
+      
+      // Internal sort value for rate comparison (not displayed)
+      deliveryDaysSortValue: deliveryDaysSortValue,
       
       source: 'stallion',
       rateId: `stallion_${stallionRate.postage_type_id}`,
