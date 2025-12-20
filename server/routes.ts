@@ -1876,6 +1876,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoint to get Stripe publishable key (safe to expose - no auth required)
+  app.get("/api/stripe/config", async (req, res) => {
+    try {
+      const publishableKey = await storage.getSetting('STRIPE_PUBLISHABLE_KEY');
+      const environment = await storage.getSetting('STRIPE_ENVIRONMENT') || 'test';
+      
+      if (!publishableKey) {
+        // Fallback to environment variable if database setting not configured
+        const envKey = process.env.VITE_STRIPE_PUBLIC_KEY;
+        if (envKey) {
+          return res.json({ 
+            publishableKey: envKey,
+            environment: envKey.includes('_test_') ? 'test' : 'live'
+          });
+        }
+        return res.status(404).json({ message: "Stripe publishable key not configured" });
+      }
+      
+      // Determine environment from key prefix
+      const keyEnvironment = publishableKey.includes('_test_') ? 'test' : 'live';
+      
+      res.json({ 
+        publishableKey: publishableKey.trim(),
+        environment: keyEnvironment
+      });
+    } catch (error) {
+      console.error("Error fetching Stripe config:", error);
+      res.status(500).json({ message: "Failed to fetch Stripe configuration" });
+    }
+  });
+
   // SendGrid credentials
   app.post("/api/admin/settings/sendgrid-credentials", requireAuth, async (req, res) => {
     try {

@@ -1,27 +1,91 @@
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 
-// Load Stripe with the publishable key
-let stripePromise: Promise<Stripe | null>;
+// Load Stripe with the publishable key from database settings
+let stripePromise: Promise<Stripe | null> | null = null;
+let stripeConfig: { publishableKey: string; environment: string } | null = null;
 
+// Fetch Stripe configuration from backend (loads from database settings)
+export const fetchStripeConfig = async (): Promise<{ publishableKey: string; environment: string } | null> => {
+  if (stripeConfig) {
+    return stripeConfig;
+  }
+  
+  try {
+    const response = await fetch('/api/stripe/config');
+    if (!response.ok) {
+      console.error('Failed to fetch Stripe config:', response.status);
+      return null;
+    }
+    
+    const config = await response.json();
+    console.log('Stripe config loaded from database:', {
+      keyPrefix: config.publishableKey?.substring(0, 7) + '...',
+      environment: config.environment
+    });
+    
+    stripeConfig = config;
+    return config;
+  } catch (error) {
+    console.error('Error fetching Stripe config:', error);
+    return null;
+  }
+};
+
+// Initialize Stripe with key from database settings
+export const initializeStripe = async (): Promise<Stripe | null> => {
+  if (stripePromise) {
+    return stripePromise;
+  }
+  
+  const config = await fetchStripeConfig();
+  
+  if (!config?.publishableKey) {
+    console.error('Stripe publishable key not configured');
+    return null;
+  }
+  
+  if (!config.publishableKey.startsWith('pk_')) {
+    console.error('Invalid Stripe publishable key format');
+    return null;
+  }
+  
+  console.log('Initializing Stripe with key:', config.publishableKey.substring(0, 7) + '...');
+  stripePromise = loadStripe(config.publishableKey);
+  return stripePromise;
+};
+
+// Legacy synchronous getter (falls back to env var for backward compatibility)
 export const getStripe = () => {
   if (!stripePromise) {
-    const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-    
-    console.log('Stripe key check:', publishableKey ? `Found (${publishableKey.substring(0, 7)}...)` : 'Not found');
-    
-    if (!publishableKey) {
-      console.error('Failed to load Stripe');
-      return null;
+    // Try to use cached config first
+    if (stripeConfig?.publishableKey) {
+      console.log('Using cached Stripe config:', stripeConfig.publishableKey.substring(0, 7) + '...');
+      stripePromise = loadStripe(stripeConfig.publishableKey);
+    } else {
+      // Fallback to environment variable for backward compatibility
+      const publishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+      
+      console.log('Stripe key check:', publishableKey ? `Env fallback (${publishableKey.substring(0, 7)}...)` : 'Not found');
+      
+      if (!publishableKey) {
+        console.error('Stripe not configured - fetch config first');
+        return null;
+      }
+      
+      if (!publishableKey.startsWith('pk_')) {
+        console.error('Invalid Stripe key format');
+        return null;
+      }
+      
+      stripePromise = loadStripe(publishableKey);
     }
-    
-    if (!publishableKey.startsWith('pk_')) {
-      console.error('Failed to load Stripe');
-      return null;
-    }
-    
-    stripePromise = loadStripe(publishableKey);
   }
   return stripePromise;
+};
+
+// Get the current Stripe environment (test or live)
+export const getStripeEnvironment = (): string => {
+  return stripeConfig?.environment || 'unknown';
 };
 
 // Stripe configuration options

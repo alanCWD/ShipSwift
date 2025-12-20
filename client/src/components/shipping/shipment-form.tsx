@@ -8,12 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Package, MapPin, CreditCard } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, CreditCard, Loader2 } from 'lucide-react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiRequest } from '@/lib/queryClient';
-import { getStripe } from '@/lib/stripe-config';
-
-const stripePromise = getStripe();
+import { initializeStripe, getStripeEnvironment } from '@/lib/stripe-config';
+import type { Stripe } from '@stripe/stripe-js';
 
 interface ShipmentFormProps {
   rate: any;
@@ -113,6 +112,8 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   const [currentStep, setCurrentStep] = useState(1);
   const [clientSecret, setClientSecret] = useState('');
   const [confirmationChecked, setConfirmationChecked] = useState(false);
+  const [stripeInstance, setStripeInstance] = useState<Promise<Stripe | null> | null>(null);
+  const [isLoadingStripe, setIsLoadingStripe] = useState(false);
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
     fromName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : (addressData?.fromAttention || ''),
     fromAddress: addressData?.fromStreet || '44322 Yale Rd #3',
@@ -129,6 +130,38 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
     toCountry: addressData?.toCountry || 'CA',
     toPhone: addressData?.toPhone || '',
   });
+
+  // Initialize Stripe when we have a client secret (payment step is reached)
+  useEffect(() => {
+    const loadStripe = async () => {
+      if (clientSecret && !stripeInstance && !isLoadingStripe) {
+        setIsLoadingStripe(true);
+        try {
+          const stripe = await initializeStripe();
+          if (stripe) {
+            setStripeInstance(Promise.resolve(stripe));
+            console.log('Stripe loaded for payment, environment:', getStripeEnvironment());
+          } else {
+            toast({
+              title: "Payment Configuration Error",
+              description: "Unable to load payment system. Please contact support.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load Stripe:', error);
+          toast({
+            title: "Payment Configuration Error",
+            description: "Unable to load payment system. Please try again.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoadingStripe(false);
+        }
+      }
+    };
+    loadStripe();
+  }, [clientSecret, stripeInstance, isLoadingStripe, toast]);
 
   // Scroll to payment section when moving to payment step
   useEffect(() => {
@@ -595,9 +628,20 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
                     </p>
                   </div>
                 </div>
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <PaymentForm clientSecret={clientSecret} onPaymentSuccess={handlePaymentSuccess} />
-                </Elements>
+                {isLoadingStripe ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    <span>Loading payment form...</span>
+                  </div>
+                ) : stripeInstance ? (
+                  <Elements stripe={stripeInstance} options={{ clientSecret }}>
+                    <PaymentForm clientSecret={clientSecret} onPaymentSuccess={handlePaymentSuccess} />
+                  </Elements>
+                ) : (
+                  <div className="text-center py-8 text-red-600">
+                    <p>Unable to load payment form. Please refresh and try again.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
