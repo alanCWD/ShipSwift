@@ -81,3 +81,13 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
     next();
   });
 };
+
+export const requireAblpAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  await requireAuth(req, res, () => {
+    // Only 'ablp_admin' role has access to ABLP-specific admin features
+    if (req.user?.role !== 'ablp_admin') {
+      return res.status(403).json({ message: 'ABLP Admin access required' });
+    }
+    next();
+  });
+};
