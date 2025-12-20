@@ -203,7 +203,14 @@ export class RateAggregatorService {
     const rateMap = new Map<string, any>();
 
     rates.forEach(rate => {
-      const key = `${rate.carrierName}_${rate.serviceName}`;
+      // Handle both nested (ShipTime: carrier.name) and flat (Stallion: carrierName) structures
+      const carrierName = rate.carrier?.name ?? rate.carrierName ?? 'Unknown';
+      const serviceName = rate.service?.name ?? rate.serviceName ?? 'Unknown';
+      const key = `${carrierName}_${serviceName}`;
+      
+      if (carrierName === 'Unknown' || serviceName === 'Unknown') {
+        console.log(`  ⚠️  Rate with unknown carrier/service:`, { carrierName, serviceName, source: rate.source });
+      }
       
       if (!rateMap.has(key)) {
         rateMap.set(key, rate);
