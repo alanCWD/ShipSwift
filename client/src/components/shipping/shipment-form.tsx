@@ -171,6 +171,14 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   }, [currentStep]);
 
   const calculateTotal = (rate: any) => {
+    // IMPORTANT: Check for marked up API format FIRST (has subtotal and taxAmount)
+    // This is the primary format from rate aggregator with profit markup applied
+    if (rate.subtotal !== undefined && rate.taxAmount !== undefined) {
+      const subtotal = Number(rate.subtotal);
+      const tax = Number(rate.taxAmount);
+      return subtotal + tax;
+    }
+    
     // Handle sample rates format (has totalCharge or price as string)
     if (rate.totalCharge) {
       return parseFloat(rate.totalCharge);
