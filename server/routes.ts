@@ -7,7 +7,7 @@ import { stripeService } from "./services/stripe-service";
 import { emailService } from "./services/email-service";
 import { rateMarkupService } from "./services/rate-markup";
 import { isAuthenticated as requireAuth } from "./replitAuth";
-import { requireAdmin } from "./middleware/auth";
+import { requireAdmin, requireAblpAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -3271,7 +3271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== BLAZE PORTAL ADMIN ROUTES ====================
 
   // Get Blaze settings
-  app.get("/api/admin/blaze/settings", requireAdmin, async (req, res) => {
+  app.get("/api/admin/blaze/settings", requireAblpAdmin, async (req, res) => {
     try {
       const settings = await storage.getBlazeSettings();
       
@@ -3300,7 +3300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update Blaze settings
-  app.post("/api/admin/blaze/settings", requireAdmin, async (req, res) => {
+  app.post("/api/admin/blaze/settings", requireAblpAdmin, async (req, res) => {
     try {
       const { partnerApiKey, partnerApiSecret, excludedCarriers, allowedShipmentTypes, isActive } = req.body;
       
@@ -3335,7 +3335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test Blaze connection
-  app.post("/api/admin/blaze/test-connection", requireAdmin, async (req, res) => {
+  app.post("/api/admin/blaze/test-connection", requireAblpAdmin, async (req, res) => {
     try {
       const { dispensaryKey } = req.body;
       const settings = await storage.getBlazeSettings();
@@ -3355,7 +3355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all Blaze connections (admin view)
-  app.get("/api/admin/blaze/connections", requireAdmin, async (req, res) => {
+  app.get("/api/admin/blaze/connections", requireAblpAdmin, async (req, res) => {
     try {
       const connections = await storage.getAllBlazeConnections();
       res.json(connections);
@@ -3366,7 +3366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get users with Blaze access
-  app.get("/api/admin/blaze/users", requireAdmin, async (req, res) => {
+  app.get("/api/admin/blaze/users", requireAblpAdmin, async (req, res) => {
     try {
       const blazeUsers = await storage.getUsersWithBlazeAccess();
       const allUsers = await storage.getAllUsers({});
@@ -3389,7 +3389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update user Blaze access
-  app.post("/api/admin/blaze/users/:userId/access", requireAdmin, async (req, res) => {
+  app.post("/api/admin/blaze/users/:userId/access", requireAblpAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const { hasAccess } = req.body;
