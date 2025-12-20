@@ -4,7 +4,22 @@ GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing m
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
-## Recent Updates (Nov 10, 2025)
+## Recent Updates (Dec 20, 2025)
+
+### New Features - Blaze Portal
+1. **Blaze Cannabis Dispensary Integration**: Complete integration with Blaze POS for cannabis dispensary shipping. The Blaze Portal provides a dedicated shipping interface for dispensary orders with carrier filtering.
+2. **Cannabis-Friendly Carrier Filtering**: Automatically excludes US-based carriers (UPS, FedEx, DHL) that have restrictions on cannabis products. Only Canadian carriers like Canada Post, Purolator, Canpar, GLS, and Loomis are available for cannabis shipments.
+3. **Blaze Admin Settings**: Admin panel for managing Blaze Partner API credentials, carrier exclusion rules, and user access control.
+4. **Blaze User Access Control**: Admins can grant/revoke Blaze Portal access for specific users via the admin panel.
+5. **Dispensary Connections**: Users can connect their Blaze dispensary accounts to streamline order fulfillment.
+
+### System Architecture - Blaze Portal
+- **Database Entities**: `blaze_settings` (Partner API config, carrier exclusions), `blaze_connections` (user-dispensary links)
+- **User Access**: `blazeAccess` boolean flag on users table controls Blaze Portal access
+- **Routes**: `/blaze/*` for user portal, `/api/admin/blaze/*` for admin management, `/api/blaze/*` for user API
+- **Carrier Logic**: Configurable carrier exclusions stored in `blaze_settings.excludedCarriers`
+
+## Previous Updates (Nov 10, 2025)
 
 ### Bug Fixes
 1. **Drop-Off Package Validation**: Fixed pickup options form to allow "Drop Off" selection without validation errors. Contact name, phone, location, and time fields are now only required when scheduling pickup (not for drop-off).
@@ -67,6 +82,7 @@ Preferred communication style: Simple, everyday language.
 - **Canadian Tax Calculation**: Local tax calculation service using official 2025 provincial tax rates (destination-based). Calculates and validates taxes to ensure 100% accuracy, overriding API-provided taxes when necessary. Supports GST (5%), HST (13% ON, 15% Atlantic), and GST+QST (14.975% QC). Tax calculations are logged for transparency and auditing.
 - **Merchant API System**: Secure API key management for external e-commerce integrations. Allows merchants to generate API keys and fetch real-time shipping rates for platforms like WooCommerce, Shopify, and others via authenticated REST API endpoint.
 - **WooCommerce Plugin**: Complete WordPress plugin providing real-time multi-carrier shipping rates at checkout. Features smart caching, fallback rates, debug logging, and delivery time display. Available in `/woocommerce-plugin/` directory.
+- **Blaze Portal**: Dedicated cannabis dispensary shipping portal with carrier filtering to exclude US-based carriers (UPS, FedEx, DHL) that restrict cannabis products. Supports package and envelope shipments only (no pallets for cannabis). Accessed via `/blaze` with user access controlled by `blazeAccess` flag.
 
 # External Dependencies
 

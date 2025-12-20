@@ -7,6 +7,9 @@ import {
   returns,
   systemSettings,
   merchantApiKeys,
+  blazeSettings,
+  blazeConnections,
+  blazeShipments,
   type User,
   type InsertUser,
   type UserActivity,
@@ -21,6 +24,12 @@ import {
   type InsertReturn,
   type MerchantApiKey,
   type InsertMerchantApiKey,
+  type BlazeSettings,
+  type InsertBlazeSettings,
+  type BlazeConnection,
+  type InsertBlazeConnection,
+  type BlazeShipment,
+  type InsertBlazeShipment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, or, count, sum, sql, ne, gt } from "drizzle-orm";
@@ -107,6 +116,29 @@ export interface IStorage {
   deleteMerchantApiKey(id: string): Promise<void>;
   updateMerchantApiKeyUsage(apiKey: string): Promise<void>;
   updateMerchantApiKeyUsageById(keyId: string): Promise<void>;
+  
+  // Blaze Portal operations
+  getBlazeSettings(): Promise<BlazeSettings | undefined>;
+  createBlazeSettings(settings: InsertBlazeSettings): Promise<BlazeSettings>;
+  updateBlazeSettings(id: string, updates: Partial<BlazeSettings>): Promise<BlazeSettings>;
+  
+  // Blaze connections
+  getBlazeConnection(id: string): Promise<BlazeConnection | undefined>;
+  getBlazeConnectionsByUser(userId: string): Promise<BlazeConnection[]>;
+  getAllBlazeConnections(): Promise<BlazeConnection[]>;
+  createBlazeConnection(connection: InsertBlazeConnection): Promise<BlazeConnection>;
+  updateBlazeConnection(id: string, updates: Partial<BlazeConnection>): Promise<BlazeConnection>;
+  deleteBlazeConnection(id: string): Promise<void>;
+  
+  // Blaze shipments
+  getBlazeShipment(id: string): Promise<BlazeShipment | undefined>;
+  getBlazeShipmentsByConnection(connectionId: string): Promise<BlazeShipment[]>;
+  createBlazeShipment(shipment: InsertBlazeShipment): Promise<BlazeShipment>;
+  updateBlazeShipment(id: string, updates: Partial<BlazeShipment>): Promise<BlazeShipment>;
+  
+  // Blaze user access
+  getUsersWithBlazeAccess(): Promise<User[]>;
+  updateUserBlazeAccess(userId: string, hasAccess: boolean): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -812,6 +844,140 @@ export class DatabaseStorage implements IStorage {
         requestCount: sql`${merchantApiKeys.requestCount} + 1`,
       })
       .where(eq(merchantApiKeys.id, keyId));
+  }
+
+  // ==================== BLAZE PORTAL OPERATIONS ====================
+
+  // Blaze Settings
+  async getBlazeSettings(): Promise<BlazeSettings | undefined> {
+    const [settings] = await db.select().from(blazeSettings).limit(1);
+    return settings;
+  }
+
+  async createBlazeSettings(settings: InsertBlazeSettings): Promise<BlazeSettings> {
+    const [created] = await db
+      .insert(blazeSettings)
+      .values(settings)
+      .returning();
+    return created;
+  }
+
+  async updateBlazeSettings(id: string, updates: Partial<BlazeSettings>): Promise<BlazeSettings> {
+    const [updated] = await db
+      .update(blazeSettings)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(blazeSettings.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Blaze Connections
+  async getBlazeConnection(id: string): Promise<BlazeConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(blazeConnections)
+      .where(eq(blazeConnections.id, id));
+    return connection;
+  }
+
+  async getBlazeConnectionsByUser(userId: string): Promise<BlazeConnection[]> {
+    return await db
+      .select()
+      .from(blazeConnections)
+      .where(eq(blazeConnections.userId, userId))
+      .orderBy(desc(blazeConnections.createdAt));
+  }
+
+  async getAllBlazeConnections(): Promise<BlazeConnection[]> {
+    return await db
+      .select()
+      .from(blazeConnections)
+      .orderBy(desc(blazeConnections.createdAt));
+  }
+
+  async createBlazeConnection(connection: InsertBlazeConnection): Promise<BlazeConnection> {
+    const [created] = await db
+      .insert(blazeConnections)
+      .values(connection)
+      .returning();
+    return created;
+  }
+
+  async updateBlazeConnection(id: string, updates: Partial<BlazeConnection>): Promise<BlazeConnection> {
+    const [updated] = await db
+      .update(blazeConnections)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(blazeConnections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBlazeConnection(id: string): Promise<void> {
+    await db.delete(blazeConnections).where(eq(blazeConnections.id, id));
+  }
+
+  // Blaze Shipments
+  async getBlazeShipment(id: string): Promise<BlazeShipment | undefined> {
+    const [shipment] = await db
+      .select()
+      .from(blazeShipments)
+      .where(eq(blazeShipments.id, id));
+    return shipment;
+  }
+
+  async getBlazeShipmentsByConnection(connectionId: string): Promise<BlazeShipment[]> {
+    return await db
+      .select()
+      .from(blazeShipments)
+      .where(eq(blazeShipments.connectionId, connectionId))
+      .orderBy(desc(blazeShipments.createdAt));
+  }
+
+  async createBlazeShipment(shipment: InsertBlazeShipment): Promise<BlazeShipment> {
+    const [created] = await db
+      .insert(blazeShipments)
+      .values(shipment)
+      .returning();
+    return created;
+  }
+
+  async updateBlazeShipment(id: string, updates: Partial<BlazeShipment>): Promise<BlazeShipment> {
+    const [updated] = await db
+      .update(blazeShipments)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(blazeShipments.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Blaze User Access
+  async getUsersWithBlazeAccess(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.blazeAccess, true))
+      .orderBy(desc(users.createdAt));
+  }
+
+  async updateUserBlazeAccess(userId: string, hasAccess: boolean): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        blazeAccess: hasAccess,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
   }
 }
 

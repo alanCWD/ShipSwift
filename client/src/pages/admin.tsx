@@ -7,6 +7,7 @@ import SettingsPanel from '../components/admin/settings-panel';
 import AdvancedMarkupConfig from '../components/admin/advanced-markup-config';
 import AdminUsers from './admin/users';
 import ApiKeysPage from './admin/api-keys';
+import BlazeSettingsPage from './admin/blaze-settings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Admin() {
@@ -61,6 +62,9 @@ export default function Admin() {
                 Merchant API Keys
               </TabsTrigger>
             )}
+            <TabsTrigger value="blaze" className="h-auto py-3" data-testid="tab-blaze">
+              Blaze Portal
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="settings">
@@ -80,6 +84,10 @@ export default function Admin() {
               <ApiKeysPage />
             </TabsContent>
           )}
+          
+          <TabsContent value="blaze">
+            <BlazeSettingsPage />
+          </TabsContent>
         </Tabs>
       </div>
       

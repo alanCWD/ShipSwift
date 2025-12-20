@@ -51,6 +51,8 @@ export const users = pgTable("users", {
   // Replit Auth fields
   replitSub: varchar("replit_sub").unique(), // Replit user ID from 'sub' claim - unique but nullable for migration
   authProvider: varchar("auth_provider").default('replit'), // Authentication provider
+  // Blaze Portal access
+  blazeAccess: boolean("blaze_access").default(false), // Whether user has access to Blaze Portal
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -186,6 +188,58 @@ export const merchantApiKeys = pgTable("merchant_api_keys", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Blaze Portal Settings (admin configurable)
+export const blazeSettings = pgTable("blaze_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  partnerApiKey: text("partner_api_key"), // Blaze Partner API Key (encrypted/stored securely)
+  partnerApiSecret: text("partner_api_secret"), // Blaze Partner API Secret
+  // Excluded carriers for cannabis shipments (US-based carriers with restrictions)
+  excludedCarriers: text("excluded_carriers").array().default(sql`ARRAY['UPS', 'FedEx', 'DHL']::text[]`),
+  // Allowed shipment types (no pallets for cannabis)
+  allowedShipmentTypes: text("allowed_shipment_types").array().default(sql`ARRAY['package', 'envelope']::text[]`),
+  isActive: boolean("is_active").default(true),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Blaze Dispensary Connections (links dispensaries to GoABLP)
+export const blazeConnections = pgTable("blaze_connections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(), // GoABLP user account
+  dispensaryName: varchar("dispensary_name").notNull(),
+  dispensaryApiKey: text("dispensary_api_key").notNull(), // Blaze dispensary API key
+  dispensaryId: varchar("dispensary_id"), // Blaze dispensary ID
+  // Connection status
+  isActive: boolean("is_active").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  syncStatus: varchar("sync_status").default('pending'), // pending, connected, error
+  syncErrorMessage: text("sync_error_message"),
+  // Usage tracking
+  totalOrders: integer("total_orders").default(0),
+  totalShipments: integer("total_shipments").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Blaze Shipments (tracks shipments from Blaze portal)
+export const blazeShipments = pgTable("blaze_shipments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  connectionId: varchar("connection_id").references(() => blazeConnections.id).notNull(),
+  shipmentId: varchar("shipment_id").references(() => shipments.id), // Link to main shipments table
+  blazeOrderId: varchar("blaze_order_id"), // Original Blaze order ID
+  blazeCartId: varchar("blaze_cart_id"), // Blaze cart ID
+  customerName: varchar("customer_name"),
+  customerEmail: varchar("customer_email"),
+  customerPhone: varchar("customer_phone"),
+  deliveryAddress: jsonb("delivery_address"),
+  orderTotal: decimal("order_total", { precision: 10, scale: 2 }),
+  shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }),
+  status: varchar("status").default('pending'), // pending, label_created, shipped, delivered
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -230,6 +284,27 @@ export const insertMerchantApiKeySchema = createInsertSchema(merchantApiKeys).om
   requestCount: true,
 });
 
+export const insertBlazeSettingsSchema = createInsertSchema(blazeSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBlazeConnectionSchema = createInsertSchema(blazeConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSyncAt: true,
+  totalOrders: true,
+  totalShipments: true,
+});
+
+export const insertBlazeShipmentSchema = createInsertSchema(blazeShipments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -245,3 +320,9 @@ export type Return = typeof returns.$inferSelect;
 export type InsertReturn = z.infer<typeof insertReturnSchema>;
 export type MerchantApiKey = typeof merchantApiKeys.$inferSelect;
 export type InsertMerchantApiKey = z.infer<typeof insertMerchantApiKeySchema>;
+export type BlazeSettings = typeof blazeSettings.$inferSelect;
+export type InsertBlazeSettings = z.infer<typeof insertBlazeSettingsSchema>;
+export type BlazeConnection = typeof blazeConnections.$inferSelect;
+export type InsertBlazeConnection = z.infer<typeof insertBlazeConnectionSchema>;
+export type BlazeShipment = typeof blazeShipments.$inferSelect;
+export type InsertBlazeShipment = z.infer<typeof insertBlazeShipmentSchema>;

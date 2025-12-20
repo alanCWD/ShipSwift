@@ -43,7 +43,13 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/admin/rate-comparison" component={React.lazy(() => import("@/pages/admin/rate-comparison"))} />
       <Route path="/admin/api-keys" component={React.lazy(() => import("@/pages/admin/api-keys"))} />
+      <Route path="/admin/blaze" component={React.lazy(() => import("@/pages/admin/blaze-settings"))} />
       <Route path="/admin-guide" component={React.lazy(() => import("@/pages/admin-access-guide"))} />
+      {/* Blaze Portal Routes */}
+      <Route path="/blaze" component={React.lazy(() => import("@/pages/blaze/dashboard"))} />
+      <Route path="/blaze/ship" component={React.lazy(() => import("@/pages/blaze/ship"))} />
+      <Route path="/blaze/orders" component={React.lazy(() => import("@/pages/blaze/orders"))} />
+      <Route path="/blaze/connections" component={React.lazy(() => import("@/pages/blaze/connections"))} />
       <Route path="/branded-track" component={React.lazy(() => import("@/pages/branded-tracking"))} />
       <Route path="/insurance-terms" component={React.lazy(() => import("@/pages/insurance-terms"))} />
       <Route path="/privacy-policy" component={React.lazy(() => import("@/pages/privacy-policy"))} />

@@ -9,6 +9,7 @@ interface User {
   role: string;
   companyName?: string;
   profileImageUrl?: string;
+  blazeAccess?: boolean;
 }
 
 interface AuthState {

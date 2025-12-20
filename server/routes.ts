@@ -3236,6 +3236,238 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== BLAZE PORTAL ADMIN ROUTES ====================
+
+  // Get Blaze settings
+  app.get("/api/admin/blaze/settings", requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getBlazeSettings();
+      
+      if (!settings) {
+        return res.json({
+          partnerApiKey: '',
+          partnerApiSecret: '',
+          excludedCarriers: ['UPS', 'FedEx', 'DHL'],
+          allowedShipmentTypes: ['package', 'envelope'],
+          isActive: false
+        });
+      }
+      
+      res.json({
+        id: settings.id,
+        partnerApiKey: settings.partnerApiKey ? '••••••••' + settings.partnerApiKey.slice(-4) : '',
+        partnerApiSecret: settings.partnerApiSecret ? '••••••••' : '',
+        excludedCarriers: settings.excludedCarriers || ['UPS', 'FedEx', 'DHL'],
+        allowedShipmentTypes: settings.allowedShipmentTypes || ['package', 'envelope'],
+        isActive: settings.isActive
+      });
+    } catch (error: any) {
+      console.error("Get Blaze settings error:", error);
+      res.status(500).json({ message: "Failed to fetch Blaze settings" });
+    }
+  });
+
+  // Update Blaze settings
+  app.post("/api/admin/blaze/settings", requireAdmin, async (req, res) => {
+    try {
+      const { partnerApiKey, partnerApiSecret, excludedCarriers, allowedShipmentTypes, isActive } = req.body;
+      
+      let settings = await storage.getBlazeSettings();
+      
+      const updates: any = {
+        excludedCarriers: excludedCarriers || ['UPS', 'FedEx', 'DHL'],
+        allowedShipmentTypes: allowedShipmentTypes || ['package', 'envelope'],
+        isActive: isActive ?? true,
+        updatedBy: req.user!.id
+      };
+      
+      if (partnerApiKey && !partnerApiKey.startsWith('••••')) {
+        updates.partnerApiKey = partnerApiKey.trim();
+      }
+      
+      if (partnerApiSecret && !partnerApiSecret.startsWith('••••')) {
+        updates.partnerApiSecret = partnerApiSecret.trim();
+      }
+      
+      if (settings) {
+        await storage.updateBlazeSettings(settings.id, updates);
+      } else {
+        await storage.createBlazeSettings(updates);
+      }
+      
+      res.json({ message: "Blaze settings updated successfully" });
+    } catch (error: any) {
+      console.error("Update Blaze settings error:", error);
+      res.status(500).json({ message: "Failed to update Blaze settings" });
+    }
+  });
+
+  // Test Blaze connection
+  app.post("/api/admin/blaze/test-connection", requireAdmin, async (req, res) => {
+    try {
+      const { dispensaryKey } = req.body;
+      const settings = await storage.getBlazeSettings();
+      
+      if (!settings?.partnerApiKey) {
+        return res.status(400).json({ message: "Blaze Partner API Key not configured" });
+      }
+      
+      const blazeService = (await import('./services/blaze')).blazeService;
+      const result = await blazeService.testConnection(settings.partnerApiKey, dispensaryKey);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Blaze connection test error:", error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  // Get all Blaze connections (admin view)
+  app.get("/api/admin/blaze/connections", requireAdmin, async (req, res) => {
+    try {
+      const connections = await storage.getAllBlazeConnections();
+      res.json(connections);
+    } catch (error: any) {
+      console.error("Get Blaze connections error:", error);
+      res.status(500).json({ message: "Failed to fetch Blaze connections" });
+    }
+  });
+
+  // Get users with Blaze access
+  app.get("/api/admin/blaze/users", requireAdmin, async (req, res) => {
+    try {
+      const blazeUsers = await storage.getUsersWithBlazeAccess();
+      const allUsers = await storage.getAllUsers({});
+      
+      res.json({
+        blazeUsers,
+        allUsers: allUsers.map(u => ({
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          companyName: u.companyName,
+          blazeAccess: u.blazeAccess
+        }))
+      });
+    } catch (error: any) {
+      console.error("Get Blaze users error:", error);
+      res.status(500).json({ message: "Failed to fetch Blaze users" });
+    }
+  });
+
+  // Update user Blaze access
+  app.post("/api/admin/blaze/users/:userId/access", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { hasAccess } = req.body;
+      
+      const updatedUser = await storage.updateUserBlazeAccess(userId, hasAccess);
+      res.json({ message: "User Blaze access updated", user: updatedUser });
+    } catch (error: any) {
+      console.error("Update user Blaze access error:", error);
+      res.status(500).json({ message: "Failed to update user Blaze access" });
+    }
+  });
+
+  // ==================== BLAZE PORTAL USER ROUTES ====================
+
+  // Blaze middleware - check if user has Blaze access
+  const requireBlazeAccess = (req: any, res: any, next: any) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    if (!req.user.blazeAccess && req.user.role !== 'admin' && req.user.role !== 'ablp_admin') {
+      return res.status(403).json({ message: "Blaze Portal access required" });
+    }
+    next();
+  };
+
+  // Get Blaze rates (filtered for cannabis-friendly carriers)
+  app.post("/api/blaze/rates", requireAuth, requireBlazeAccess, async (req, res) => {
+    try {
+      const { fromPostalCode, toPostalCode, weight, length, width, height, shipmentType } = req.body;
+      
+      if (!fromPostalCode || !toPostalCode || !weight) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+      
+      const settings = await storage.getBlazeSettings();
+      const excludedCarriers = settings?.excludedCarriers || ['UPS', 'FedEx', 'DHL'];
+      const allowedTypes = settings?.allowedShipmentTypes || ['package', 'envelope'];
+      
+      if (!allowedTypes.includes(shipmentType || 'package')) {
+        return res.status(400).json({ message: `Shipment type '${shipmentType}' not allowed for Blaze shipments` });
+      }
+      
+      const blazeService = (await import('./services/blaze')).blazeService;
+      const rates = await blazeService.getShippingRates(
+        { fromPostalCode, toPostalCode, weight, length, width, height, shipmentType: shipmentType || 'package' },
+        excludedCarriers
+      );
+      
+      res.json(rates);
+    } catch (error: any) {
+      console.error("Blaze rates error:", error);
+      res.status(500).json({ message: "Failed to fetch Blaze rates" });
+    }
+  });
+
+  // Get user's Blaze connections
+  app.get("/api/blaze/connections", requireAuth, requireBlazeAccess, async (req, res) => {
+    try {
+      const connections = await storage.getBlazeConnectionsByUser(req.user!.id);
+      res.json(connections);
+    } catch (error: any) {
+      console.error("Get user Blaze connections error:", error);
+      res.status(500).json({ message: "Failed to fetch connections" });
+    }
+  });
+
+  // Create Blaze connection
+  app.post("/api/blaze/connections", requireAuth, requireBlazeAccess, async (req, res) => {
+    try {
+      const { dispensaryName, dispensaryApiKey } = req.body;
+      
+      if (!dispensaryName || !dispensaryApiKey) {
+        return res.status(400).json({ message: "Missing dispensary name or API key" });
+      }
+      
+      const connection = await storage.createBlazeConnection({
+        userId: req.user!.id,
+        dispensaryName,
+        dispensaryApiKey,
+        syncStatus: 'pending'
+      });
+      
+      res.json(connection);
+    } catch (error: any) {
+      console.error("Create Blaze connection error:", error);
+      res.status(500).json({ message: "Failed to create connection" });
+    }
+  });
+
+  // Delete Blaze connection
+  app.delete("/api/blaze/connections/:id", requireAuth, requireBlazeAccess, async (req, res) => {
+    try {
+      const connection = await storage.getBlazeConnection(req.params.id);
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Connection not found" });
+      }
+      
+      if (connection.userId !== req.user!.id && req.user!.role !== 'admin' && req.user!.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Not authorized to delete this connection" });
+      }
+      
+      await storage.deleteBlazeConnection(req.params.id);
+      res.json({ message: "Connection deleted" });
+    } catch (error: any) {
+      console.error("Delete Blaze connection error:", error);
+      res.status(500).json({ message: "Failed to delete connection" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
