@@ -197,11 +197,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register endpoint
   app.post("/api/auth/register", async (req, res) => {
     try {
-      // CSRF Protection - verify origin matches host
+      // CSRF Protection - verify origin matches host (allow port variations and Replit domains)
       const origin = req.headers.origin;
-      const expectedOrigin = `${req.protocol}://${req.hostname}`;
-      if (origin && origin !== expectedOrigin) {
-        return res.status(403).json({ message: "Invalid origin" });
+      if (origin) {
+        try {
+          const originUrl = new URL(origin);
+          const hostHeader = req.headers.host || req.hostname;
+          const hostWithoutPort = hostHeader.split(':')[0];
+          const originHostWithoutPort = originUrl.hostname;
+          
+          const isReplitDomain = originUrl.hostname.includes('.replit.dev') || 
+                                  originUrl.hostname.includes('.repl.co');
+          const hostnameMatches = originHostWithoutPort === hostWithoutPort;
+          
+          if (!hostnameMatches && !isReplitDomain) {
+            return res.status(403).json({ message: "Invalid origin" });
+          }
+        } catch (urlError) {
+          return res.status(403).json({ message: "Invalid origin" });
+        }
       }
 
       const userData = insertUserSchema.extend({
@@ -285,11 +299,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
-      // CSRF Protection - verify origin matches host
+      // CSRF Protection - verify origin matches host (allow port variations and Replit domains)
       const origin = req.headers.origin;
-      const expectedOrigin = `${req.protocol}://${req.hostname}`;
-      if (origin && origin !== expectedOrigin) {
-        return res.status(403).json({ message: "Invalid origin" });
+      if (origin) {
+        try {
+          const originUrl = new URL(origin);
+          const hostHeader = req.headers.host || req.hostname;
+          const hostWithoutPort = hostHeader.split(':')[0];
+          const originHostWithoutPort = originUrl.hostname;
+          
+          // Allow if hostnames match (ignoring port differences)
+          // Also allow Replit preview domains
+          const isReplitDomain = originUrl.hostname.includes('.replit.dev') || 
+                                  originUrl.hostname.includes('.repl.co');
+          const hostnameMatches = originHostWithoutPort === hostWithoutPort;
+          
+          if (!hostnameMatches && !isReplitDomain) {
+            console.log(`Origin mismatch: origin=${origin}, host=${hostHeader}`);
+            return res.status(403).json({ message: "Invalid origin" });
+          }
+        } catch (urlError) {
+          console.log(`Invalid origin URL: ${origin}`);
+          return res.status(403).json({ message: "Invalid origin" });
+        }
       }
 
       const { email, password } = req.body;
