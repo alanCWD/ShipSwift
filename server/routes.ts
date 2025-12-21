@@ -1939,6 +1939,252 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get or create Stripe customer and setup intent for saving a card
+  app.post("/api/stripe/setup-intent", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ 
+          message: "Payment service not configured. Please contact support." 
+        });
+      }
+
+      const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || undefined;
+      const customer = await stripeService.createOrGetCustomer(
+        userId, 
+        user.email || `user-${userId}@goablp.com`,
+        fullName
+      );
+
+      const setupIntent = await stripeService.createSetupIntent(customer.id);
+
+      res.json({
+        clientSecret: setupIntent.client_secret,
+        customerId: customer.id,
+      });
+    } catch (error: any) {
+      console.error("Error creating setup intent:", error);
+      res.status(500).json({ message: "Failed to initialize card setup" });
+    }
+  });
+
+  // List user's saved payment methods
+  app.get("/api/stripe/payment-methods", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.stripeCustomerId) {
+        return res.json({ paymentMethods: [], defaultPaymentMethodId: null });
+      }
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ message: "Payment service not configured" });
+      }
+
+      const paymentMethods = await stripeService.listPaymentMethods(user.stripeCustomerId);
+      
+      res.json({
+        paymentMethods: paymentMethods.map(pm => ({
+          id: pm.id,
+          brand: pm.card?.brand,
+          last4: pm.card?.last4,
+          expMonth: pm.card?.exp_month,
+          expYear: pm.card?.exp_year,
+          isDefault: pm.id === user.defaultPaymentMethodId,
+        })),
+        defaultPaymentMethodId: user.defaultPaymentMethodId,
+      });
+    } catch (error: any) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  // Delete a payment method
+  app.delete("/api/stripe/payment-methods/:paymentMethodId", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { paymentMethodId } = req.params;
+      const user = await storage.getUser(userId);
+
+      if (!user?.stripeCustomerId) {
+        return res.status(400).json({ message: "No payment methods on file" });
+      }
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ message: "Payment service not configured" });
+      }
+
+      await stripeService.deletePaymentMethod(paymentMethodId);
+
+      if (user.defaultPaymentMethodId === paymentMethodId) {
+        await storage.updateUserDefaultPaymentMethod(userId, '');
+      }
+
+      res.json({ message: "Payment method removed successfully" });
+    } catch (error: any) {
+      console.error("Error deleting payment method:", error);
+      res.status(500).json({ message: "Failed to remove payment method" });
+    }
+  });
+
+  // Set default payment method
+  app.post("/api/stripe/payment-methods/:paymentMethodId/default", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { paymentMethodId } = req.params;
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ message: "Payment service not configured" });
+      }
+
+      await stripeService.setDefaultPaymentMethod(userId, paymentMethodId);
+
+      res.json({ message: "Default payment method updated" });
+    } catch (error: any) {
+      console.error("Error setting default payment method:", error);
+      res.status(500).json({ message: "Failed to update default payment method" });
+    }
+  });
+
+  // Confirm card was saved after SetupIntent completes (called by frontend after Stripe callback)
+  app.post("/api/stripe/confirm-card-saved", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { paymentMethodId, setAsDefault } = req.body;
+
+      if (!paymentMethodId) {
+        return res.status(400).json({ message: "Payment method ID required" });
+      }
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ message: "Payment service not configured" });
+      }
+
+      if (setAsDefault) {
+        await stripeService.setDefaultPaymentMethod(userId, paymentMethodId);
+      }
+
+      res.json({ message: "Card saved successfully" });
+    } catch (error: any) {
+      console.error("Error confirming card saved:", error);
+      res.status(500).json({ message: "Failed to confirm card saved" });
+    }
+  });
+
+  // Admin endpoint to charge overage for a shipment
+  app.post("/api/admin/shipments/:shipmentId/charge-overage", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { shipmentId } = req.params;
+      const { overageAmountCents, reason } = req.body;
+
+      if (!overageAmountCents || overageAmountCents <= 0) {
+        return res.status(400).json({ message: "Valid overage amount required" });
+      }
+
+      const shipment = await storage.getShipment(shipmentId);
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      const stripeConfigured = await stripeService.loadCredentials();
+      if (!stripeConfigured) {
+        return res.status(500).json({ message: "Payment service not configured" });
+      }
+
+      const result = await stripeService.chargeOverage(
+        shipmentId,
+        shipment.userId,
+        overageAmountCents,
+        reason || 'Shipment size/weight adjustment'
+      );
+
+      if (result.success) {
+        res.json({ 
+          message: "Overage charged successfully",
+          chargeId: result.chargeId,
+        });
+      } else {
+        res.status(400).json({ 
+          message: result.error || "Failed to charge overage",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error charging overage:", error);
+      res.status(500).json({ message: "Failed to charge overage" });
+    }
+  });
+
+  // Admin endpoint to update actual shipment dimensions (for overage calculation)
+  app.patch("/api/admin/shipments/:shipmentId/actual-dimensions", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { shipmentId } = req.params;
+      const { actualWeight, actualDimensions } = req.body;
+
+      const shipment = await storage.getShipment(shipmentId);
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      const updated = await storage.updateShipmentActualDimensions(shipmentId, {
+        actualWeight: actualWeight?.toString(),
+        actualDimensions,
+      });
+
+      res.json({ 
+        message: "Actual dimensions updated",
+        shipment: updated,
+      });
+    } catch (error: any) {
+      console.error("Error updating actual dimensions:", error);
+      res.status(500).json({ message: "Failed to update actual dimensions" });
+    }
+  });
+
+  // Get shipments with pending overages
+  app.get("/api/admin/shipments/pending-overages", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const pendingOverages = await storage.getShipmentsWithPendingOverages();
+      res.json(pendingOverages);
+    } catch (error: any) {
+      console.error("Error fetching pending overages:", error);
+      res.status(500).json({ message: "Failed to fetch pending overages" });
+    }
+  });
+
   // SendGrid credentials
   app.post("/api/admin/settings/sendgrid-credentials", requireAuth, async (req, res) => {
     try {
