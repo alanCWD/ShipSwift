@@ -6,6 +6,7 @@ import { shiptimeService } from "./services/shiptime";
 import { stripeService } from "./services/stripe-service";
 import { emailService } from "./services/email-service";
 import { rateMarkupService } from "./services/rate-markup";
+import { overageService } from "./services/overage-service";
 import { isAuthenticated as requireAuth } from "./replitAuth";
 import { requireAdmin, requireAblpAdmin } from "./middleware/auth";
 import { insertUserSchema, insertShipmentSchema, insertClientBrandingSchema } from "@shared/schema";
@@ -2182,6 +2183,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error fetching pending overages:", error);
       res.status(500).json({ message: "Failed to fetch pending overages" });
+    }
+  });
+
+  // Process overage for a shipment (calculates and charges automatically if possible)
+  app.post("/api/admin/shipments/:shipmentId/process-overage", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { shipmentId } = req.params;
+      const { actualWeight, actualDimensions } = req.body;
+
+      if (!actualWeight || !actualDimensions) {
+        return res.status(400).json({ message: "Actual weight and dimensions are required" });
+      }
+
+      const result = await overageService.processShipmentOverage(
+        shipmentId,
+        parseFloat(actualWeight),
+        {
+          length: parseFloat(actualDimensions.length),
+          width: parseFloat(actualDimensions.width),
+          height: parseFloat(actualDimensions.height),
+        }
+      );
+
+      if (result.success) {
+        res.json({
+          message: result.message,
+          overageAmount: result.overageAmount,
+          chargeId: result.chargeId,
+          calculation: result.calculation,
+        });
+      } else {
+        res.status(400).json({
+          message: result.message,
+          overageAmount: result.overageAmount,
+          calculation: result.calculation,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error processing overage:", error);
+      res.status(500).json({ message: "Failed to process overage" });
+    }
+  });
+
+  // Get overage summary for a shipment
+  app.get("/api/admin/shipments/:shipmentId/overage-summary", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { shipmentId } = req.params;
+      const summary = await overageService.getOverageSummary(shipmentId);
+
+      if (!summary.shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      res.json(summary);
+    } catch (error: any) {
+      console.error("Error fetching overage summary:", error);
+      res.status(500).json({ message: "Failed to fetch overage summary" });
+    }
+  });
+
+  // Waive overage for a shipment (admin decision not to charge)
+  app.post("/api/admin/shipments/:shipmentId/waive-overage", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin' && admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { shipmentId } = req.params;
+      const { reason } = req.body;
+
+      const shipment = await storage.getShipment(shipmentId);
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      await storage.updateShipmentOverage(shipmentId, {
+        overageStatus: 'waived',
+      });
+
+      console.log(`Overage waived for shipment ${shipmentId} by admin ${adminId}. Reason: ${reason || 'Not specified'}`);
+
+      res.json({ message: "Overage waived successfully" });
+    } catch (error: any) {
+      console.error("Error waiving overage:", error);
+      res.status(500).json({ message: "Failed to waive overage" });
     }
   });
 
