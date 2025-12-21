@@ -374,10 +374,17 @@ class ShipTimeService {
       console.log(`Fetching ${packageType} rates with payload:`, JSON.stringify(payload, null, 2));
       const response = await this.makeRequest('rates', 'POST', payload);
       
+      // Log full response for debugging missing carriers
+      console.log(`📦 ShipTime API raw response:`, JSON.stringify(response, null, 2).substring(0, 2000));
+      
       if (!response.availableRates || response.availableRates.length === 0) {
+        console.log(`⚠️ No rates returned from ShipTime API. Full response:`, JSON.stringify(response));
         throw new Error('No shipping rates available for this route');
       }
 
+      // Log all carriers returned for debugging
+      const carriers = response.availableRates.map((r: any) => r.carrier?.name || r.carrierName || 'Unknown').filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+      console.log(`📦 Carriers returned by ShipTime: ${carriers.join(', ')}`);
       console.log(`Received ${response.availableRates.length} ${packageType} rates from ShipTime API:`);
       response.availableRates.forEach((rate: any, index: number) => {
         console.log(`  Rate ${index + 1}: ${rate.carrier?.name || rate.carrierName} - ${rate.service?.name || rate.serviceName}`);
