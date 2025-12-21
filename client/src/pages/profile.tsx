@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
+import PaymentMethods from '@/components/payment-methods';
 
 export default function Profile() {
   const { user, setUser } = useAuth();
@@ -279,6 +280,11 @@ export default function Profile() {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Payment Methods Section */}
+        <div className="mt-6">
+          <PaymentMethods />
         </div>
       </div>
       
