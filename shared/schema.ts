@@ -53,6 +53,9 @@ export const users = pgTable("users", {
   authProvider: varchar("auth_provider").default('replit'), // Authentication provider
   // Blaze Portal access
   blazeAccess: boolean("blaze_access").default(false), // Whether user has access to Blaze Portal
+  // Stripe customer for saved cards
+  stripeCustomerId: varchar("stripe_customer_id"), // Stripe Customer ID for saving payment methods
+  defaultPaymentMethodId: varchar("default_payment_method_id"), // Default Stripe PaymentMethod ID
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -93,6 +96,15 @@ export const shipments = pgTable("shipments", {
   labelUrl: text("label_url"),
   stripeChargeId: varchar("stripe_charge_id"),
   customsDeclaration: jsonb("customs_declaration"),
+  // Overage tracking
+  originalWeight: decimal("original_weight", { precision: 10, scale: 2 }), // Weight declared at time of booking
+  originalDimensions: jsonb("original_dimensions"), // Dimensions declared at booking { length, width, height }
+  actualWeight: decimal("actual_weight", { precision: 10, scale: 2 }), // Carrier-measured weight
+  actualDimensions: jsonb("actual_dimensions"), // Carrier-measured dimensions
+  overageAmount: decimal("overage_amount", { precision: 10, scale: 2 }), // Additional charge for underestimation
+  overageChargeId: varchar("overage_charge_id"), // Stripe charge ID for overage
+  overageStatus: varchar("overage_status"), // null, pending, charged, failed, waived
+  overageChargedAt: timestamp("overage_charged_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

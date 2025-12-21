@@ -139,6 +139,23 @@ export interface IStorage {
   // Blaze user access
   getUsersWithBlazeAccess(): Promise<User[]>;
   updateUserBlazeAccess(userId: string, hasAccess: boolean): Promise<User>;
+  
+  // Stripe customer/payment methods
+  updateUserStripeCustomerId(userId: string, customerId: string): Promise<User>;
+  updateUserDefaultPaymentMethod(userId: string, paymentMethodId: string): Promise<User>;
+  
+  // Shipment overage tracking
+  updateShipmentOverage(shipmentId: string, overageData: {
+    overageAmount?: string;
+    overageChargeId?: string;
+    overageStatus?: string;
+    overageChargedAt?: Date;
+  }): Promise<Shipment>;
+  updateShipmentActualDimensions(shipmentId: string, data: {
+    actualWeight?: string;
+    actualDimensions?: { length: number; width: number; height: number };
+  }): Promise<Shipment>;
+  getShipmentsWithPendingOverages(): Promise<Shipment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -978,6 +995,72 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updated;
+  }
+
+  // Stripe customer/payment methods
+  async updateUserStripeCustomerId(userId: string, customerId: string): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        stripeCustomerId: customerId,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  async updateUserDefaultPaymentMethod(userId: string, paymentMethodId: string): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        defaultPaymentMethodId: paymentMethodId,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  // Shipment overage tracking
+  async updateShipmentOverage(shipmentId: string, overageData: {
+    overageAmount?: string;
+    overageChargeId?: string;
+    overageStatus?: string;
+    overageChargedAt?: Date;
+  }): Promise<Shipment> {
+    const [updated] = await db
+      .update(shipments)
+      .set({
+        ...overageData,
+        updatedAt: new Date(),
+      })
+      .where(eq(shipments.id, shipmentId))
+      .returning();
+    return updated;
+  }
+
+  async updateShipmentActualDimensions(shipmentId: string, data: {
+    actualWeight?: string;
+    actualDimensions?: { length: number; width: number; height: number };
+  }): Promise<Shipment> {
+    const [updated] = await db
+      .update(shipments)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(shipments.id, shipmentId))
+      .returning();
+    return updated;
+  }
+
+  async getShipmentsWithPendingOverages(): Promise<Shipment[]> {
+    return await db
+      .select()
+      .from(shipments)
+      .where(eq(shipments.overageStatus, 'pending'))
+      .orderBy(desc(shipments.createdAt));
   }
 }
 
