@@ -25,7 +25,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center">
                 <Phone className="w-5 h-5 mr-2" />
-(604) 392-3923
+                <a href="tel:+16043923923" className="hover:text-white transition-colors">(604) 392-3923</a>
               </div>
               <div className="flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
@@ -57,7 +57,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-300">&copy; 2025 GoABLP - A Product of ABLP Logistics. All rights reserved.</p>
+            <p className="text-gray-300">&copy; 2025 GoABLP - A subsidiary of <a href="https://ablplogistics.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">ABLP Logistics</a>. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/terms-of-service" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>
