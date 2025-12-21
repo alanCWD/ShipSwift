@@ -119,6 +119,7 @@ export default function ShipmentAuditPage() {
 
   const handleExport = () => {
     const params = new URLSearchParams();
+    if (search) params.set('search', search);
     if (carrier) params.set('carrier', carrier);
     if (status) params.set('status', status);
     if (startDate) params.set('startDate', startDate);
