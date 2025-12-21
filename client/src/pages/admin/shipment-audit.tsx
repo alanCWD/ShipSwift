@@ -196,6 +196,10 @@ export default function ShipmentAuditPage() {
                 <SelectItem value="Canpar">Canpar</SelectItem>
                 <SelectItem value="Loomis">Loomis</SelectItem>
                 <SelectItem value="GLS">GLS</SelectItem>
+                <SelectItem value="ICS">ICS</SelectItem>
+                <SelectItem value="Intelcom">Intelcom</SelectItem>
+                <SelectItem value="Day & Ross">Day & Ross</SelectItem>
+                <SelectItem value="Nationex">Nationex</SelectItem>
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={(v) => { setStatus(v === 'all' ? '' : v); setPage(1); }}>
