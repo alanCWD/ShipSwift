@@ -1226,8 +1226,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Process payment with Stripe
-      const paymentIntent = await stripeService.createPaymentIntent(totalCost * 100); // Convert to cents
+      // Check for saved payment method (mandatory)
+      const user = await storage.getUser(userId);
+      if (!user?.stripeCustomerId || !user?.defaultPaymentMethodId) {
+        return res.status(400).json({ 
+          message: "No saved payment method found. Please add a credit card to your account before creating a shipment." 
+        });
+      }
+
+      // Charge the saved payment method directly
+      const chargeResult = await stripeService.chargeShipment(
+        userId,
+        Math.round(totalCost * 100), // Convert to cents
+        `Shipment: ${otherData.carrierName} ${otherData.serviceName}`,
+        {
+          carrier_name: otherData.carrierName,
+          service_name: otherData.serviceName,
+          user_id: userId,
+          type: 'shipment',
+        }
+      );
+
+      if (!chargeResult.success) {
+        return res.status(400).json({ 
+          message: chargeResult.error || "Payment failed. Please check your saved payment method." 
+        });
+      }
 
       // Save shipment to database
       const shipment = await storage.createShipment({
@@ -1238,7 +1262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         labelUrl: shiptimeShipment.labelUrl,
         markupCost: markupCost.toString(),
         totalCost: totalCost.toString(),
-        stripeChargeId: paymentIntent.id,
+        stripeChargeId: chargeResult.chargeId,
+        status: 'paid', // Mark as paid immediately since we charged the card
       });
 
       // Log shipment creation activity
@@ -1281,7 +1306,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         shipment,
-        clientSecret: paymentIntent.client_secret,
+        paymentComplete: true,
+        chargeId: chargeResult.chargeId,
         labelUrl: shiptimeShipment.labelUrl
       });
     } catch (error: any) {

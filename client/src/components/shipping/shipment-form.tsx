@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Package, MapPin, CreditCard, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, Package, MapPin, CreditCard, Loader2, AlertCircle } from 'lucide-react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiRequest } from '@/lib/queryClient';
 import { initializeStripe, getStripeEnvironment } from '@/lib/stripe-config';
 import type { Stripe } from '@stripe/stripe-js';
+import { Link } from 'wouter';
 
 interface ShipmentFormProps {
   rate: any;
@@ -131,6 +133,14 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
     toPhone: addressData?.toPhone || '',
   });
 
+  // Query for saved payment methods - mandatory for shipment creation
+  const { data: paymentMethods, isLoading: isLoadingPaymentMethods } = useQuery<any[]>({
+    queryKey: ['/api/user/payment-methods'],
+  });
+
+  const hasPaymentMethod = paymentMethods && paymentMethods.length > 0;
+  const defaultPaymentMethod = paymentMethods?.find((pm: any) => pm.isDefault) || paymentMethods?.[0];
+
   // Initialize Stripe when we have a client secret (payment step is reached)
   useEffect(() => {
     const loadStripe = async () => {
@@ -226,8 +236,21 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       return response.json();
     },
     onSuccess: (data) => {
-      setClientSecret(data.clientSecret);
-      setCurrentStep(2);
+      // Payment is now completed automatically with saved card
+      if (data.paymentComplete) {
+        toast({
+          title: "Shipment Created & Paid",
+          description: "Your shipment has been created and payment was processed successfully.",
+        });
+        // Redirect to dashboard after brief delay
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        // Fallback for legacy flow (shouldn't happen with new system)
+        setClientSecret(data.clientSecret);
+        setCurrentStep(2);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -575,6 +598,35 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
                     <span>Total:</span>
                     <span>${total.toFixed(2)} CAD</span>
                   </div>
+
+                  {/* Payment Method Required Warning */}
+                  {!isLoadingPaymentMethods && !hasPaymentMethod && (
+                    <Alert variant="destructive" className="mb-4" data-testid="alert-no-payment-method">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Payment Method Required</AlertTitle>
+                      <AlertDescription>
+                        You must add a credit card to your account before creating a shipment.{' '}
+                        <Link href="/profile" className="underline font-medium hover:text-red-800">
+                          Add a payment method
+                        </Link>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Show saved payment method info */}
+                  {hasPaymentMethod && defaultPaymentMethod && (
+                    <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200" data-testid="saved-payment-info">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">
+                          Payment will be charged to •••• {defaultPaymentMethod.last4}
+                        </span>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        {defaultPaymentMethod.brand?.toUpperCase()} expires {defaultPaymentMethod.expMonth}/{defaultPaymentMethod.expYear}
+                      </p>
+                    </div>
+                  )}
                   
                   {/* Confirmation Checkbox */}
                   <div className="flex items-start space-x-3 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -584,6 +636,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
                       onCheckedChange={(checked) => setConfirmationChecked(checked as boolean)}
                       className="mt-1"
                       data-testid="checkbox-confirm-details"
+                      disabled={!hasPaymentMethod}
                     />
                     <div className="flex-1">
                       <Label 
@@ -598,16 +651,21 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
                     </div>
                   </div>
                   
-                  {/* Continue to Payment Button moved below Total */}
+                  {/* Pay Now Button - charges saved card immediately */}
                   <Button 
                     onClick={() => handleShippingSubmit(new Event('submit') as any)}
                     className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={shipmentMutation.isPending || !confirmationChecked}
+                    disabled={shipmentMutation.isPending || !confirmationChecked || !hasPaymentMethod}
                     data-testid="button-continue-payment"
                   >
-                    {shipmentMutation.isPending ? 'Creating Shipment...' : 'Continue to Payment'}
+                    {shipmentMutation.isPending ? 'Processing Payment...' : `Pay $${total.toFixed(2)} CAD Now`}
                   </Button>
-                  {!confirmationChecked && (
+                  {!hasPaymentMethod && (
+                    <p className="text-xs text-red-500 text-center mt-2">
+                      Add a payment method to continue
+                    </p>
+                  )}
+                  {hasPaymentMethod && !confirmationChecked && (
                     <p className="text-xs text-gray-500 text-center mt-2">
                       Please confirm the information is correct to continue
                     </p>

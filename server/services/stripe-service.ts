@@ -261,6 +261,52 @@ class StripeService {
     }
   }
 
+  async chargeShipment(
+    userId: string,
+    amountCents: number,
+    shipmentDescription: string,
+    metadata?: Record<string, string>
+  ): Promise<{ success: boolean; chargeId?: string; error?: string }> {
+    this.ensureInitialized();
+    try {
+      const { storage } = await import('../storage');
+      const user = await storage.getUser(userId);
+      
+      if (!user?.stripeCustomerId || !user?.defaultPaymentMethodId) {
+        return {
+          success: false,
+          error: 'No saved payment method on file. Please add a card to your account.',
+        };
+      }
+      
+      const paymentIntent = await this.chargeOffSession(
+        user.stripeCustomerId,
+        user.defaultPaymentMethodId,
+        amountCents,
+        shipmentDescription,
+        metadata
+      );
+      
+      if (paymentIntent.status === 'succeeded') {
+        return {
+          success: true,
+          chargeId: paymentIntent.id,
+        };
+      } else {
+        return {
+          success: false,
+          error: `Payment not completed. Status: ${paymentIntent.status}`,
+        };
+      }
+    } catch (error: any) {
+      console.error('Shipment payment charge failed:', error);
+      return {
+        success: false,
+        error: error.message || 'Payment failed',
+      };
+    }
+  }
+
   async createPaymentIntent(amount: number, currency: string = 'cad', customerId?: string): Promise<Stripe.PaymentIntent> {
     this.ensureInitialized();
     try {
