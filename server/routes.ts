@@ -1208,15 +1208,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       let markupCost = 0;
+      let markupPercentage = 0;
+      const baseCost = parseFloat(shipmentData.baseCost) || 0;
+      
       if (applicableMarkup) {
         if (applicableMarkup.markupType === 'percentage') {
-          markupCost = (parseFloat(shipmentData.baseCost) * parseFloat(applicableMarkup.markupValue.toString())) / 100;
+          markupPercentage = parseFloat(applicableMarkup.markupValue.toString());
+          markupCost = (baseCost * markupPercentage) / 100;
         } else {
           markupCost = parseFloat(applicableMarkup.markupValue.toString());
+          markupPercentage = baseCost > 0 ? (markupCost / baseCost) * 100 : 0;
         }
       }
 
-      const totalCost = parseFloat(shipmentData.baseCost) + markupCost;
+      // Extract tax amount from rate breakdown if provided
+      const taxAmount = shipmentData.taxAmount || shipmentData.rateBreakdown?.taxAmount || 0;
+      
+      // Calculate carrier net amount (what we pay before markup - base cost without tax)
+      const carrierNetAmount = baseCost;
+      
+      const totalCost = baseCost + markupCost;
 
       // Load Stripe credentials from database before processing payment
       const stripeConfigured = await stripeService.loadCredentials();
@@ -1253,7 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Save shipment to database
+      // Save shipment to database with audit data
       const shipment = await storage.createShipment({
         ...shipmentData,
         baseCost: shipmentData.baseCost || '0',
@@ -1264,6 +1275,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalCost: totalCost.toString(),
         stripeChargeId: chargeResult.chargeId,
         status: 'paid', // Mark as paid immediately since we charged the card
+        // Audit fields
+        taxAmount: taxAmount.toString(),
+        carrierNetAmount: carrierNetAmount.toString(),
+        markupPercentage: markupPercentage.toString(),
+        rateBreakdown: shipmentData.rateBreakdown || null,
+        stripeChargeSnapshot: chargeResult.stripeChargeSnapshot || null,
+        customerPaymentSnapshot: chargeResult.customerPaymentSnapshot || null,
       });
 
       // Log shipment creation activity

@@ -266,7 +266,13 @@ class StripeService {
     amountCents: number,
     shipmentDescription: string,
     metadata?: Record<string, string>
-  ): Promise<{ success: boolean; chargeId?: string; error?: string }> {
+  ): Promise<{ 
+    success: boolean; 
+    chargeId?: string; 
+    error?: string;
+    stripeChargeSnapshot?: Record<string, any>;
+    customerPaymentSnapshot?: Record<string, any>;
+  }> {
     this.ensureInitialized();
     try {
       const { storage } = await import('../storage');
@@ -288,9 +294,38 @@ class StripeService {
       );
       
       if (paymentIntent.status === 'succeeded') {
+        // Get payment method details for audit snapshot
+        let customerPaymentSnapshot: Record<string, any> | undefined;
+        try {
+          const paymentMethod = await this.stripe!.paymentMethods.retrieve(user.defaultPaymentMethodId);
+          if (paymentMethod.card) {
+            customerPaymentSnapshot = {
+              last4: paymentMethod.card.last4,
+              brand: paymentMethod.card.brand,
+              expMonth: paymentMethod.card.exp_month,
+              expYear: paymentMethod.card.exp_year,
+            };
+          }
+        } catch (pmError) {
+          console.error('Failed to get payment method details for audit:', pmError);
+        }
+
+        // Create Stripe charge snapshot for audit
+        const stripeChargeSnapshot = {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          amountReceived: paymentIntent.amount_received,
+          currency: paymentIntent.currency,
+          status: paymentIntent.status,
+          createdAt: new Date(paymentIntent.created * 1000).toISOString(),
+          paymentMethodId: user.defaultPaymentMethodId,
+        };
+
         return {
           success: true,
           chargeId: paymentIntent.id,
+          stripeChargeSnapshot,
+          customerPaymentSnapshot,
         };
       } else {
         return {

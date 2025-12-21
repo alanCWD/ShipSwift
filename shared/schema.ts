@@ -105,6 +105,13 @@ export const shipments = pgTable("shipments", {
   overageChargeId: varchar("overage_charge_id"), // Stripe charge ID for overage
   overageStatus: varchar("overage_status"), // null, pending, charged, failed, waived
   overageChargedAt: timestamp("overage_charged_at"),
+  // Audit tracking fields
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }), // Tax charged to customer
+  carrierNetAmount: decimal("carrier_net_amount", { precision: 10, scale: 2 }), // What we pay the carrier (before markup)
+  markupPercentage: decimal("markup_percentage", { precision: 5, scale: 2 }), // Markup % applied
+  rateBreakdown: jsonb("rate_breakdown"), // Full rate details { baseCharge, surcharges, taxes, fees }
+  stripeChargeSnapshot: jsonb("stripe_charge_snapshot"), // Cached Stripe charge details
+  customerPaymentSnapshot: jsonb("customer_payment_snapshot"), // Masked card info { last4, brand, expMonth, expYear }
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
