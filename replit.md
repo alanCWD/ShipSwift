@@ -7,10 +7,12 @@ The project's vision is to streamline Canadian logistics for businesses by offer
 ## Recent Updates (Dec 21, 2025)
 
 ### New Features - Stripe Card Saving & Overage Processing
-1. **Saved Payment Methods**: Users can save credit cards to their account for faster checkout and automatic overage charges. Cards are securely stored via Stripe and displayed in the Profile page.
-2. **Automatic Overage Charging**: When carriers report actual dimensions/weight exceeding declared values by more than 5%, the system automatically calculates and charges overages to the user's saved payment method.
-3. **Overage Processing System**: Complete admin workflow for reviewing, processing, and waiving overages. Includes dimensional weight calculation (DIM factor 5000) and $1 minimum charge threshold.
-4. **Payment Methods UI**: New PaymentMethods component in Profile page allows users to add, view, set default, and delete saved cards using Stripe Elements.
+1. **Mandatory Saved Payment Method**: Users MUST add a credit card to their account before creating any shipment. The checkout shows a warning with link to profile if no card is saved.
+2. **Instant Payment Charging**: When creating a shipment, the saved card is charged immediately - no separate payment step required. Users see "Pay $XX.XX CAD Now" button with their card on file displayed.
+3. **Saved Payment Methods**: Users can save credit cards to their account via the Profile page. Cards are securely stored via Stripe and displayed with last 4 digits and expiration.
+4. **Automatic Overage Charging**: When carriers report actual dimensions/weight exceeding declared values by more than 5%, the system automatically calculates and charges overages to the user's saved payment method.
+5. **Overage Processing System**: Complete admin workflow for reviewing, processing, and waiving overages. Includes dimensional weight calculation (DIM factor 5000) and $1 minimum charge threshold.
+6. **Payment Methods UI**: New PaymentMethods component in Profile page allows users to add, view, set default, and delete saved cards using Stripe Elements.
 
 ### System Architecture - Stripe Integration
 - **Database Entities**: `stripeCustomerId` and `defaultPaymentMethodId` on users table; overage tracking fields (`overageAmount`, `overageStatus`, `overageChargeId`, `originalWeight`, `originalDimensions`, `actualWeight`, `actualDimensions`) on shipments table
