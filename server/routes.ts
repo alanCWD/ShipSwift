@@ -2332,6 +2332,316 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Shipment Audit - List all shipments with audit data
+  app.get("/api/admin/shipments/audit", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      // Only ablp_admin can access audit data
+      if (admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "ABLP Admin access required for audit data" });
+      }
+
+      // Parse query parameters for filtering and pagination
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const offset = (page - 1) * limit;
+      const search = (req.query.search as string)?.toLowerCase();
+      const carrier = req.query.carrier as string;
+      const status = req.query.status as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+
+      // Get all shipments with user data
+      const allShipments = await storage.getAllShipments();
+      
+      // Enrich with user data
+      const enrichedShipments = await Promise.all(
+        allShipments.map(async (shipment) => {
+          const user = await storage.getUser(shipment.userId);
+          const branding = user ? await storage.getClientBranding(user.id) : null;
+          
+          return {
+            ...shipment,
+            user: user ? {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              companyName: branding?.companyName || null,
+            } : null,
+          };
+        })
+      );
+
+      // Apply filters
+      let filteredShipments = enrichedShipments;
+      
+      if (search) {
+        filteredShipments = filteredShipments.filter(s => 
+          s.trackingNumber?.toLowerCase().includes(search) ||
+          s.user?.email?.toLowerCase().includes(search) ||
+          s.user?.firstName?.toLowerCase().includes(search) ||
+          s.user?.lastName?.toLowerCase().includes(search) ||
+          s.user?.companyName?.toLowerCase().includes(search) ||
+          s.carrierName?.toLowerCase().includes(search)
+        );
+      }
+      
+      if (carrier) {
+        filteredShipments = filteredShipments.filter(s => s.carrierName === carrier);
+      }
+      
+      if (status) {
+        filteredShipments = filteredShipments.filter(s => s.status === status);
+      }
+      
+      if (startDate) {
+        const start = new Date(startDate);
+        filteredShipments = filteredShipments.filter(s => s.createdAt && new Date(s.createdAt) >= start);
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filteredShipments = filteredShipments.filter(s => s.createdAt && new Date(s.createdAt) <= end);
+      }
+
+      // Sort by created date descending
+      filteredShipments.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      // Apply pagination
+      const total = filteredShipments.length;
+      const paginatedShipments = filteredShipments.slice(offset, offset + limit);
+
+      res.json({
+        shipments: paginatedShipments,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error: any) {
+      console.error("Error fetching audit data:", error);
+      res.status(500).json({ message: "Failed to fetch audit data" });
+    }
+  });
+
+  // Admin Shipment Audit - Get detailed audit for single shipment
+  app.get("/api/admin/shipments/:shipmentId/audit", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      // Only ablp_admin can access audit data
+      if (admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "ABLP Admin access required for audit data" });
+      }
+
+      const { shipmentId } = req.params;
+      const shipment = await storage.getShipment(shipmentId);
+      
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+
+      // Get user and branding data
+      const user = await storage.getUser(shipment.userId);
+      const branding = user ? await storage.getClientBranding(user.id) : null;
+
+      // Calculate markup percentage if not stored
+      const baseCost = parseFloat(shipment.baseCost?.toString() || '0');
+      const markupCost = parseFloat(shipment.markupCost?.toString() || '0');
+      const totalCost = parseFloat(shipment.totalCost?.toString() || '0');
+      const calculatedMarkupPercentage = baseCost > 0 ? (markupCost / baseCost) * 100 : 0;
+
+      const auditData = {
+        shipment: {
+          id: shipment.id,
+          trackingNumber: shipment.trackingNumber,
+          shiptimeShipmentId: shipment.shiptimeShipmentId,
+          status: shipment.status,
+          carrierName: shipment.carrierName,
+          serviceName: shipment.serviceName,
+          shipmentType: shipment.shipmentType,
+          createdAt: shipment.createdAt,
+          updatedAt: shipment.updatedAt,
+        },
+        customer: {
+          id: user?.id,
+          email: user?.email,
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          companyName: branding?.companyName || null,
+        },
+        addresses: {
+          from: shipment.fromAddress,
+          to: shipment.toAddress,
+        },
+        packageDetails: shipment.packageDetails,
+        pickupDetails: shipment.pickupDetails,
+        financial: {
+          baseCost: baseCost,
+          markupCost: markupCost,
+          totalCost: totalCost,
+          taxAmount: parseFloat(shipment.taxAmount?.toString() || '0'),
+          carrierNetAmount: parseFloat(shipment.carrierNetAmount?.toString() || '0'),
+          markupPercentage: parseFloat(shipment.markupPercentage?.toString() || '0') || calculatedMarkupPercentage,
+          currency: shipment.currency || 'CAD',
+          rateBreakdown: shipment.rateBreakdown,
+        },
+        payment: {
+          stripeChargeId: shipment.stripeChargeId,
+          stripeChargeSnapshot: shipment.stripeChargeSnapshot,
+          customerPaymentSnapshot: shipment.customerPaymentSnapshot,
+        },
+        overage: {
+          originalWeight: shipment.originalWeight,
+          originalDimensions: shipment.originalDimensions,
+          actualWeight: shipment.actualWeight,
+          actualDimensions: shipment.actualDimensions,
+          overageAmount: shipment.overageAmount,
+          overageStatus: shipment.overageStatus,
+          overageChargeId: shipment.overageChargeId,
+          overageChargedAt: shipment.overageChargedAt,
+        },
+        labelUrl: shipment.labelUrl,
+      };
+
+      res.json(auditData);
+    } catch (error: any) {
+      console.error("Error fetching shipment audit:", error);
+      res.status(500).json({ message: "Failed to fetch shipment audit data" });
+    }
+  });
+
+  // Admin Shipment Audit - Export to CSV
+  app.get("/api/admin/shipments/audit/export", requireAuth, async (req, res) => {
+    try {
+      const adminId = req.user!.id;
+      const admin = await storage.getUser(adminId);
+      
+      // Only ablp_admin can access audit data
+      if (admin?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "ABLP Admin access required for audit data" });
+      }
+
+      // Parse query parameters for filtering
+      const carrier = req.query.carrier as string;
+      const status = req.query.status as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+
+      // Get all shipments with user data
+      const allShipments = await storage.getAllShipments();
+      
+      // Enrich with user data
+      const enrichedShipments = await Promise.all(
+        allShipments.map(async (shipment) => {
+          const user = await storage.getUser(shipment.userId);
+          const branding = user ? await storage.getClientBranding(user.id) : null;
+          
+          return {
+            ...shipment,
+            user: user ? {
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              companyName: branding?.companyName || '',
+            } : null,
+          };
+        })
+      );
+
+      // Apply filters
+      let filteredShipments = enrichedShipments;
+      
+      if (carrier) {
+        filteredShipments = filteredShipments.filter(s => s.carrierName === carrier);
+      }
+      
+      if (status) {
+        filteredShipments = filteredShipments.filter(s => s.status === status);
+      }
+      
+      if (startDate) {
+        const start = new Date(startDate);
+        filteredShipments = filteredShipments.filter(s => s.createdAt && new Date(s.createdAt) >= start);
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filteredShipments = filteredShipments.filter(s => s.createdAt && new Date(s.createdAt) <= end);
+      }
+
+      // Sort by created date descending
+      filteredShipments.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      // Generate CSV
+      const headers = [
+        'Date', 'Tracking Number', 'Status', 'Company', 'Customer Name', 'Customer Email',
+        'Carrier', 'Service', 'From City', 'From Province', 'To City', 'To Province',
+        'Base Cost', 'Markup', 'Markup %', 'Tax', 'Total', 'Currency',
+        'Stripe Charge ID', 'Card Last 4', 'Card Brand'
+      ];
+
+      const rows = filteredShipments.map(s => {
+        const fromAddr = s.fromAddress as any;
+        const toAddr = s.toAddress as any;
+        const paymentSnapshot = s.customerPaymentSnapshot as any;
+        
+        return [
+          s.createdAt ? new Date(s.createdAt).toISOString().split('T')[0] : '',
+          s.trackingNumber || '',
+          s.status || '',
+          s.user?.companyName || '',
+          `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.trim(),
+          s.user?.email || '',
+          s.carrierName || '',
+          s.serviceName || '',
+          fromAddr?.city || s.fromCity || '',
+          fromAddr?.state || fromAddr?.province || s.fromProvince || '',
+          toAddr?.city || s.toCity || '',
+          toAddr?.state || toAddr?.province || s.toProvince || '',
+          s.baseCost || '0',
+          s.markupCost || '0',
+          s.markupPercentage || '',
+          s.taxAmount || '0',
+          s.totalCost || '0',
+          s.currency || 'CAD',
+          s.stripeChargeId || '',
+          paymentSnapshot?.last4 || '',
+          paymentSnapshot?.brand || '',
+        ];
+      });
+
+      // Build CSV content
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=shipment-audit-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error("Error exporting audit data:", error);
+      res.status(500).json({ message: "Failed to export audit data" });
+    }
+  });
+
   // SendGrid credentials
   app.post("/api/admin/settings/sendgrid-credentials", requireAuth, async (req, res) => {
     try {

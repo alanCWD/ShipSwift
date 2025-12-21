@@ -457,6 +457,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(shipments.createdAt));
   }
 
+  async getAllShipments(): Promise<Shipment[]> {
+    return await db
+      .select()
+      .from(shipments)
+      .orderBy(desc(shipments.createdAt));
+  }
+
   async createShipment(shipmentData: InsertShipment): Promise<Shipment> {
     const [shipment] = await db
       .insert(shipments)
