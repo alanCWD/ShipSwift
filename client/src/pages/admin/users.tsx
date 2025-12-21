@@ -50,7 +50,8 @@ import {
   UserPlus,
   Mail,
   AlertTriangle,
-  Trash
+  Trash,
+  CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
@@ -73,6 +74,7 @@ interface User {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  defaultPaymentMethodId: string | null;
 }
 
 interface UserActivity {
@@ -629,6 +631,9 @@ export default function AdminUsers() {
                   <TableHead>Company</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center" title="Payment Method on File">
+                    <CreditCard className="w-4 h-4 mx-auto" />
+                  </TableHead>
                   <TableHead>Last Login</TableHead>
                   <TableHead>Shipments</TableHead>
                   <TableHead>Total Spent</TableHead>
@@ -639,13 +644,13 @@ export default function AdminUsers() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       Loading users...
                     </TableCell>
                   </TableRow>
                 ) : filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
@@ -678,6 +683,15 @@ export default function AdminUsers() {
                         <Badge className={getStatusColor(user.isActive)}>
                           {user.isActive ? 'Active' : 'Inactive'}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.defaultPaymentMethodId ? (
+                          <span title="Payment method on file">
+                            <CreditCard className="w-4 h-4 mx-auto text-green-600" />
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
