@@ -176,6 +176,11 @@ class OverageService {
       );
 
       if (chargeResult.success) {
+        await storage.updateShipmentOverage(shipmentId, {
+          overageStatus: 'charged',
+          overageChargeId: chargeResult.chargeId,
+        });
+
         return {
           success: true,
           message: `Overage of $${calculation.overageAmount.toFixed(2)} CAD charged successfully`,
@@ -184,6 +189,10 @@ class OverageService {
           calculation,
         };
       } else {
+        await storage.updateShipmentOverage(shipmentId, {
+          overageStatus: 'failed',
+        });
+
         return {
           success: false,
           message: chargeResult.error || 'Failed to charge overage',

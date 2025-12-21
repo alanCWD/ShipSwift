@@ -4,7 +4,21 @@ GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing m
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
-## Recent Updates (Dec 20, 2025)
+## Recent Updates (Dec 21, 2025)
+
+### New Features - Stripe Card Saving & Overage Processing
+1. **Saved Payment Methods**: Users can save credit cards to their account for faster checkout and automatic overage charges. Cards are securely stored via Stripe and displayed in the Profile page.
+2. **Automatic Overage Charging**: When carriers report actual dimensions/weight exceeding declared values by more than 5%, the system automatically calculates and charges overages to the user's saved payment method.
+3. **Overage Processing System**: Complete admin workflow for reviewing, processing, and waiving overages. Includes dimensional weight calculation (DIM factor 5000) and $1 minimum charge threshold.
+4. **Payment Methods UI**: New PaymentMethods component in Profile page allows users to add, view, set default, and delete saved cards using Stripe Elements.
+
+### System Architecture - Stripe Integration
+- **Database Entities**: `stripeCustomerId` and `defaultPaymentMethodId` on users table; overage tracking fields (`overageAmount`, `overageStatus`, `overageChargeId`, `originalWeight`, `originalDimensions`, `actualWeight`, `actualDimensions`) on shipments table
+- **Services**: `StripeService` (customer management, SetupIntent, off-session payments), `OverageService` (calculation, threshold checks, auto-charging)
+- **Routes**: `/api/user/payment-methods/*` for card management, `/api/admin/shipments/:id/process-overage` for admin overage processing
+- **Overage Status Flow**: pending → charged/waived/failed
+
+## Previous Updates (Dec 20, 2025)
 
 ### New Features - Blaze Portal
 1. **Blaze Cannabis Dispensary Integration**: Complete integration with Blaze POS for cannabis dispensary shipping. The Blaze Portal provides a dedicated shipping interface for dispensary orders with carrier filtering.
