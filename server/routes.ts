@@ -2370,6 +2370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               firstName: user.firstName,
               lastName: user.lastName,
               companyName: branding?.companyName || null,
+              hasPaymentMethod: !!user.defaultPaymentMethodId,
             } : null,
           };
         })

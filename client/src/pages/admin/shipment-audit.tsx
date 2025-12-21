@@ -29,6 +29,7 @@ interface ShipmentAudit {
     firstName: string | null;
     lastName: string | null;
     companyName: string | null;
+    hasPaymentMethod: boolean;
   } | null;
   fromAddress: any;
   toAddress: any;
@@ -244,6 +245,9 @@ export default function ShipmentAuditPage() {
                       <th className="text-left p-3 font-medium">Date</th>
                       <th className="text-left p-3 font-medium">Tracking</th>
                       <th className="text-left p-3 font-medium">Customer</th>
+                      <th className="text-center p-3 font-medium" title="Payment Method on File">
+                        <CreditCard className="w-4 h-4 mx-auto" />
+                      </th>
                       <th className="text-left p-3 font-medium">Carrier</th>
                       <th className="text-left p-3 font-medium">Status</th>
                       <th className="text-right p-3 font-medium">Base</th>
@@ -270,6 +274,15 @@ export default function ShipmentAuditPage() {
                               'Unknown'}
                           </div>
                           <div className="text-xs text-gray-500">{shipment.user?.email}</div>
+                        </td>
+                        <td className="p-3 text-center">
+                          {shipment.user?.hasPaymentMethod ? (
+                            <span title="Payment method on file">
+                              <CreditCard className="w-4 h-4 mx-auto text-green-600" />
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
                         </td>
                         <td className="p-3">
                           <div>{shipment.carrierName}</div>
@@ -304,7 +317,7 @@ export default function ShipmentAuditPage() {
                     ))}
                     {(!auditData?.shipments || auditData.shipments.length === 0) && (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-gray-500">
+                        <td colSpan={10} className="p-8 text-center text-gray-500">
                           No shipments found matching your filters.
                         </td>
                       </tr>
