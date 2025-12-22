@@ -441,79 +441,106 @@ export default function Billing() {
 
       <style>{`
         @media print {
-          /* Hide everything */
-          body > * {
-            display: none !important;
-          }
-          
-          /* Show and position the invoice */
-          body::before {
-            content: none !important;
-          }
-          
-          /* Target the Radix portal container */
-          [data-radix-portal] {
-            display: block !important;
-            position: static !important;
-          }
-          
-          [data-radix-portal] > * {
-            display: none !important;
-          }
-          
-          /* Hide dialog overlay */
-          [role="dialog"] {
-            position: static !important;
-            display: block !important;
-            max-width: none !important;
-            max-height: none !important;
-            overflow: visible !important;
-            background: white !important;
-            box-shadow: none !important;
-            border: none !important;
-          }
-          
-          /* Hide the dialog backdrop/overlay */
-          [data-state="open"][data-radix-portal] > div:first-child {
-            display: none !important;
-          }
-          
-          /* Show only invoice content */
-          #invoice-content {
-            display: block !important;
-            visibility: visible !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            width: 100% !important;
-            background: white !important;
-            padding: 20px !important;
+          /* Reset everything */
+          * {
+            visibility: hidden !important;
             margin: 0 !important;
-            z-index: 999999 !important;
+            padding: 0 !important;
           }
           
+          /* Show invoice content and all children */
+          #invoice-content,
           #invoice-content * {
             visibility: visible !important;
           }
           
-          /* Hide print button in invoice */
+          #invoice-content {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0.5in !important;
+            margin: 0 !important;
+            background: white !important;
+            box-sizing: border-box !important;
+          }
+          
+          /* Restore normal spacing for invoice elements */
+          #invoice-content .space-y-6 > * + * {
+            margin-top: 1.5rem !important;
+          }
+          
+          #invoice-content .mb-8 {
+            margin-bottom: 2rem !important;
+          }
+          
+          #invoice-content .mb-4 {
+            margin-bottom: 1rem !important;
+          }
+          
+          #invoice-content .mb-2 {
+            margin-bottom: 0.5rem !important;
+          }
+          
+          #invoice-content .my-4 {
+            margin-top: 1rem !important;
+            margin-bottom: 1rem !important;
+          }
+          
+          #invoice-content .p-6 {
+            padding: 1.5rem !important;
+          }
+          
+          #invoice-content .gap-8 {
+            gap: 2rem !important;
+          }
+          
+          #invoice-content .gap-3 {
+            gap: 0.75rem !important;
+          }
+          
+          /* Grid layouts */
+          #invoice-content .grid-cols-2 {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          
+          /* Flex layouts */
+          #invoice-content .flex {
+            display: flex !important;
+          }
+          
+          #invoice-content .justify-between {
+            justify-content: space-between !important;
+          }
+          
+          #invoice-content .items-start {
+            align-items: flex-start !important;
+          }
+          
+          #invoice-content .text-right {
+            text-align: right !important;
+          }
+          
+          #invoice-content .text-center {
+            text-align: center !important;
+          }
+          
+          /* Hide print button */
           .print\\:hidden {
             display: none !important;
           }
           
-          /* Ensure proper page sizing */
+          /* Page setup */
           @page {
             size: letter;
-            margin: 0.5in;
+            margin: 0;
           }
           
-          /* Remove any extra spacing */
           html, body {
-            margin: 0 !important;
-            padding: 0 !important;
+            width: 100% !important;
             height: auto !important;
-            overflow: visible !important;
           }
         }
       `}</style>
