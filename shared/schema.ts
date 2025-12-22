@@ -56,6 +56,11 @@ export const users = pgTable("users", {
   // Stripe customer for saved cards
   stripeCustomerId: varchar("stripe_customer_id"), // Stripe Customer ID for saving payment methods
   defaultPaymentMethodId: varchar("default_payment_method_id"), // Default Stripe PaymentMethod ID
+  // Notification preferences
+  emailNotifications: boolean("email_notifications").default(true), // Receive email notifications
+  notifyOnShipped: boolean("notify_on_shipped").default(true), // Notify when shipment is shipped
+  notifyOnDelivered: boolean("notify_on_delivered").default(true), // Notify when shipment is delivered
+  notifyOnException: boolean("notify_on_exception").default(true), // Notify on delivery exceptions
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

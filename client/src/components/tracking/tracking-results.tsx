@@ -2,8 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Package, MapPin, Clock, CheckCircle, Truck, AlertCircle } from 'lucide-react';
+import { Package, MapPin, Clock, CheckCircle, Truck, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
+import ShipmentMap from './shipment-map';
 
 interface TrackingResultsProps {
   shipment: any;
@@ -224,6 +225,13 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
           )}
         </CardContent>
       </Card>
+
+      {/* Map Visualization */}
+      <ShipmentMap 
+        fromAddress={shipment.fromAddress}
+        toAddress={shipment.toAddress}
+        status={shipment.status}
+      />
 
       {/* Tracking Timeline */}
       <Card>

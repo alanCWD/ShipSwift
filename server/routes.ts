@@ -797,6 +797,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get notification preferences
+  app.get("/api/user/notification-preferences", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        emailNotifications: user.emailNotifications ?? true,
+        notifyOnShipped: user.notifyOnShipped ?? true,
+        notifyOnDelivered: user.notifyOnDelivered ?? true,
+        notifyOnException: user.notifyOnException ?? true,
+      });
+    } catch (error: any) {
+      console.error("Get notification preferences error:", error);
+      res.status(500).json({ message: "Failed to get notification preferences" });
+    }
+  });
+
+  // Update notification preferences - with Zod validation
+  const notificationPrefsSchema = z.object({
+    emailNotifications: z.boolean(),
+    notifyOnShipped: z.boolean(),
+    notifyOnDelivered: z.boolean(),
+    notifyOnException: z.boolean(),
+  });
+
+  app.put("/api/user/notification-preferences", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Validate with Zod schema
+      const parseResult = notificationPrefsSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid notification preferences", 
+          errors: parseResult.error.errors 
+        });
+      }
+      
+      const { emailNotifications, notifyOnShipped, notifyOnDelivered, notifyOnException } = parseResult.data;
+      
+      const updatedUser = await storage.updateUser(userId, {
+        emailNotifications,
+        notifyOnShipped,
+        notifyOnDelivered,
+        notifyOnException,
+      });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user preferences" });
+      }
+      
+      res.json({
+        emailNotifications: updatedUser.emailNotifications ?? true,
+        notifyOnShipped: updatedUser.notifyOnShipped ?? true,
+        notifyOnDelivered: updatedUser.notifyOnDelivered ?? true,
+        notifyOnException: updatedUser.notifyOnException ?? true,
+      });
+    } catch (error: any) {
+      console.error("Update notification preferences error:", error);
+      res.status(500).json({ message: "Failed to update notification preferences" });
+    }
+  });
+
   // Shipping rates - Multi-source aggregation
   app.post("/api/shipping/rates", async (req, res) => {
     const {
@@ -2038,6 +2106,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching Stripe config:", error);
       res.status(500).json({ message: "Failed to fetch Stripe configuration" });
+    }
+  });
+
+  // Public endpoint to get Google Maps API key (safe to expose - restricted by domain in Google Cloud Console)
+  app.get("/api/config/maps-key", async (req, res) => {
+    try {
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        return res.status(404).json({ message: "Google Maps API key not configured" });
+      }
+      res.json({ apiKey });
+    } catch (error) {
+      console.error("Error fetching Maps config:", error);
+      res.status(500).json({ message: "Failed to fetch Maps configuration" });
     }
   });
 
