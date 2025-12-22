@@ -57,6 +57,10 @@ export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoP
     if (lowerName.includes('intelcom') || lowerName.includes('dragonfly')) {
       return intelcomLogo;
     }
+    // Uber uses fallback icon with special styling
+    if (lowerName.includes('uber')) {
+      return null; // Will use special fallback
+    }
     
     return null;
   };
@@ -71,6 +75,17 @@ export function CarrierLogo({ carrierName, className = "w-8 h-8" }: CarrierLogoP
         className={className}
         style={{ objectFit: 'contain' }}
       />
+    );
+  }
+
+  // Special fallback for Uber (local delivery)
+  if (carrierName.toLowerCase().includes('uber')) {
+    return (
+      <div className={`${className} bg-black rounded flex items-center justify-center`}>
+        <span className="text-xs font-bold text-white">
+          UBER
+        </span>
+      </div>
     );
   }
 

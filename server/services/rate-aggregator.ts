@@ -127,9 +127,25 @@ export class RateAggregatorService {
     // Apply markup and calculate accurate Canadian taxes
     const ratesWithMarkup = await rateMarkupService.applyMarkups(deduplicatedRates, destinationProvince);
 
+    // Tag local delivery rates (Uber Direct) with special flag
+    const ratesWithLocalDeliveryFlag = ratesWithMarkup.map((rate: any) => {
+      const carrierName = (rate.carrier?.name ?? rate.carrierName ?? '').toLowerCase();
+      const isLocalDelivery = carrierName.includes('uber');
+      
+      if (isLocalDelivery) {
+        console.log(`🚗 Tagged ${rate.carrier?.name || rate.carrierName} as local delivery`);
+      }
+      
+      return {
+        ...rate,
+        isLocalDelivery,
+        deliveryType: isLocalDelivery ? 'same-day-local' : 'standard',
+      };
+    });
+
     console.log(`✅ Multi-source rate aggregation complete\n`);
 
-    return ratesWithMarkup;
+    return ratesWithLocalDeliveryFlag;
   }
 
   // Fetch rates from ShipTime

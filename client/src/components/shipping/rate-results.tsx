@@ -14,7 +14,7 @@ import ShipmentForm from './shipment-form';
 import PickupOptions from './pickup-options';
 import InsuranceModal from './insurance-modal';
 import { CarrierLogo } from '@/components/ui/carrier-logo';
-import { Clock, Truck, Shield, Edit, Info } from 'lucide-react';
+import { Clock, Truck, Shield, Edit, Info, Zap } from 'lucide-react';
 
 interface RateResultsProps {
   rates: any[];
@@ -192,20 +192,29 @@ export default function RateResults({ rates, addressData }: RateResultsProps) {
                   // Handle both sample rates and real API format
                   const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
                   const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
+                  const isLocalDelivery = rate.isLocalDelivery || carrierName.toLowerCase().includes('uber');
                   
                   return (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className={`hover:bg-gray-50 ${isLocalDelivery ? 'bg-amber-50 border-l-4 border-l-amber-400' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="mr-3 hidden md:block">
                             <CarrierLogo carrierName={carrierName} className="w-10 h-8" />
                           </div>
-                          <div className="text-sm font-medium text-gray-900">{carrierName}</div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{carrierName}</div>
+                            {isLocalDelivery && (
+                              <Badge className="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs flex items-center gap-1 w-fit">
+                                <Zap className="w-3 h-3" />
+                                Same-Day Local
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{serviceName}</div>
-                        <div className="text-sm text-gray-500">{rate.serviceType || 'Standard'}</div>
+                        <div className="text-sm text-gray-500">{isLocalDelivery ? 'Local Delivery' : (rate.serviceType || 'Standard')}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
