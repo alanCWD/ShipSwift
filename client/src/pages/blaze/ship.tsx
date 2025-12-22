@@ -25,7 +25,7 @@ export default function BlazeShip() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [shipmentType, setShipmentType] = useState<'package' | 'envelope'>('package');
+  const [shipmentType, setShipmentType] = useState<'package' | 'envelope'>('envelope');
   const [fromPostalCode, setFromPostalCode] = useState('');
   const [toPostalCode, setToPostalCode] = useState('');
   const [weight, setWeight] = useState('');
@@ -134,22 +134,22 @@ export default function BlazeShip() {
               <CardContent>
                 <RadioGroup value={shipmentType} onValueChange={(v) => setShipmentType(v as 'package' | 'envelope')}>
                   <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                    <RadioGroupItem value="package" id="package" data-testid="radio-package" />
-                    <Label htmlFor="package" className="flex items-center gap-2 cursor-pointer flex-1">
-                      <Package className="h-5 w-5" />
-                      <div>
-                        <p className="font-medium">Package</p>
-                        <p className="text-sm text-muted-foreground">Standard parcel shipment</p>
-                      </div>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
                     <RadioGroupItem value="envelope" id="envelope" data-testid="radio-envelope" />
                     <Label htmlFor="envelope" className="flex items-center gap-2 cursor-pointer flex-1">
                       <Mail className="h-5 w-5" />
                       <div>
                         <p className="font-medium">Envelope</p>
                         <p className="text-sm text-muted-foreground">Documents and flat items (max 2 lbs)</p>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <RadioGroupItem value="package" id="package" data-testid="radio-package" />
+                    <Label htmlFor="package" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <Package className="h-5 w-5" />
+                      <div>
+                        <p className="font-medium">Package</p>
+                        <p className="text-sm text-muted-foreground">Standard parcel shipment</p>
                       </div>
                     </Label>
                   </div>
