@@ -4,7 +4,15 @@ GoABLP, a product of ABLP Logistics, is a Canadian shipping platform providing m
 
 The project's vision is to streamline Canadian logistics for businesses by offering a comprehensive, user-friendly, and customizable shipping solution that drives efficiency and enhances brand presence for its clients.
 
-## Recent Updates (Dec 21, 2025)
+## Recent Updates (Dec 22, 2025)
+
+### New Features - Uber Direct Local Delivery
+1. **Same-Day Local Delivery Highlighting**: Uber Direct rates (available via ShipTime API) are now highlighted with distinctive amber styling and a "Same-Day Local" badge with lightning icon.
+2. **Local Delivery Tagging**: Rate aggregator automatically tags Uber rates with `isLocalDelivery: true` and `deliveryType: 'same-day-local'` for easy identification.
+3. **Custom Uber Logo**: Carrier logo component displays a branded black/white "UBER" fallback for Uber rates.
+4. **Uber Direct Coverage**: Available within 25 km in Canada (20 miles in USA) for packages under 50 lbs via ShipTime integration.
+
+## Previous Updates (Dec 21, 2025)
 
 ### New Features - Stripe Card Saving & Overage Processing
 1. **Mandatory Saved Payment Method**: Users MUST add a credit card to their account before creating any shipment. The checkout shows a warning with link to profile if no card is saved.
