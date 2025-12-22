@@ -441,17 +441,79 @@ export default function Billing() {
 
       <style>{`
         @media print {
-          body * {
-            visibility: hidden;
+          /* Hide everything */
+          body > * {
+            display: none !important;
           }
-          #invoice-content, #invoice-content * {
-            visibility: visible;
+          
+          /* Show and position the invoice */
+          body::before {
+            content: none !important;
           }
+          
+          /* Target the Radix portal container */
+          [data-radix-portal] {
+            display: block !important;
+            position: static !important;
+          }
+          
+          [data-radix-portal] > * {
+            display: none !important;
+          }
+          
+          /* Hide dialog overlay */
+          [role="dialog"] {
+            position: static !important;
+            display: block !important;
+            max-width: none !important;
+            max-height: none !important;
+            overflow: visible !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          
+          /* Hide the dialog backdrop/overlay */
+          [data-state="open"][data-radix-portal] > div:first-child {
+            display: none !important;
+          }
+          
+          /* Show only invoice content */
           #invoice-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            display: block !important;
+            visibility: visible !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            background: white !important;
+            padding: 20px !important;
+            margin: 0 !important;
+            z-index: 999999 !important;
+          }
+          
+          #invoice-content * {
+            visibility: visible !important;
+          }
+          
+          /* Hide print button in invoice */
+          .print\\:hidden {
+            display: none !important;
+          }
+          
+          /* Ensure proper page sizing */
+          @page {
+            size: letter;
+            margin: 0.5in;
+          }
+          
+          /* Remove any extra spacing */
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            overflow: visible !important;
           }
         }
       `}</style>
