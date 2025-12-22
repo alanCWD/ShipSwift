@@ -3027,6 +3027,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Revenue Reports API endpoint
+  app.get("/api/admin/revenue-reports", requireAdmin, async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      // Build date filter
+      let dateFilter = '';
+      const params: any[] = [];
+      
+      if (startDate) {
+        params.push(new Date(startDate as string));
+        dateFilter += ` AND created_at >= $${params.length}`;
+      }
+      if (endDate) {
+        params.push(new Date(endDate as string));
+        dateFilter += ` AND created_at <= $${params.length}`;
+      }
+      
+      // Get total revenue summary
+      const summaryQuery = `
+        SELECT 
+          COUNT(*) as total_shipments,
+          COALESCE(SUM(CAST(markup_cost AS DECIMAL)), 0) as total_markup_revenue,
+          COALESCE(SUM(CAST(base_cost AS DECIMAL)), 0) as total_base_cost,
+          COALESCE(SUM(CAST(total_cost AS DECIMAL)), 0) as total_revenue,
+          COALESCE(SUM(CAST(tax_amount AS DECIMAL)), 0) as total_tax
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+      `;
+      
+      // Get revenue by carrier
+      const byCarrierQuery = `
+        SELECT 
+          carrier_name,
+          COUNT(*) as shipment_count,
+          COALESCE(SUM(CAST(markup_cost AS DECIMAL)), 0) as markup_revenue,
+          COALESCE(SUM(CAST(base_cost AS DECIMAL)), 0) as base_cost,
+          COALESCE(SUM(CAST(total_cost AS DECIMAL)), 0) as total_revenue
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+        GROUP BY carrier_name
+        ORDER BY markup_revenue DESC
+      `;
+      
+      // Get revenue by shipment type
+      const byTypeQuery = `
+        SELECT 
+          COALESCE(shipment_type, 'package') as shipment_type,
+          COUNT(*) as shipment_count,
+          COALESCE(SUM(CAST(markup_cost AS DECIMAL)), 0) as markup_revenue,
+          COALESCE(SUM(CAST(total_cost AS DECIMAL)), 0) as total_revenue
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+        GROUP BY shipment_type
+        ORDER BY markup_revenue DESC
+      `;
+      
+      // Get daily revenue trend (last 30 days or within date range)
+      const trendQuery = `
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as shipment_count,
+          COALESCE(SUM(CAST(markup_cost AS DECIMAL)), 0) as markup_revenue,
+          COALESCE(SUM(CAST(total_cost AS DECIMAL)), 0) as total_revenue
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+      `;
+      
+      // Get detailed shipment data for export
+      const detailsQuery = `
+        SELECT 
+          id,
+          tracking_number,
+          carrier_name,
+          service_name,
+          shipment_type,
+          CAST(base_cost AS DECIMAL) as base_cost,
+          CAST(markup_cost AS DECIMAL) as markup_cost,
+          CAST(total_cost AS DECIMAL) as total_cost,
+          CAST(tax_amount AS DECIMAL) as tax_amount,
+          status,
+          created_at
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+        ORDER BY created_at DESC
+        LIMIT 500
+      `;
+      
+      const { pool } = await import('./db');
+      
+      const [summaryResult, byCarrierResult, byTypeResult, trendResult, detailsResult] = await Promise.all([
+        pool.query(summaryQuery, params),
+        pool.query(byCarrierQuery, params),
+        pool.query(byTypeQuery, params),
+        pool.query(trendQuery, params),
+        pool.query(detailsQuery, params)
+      ]);
+      
+      res.json({
+        summary: summaryResult.rows[0],
+        byCarrier: byCarrierResult.rows,
+        byType: byTypeResult.rows,
+        dailyTrend: trendResult.rows.reverse(),
+        details: detailsResult.rows
+      });
+    } catch (error: any) {
+      console.error("Revenue reports error:", error);
+      res.status(500).json({ message: "Failed to fetch revenue reports", error: error.message });
+    }
+  });
+
+  // Revenue reports CSV export
+  app.get("/api/admin/revenue-reports/export", requireAdmin, async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      let dateFilter = '';
+      const params: any[] = [];
+      
+      if (startDate) {
+        params.push(new Date(startDate as string));
+        dateFilter += ` AND created_at >= $${params.length}`;
+      }
+      if (endDate) {
+        params.push(new Date(endDate as string));
+        dateFilter += ` AND created_at <= $${params.length}`;
+      }
+      
+      const query = `
+        SELECT 
+          id,
+          tracking_number,
+          carrier_name,
+          service_name,
+          shipment_type,
+          CAST(base_cost AS DECIMAL) as base_cost,
+          CAST(markup_cost AS DECIMAL) as markup_cost,
+          CAST(total_cost AS DECIMAL) as total_cost,
+          CAST(tax_amount AS DECIMAL) as tax_amount,
+          status,
+          created_at
+        FROM shipments
+        WHERE status != 'cancelled' ${dateFilter}
+        ORDER BY created_at DESC
+      `;
+      
+      const { pool } = await import('./db');
+      const result = await pool.query(query, params);
+      
+      // Generate CSV
+      const headers = ['ID', 'Tracking Number', 'Carrier', 'Service', 'Type', 'Base Cost', 'Markup Revenue', 'Total Cost', 'Tax', 'Status', 'Date'];
+      const rows = result.rows.map((row: any) => [
+        row.id,
+        row.tracking_number || '',
+        row.carrier_name,
+        row.service_name,
+        row.shipment_type || 'package',
+        row.base_cost,
+        row.markup_cost,
+        row.total_cost,
+        row.tax_amount || 0,
+        row.status,
+        new Date(row.created_at).toISOString().split('T')[0]
+      ]);
+      
+      const csv = [headers.join(','), ...rows.map((row: any[]) => row.join(','))].join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=revenue-report-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csv);
+    } catch (error: any) {
+      console.error("Revenue export error:", error);
+      res.status(500).json({ message: "Failed to export revenue data" });
+    }
+  });
+
   // Rate comparison demonstration endpoint
   app.post("/api/admin/rate-comparison", requireAdmin, async (req, res) => {
     try {

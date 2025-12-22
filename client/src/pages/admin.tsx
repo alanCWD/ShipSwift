@@ -9,6 +9,7 @@ import AdminUsers from './admin/users';
 import ApiKeysPage from './admin/api-keys';
 import BlazeSettingsPage from './admin/blaze-settings';
 import ShipmentAuditPage from './admin/shipment-audit';
+import RevenueReportsPage from './admin/revenue-reports';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Admin() {
@@ -68,6 +69,11 @@ export default function Admin() {
                 Shipment Audit
               </TabsTrigger>
             )}
+            {user.role === 'ablp_admin' && (
+              <TabsTrigger value="revenue-reports" className="h-auto py-3" data-testid="tab-revenue-reports">
+                Revenue Reports
+              </TabsTrigger>
+            )}
             <TabsTrigger value="blaze" className="h-auto py-3" data-testid="tab-blaze">
               Blaze Portal
             </TabsTrigger>
@@ -94,6 +100,12 @@ export default function Admin() {
           {user.role === 'ablp_admin' && (
             <TabsContent value="shipment-audit">
               <ShipmentAuditPage />
+            </TabsContent>
+          )}
+          
+          {user.role === 'ablp_admin' && (
+            <TabsContent value="revenue-reports">
+              <RevenueReportsPage />
             </TabsContent>
           )}
           
