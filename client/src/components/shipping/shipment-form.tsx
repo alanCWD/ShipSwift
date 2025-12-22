@@ -134,12 +134,13 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
   });
 
   // Query for saved payment methods - mandatory for shipment creation
-  const { data: paymentMethods, isLoading: isLoadingPaymentMethods } = useQuery<any[]>({
-    queryKey: ['/api/user/payment-methods'],
+  const { data: paymentMethodsResponse, isLoading: isLoadingPaymentMethods } = useQuery<{ paymentMethods: any[], defaultPaymentMethodId: string | null }>({
+    queryKey: ['/api/stripe/payment-methods'],
   });
 
-  const hasPaymentMethod = paymentMethods && paymentMethods.length > 0;
-  const defaultPaymentMethod = paymentMethods?.find((pm: any) => pm.isDefault) || paymentMethods?.[0];
+  const paymentMethods = paymentMethodsResponse?.paymentMethods || [];
+  const hasPaymentMethod = paymentMethods.length > 0;
+  const defaultPaymentMethod = paymentMethods.find((pm: any) => pm.isDefault) || paymentMethods[0];
 
   // Initialize Stripe when we have a client secret (payment step is reached)
   useEffect(() => {
