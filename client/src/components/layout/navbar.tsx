@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Settings, LogOut, Package, Palette, Cannabis } from 'lucide-react';
+import { User, Settings, LogOut, Package, Palette, Cannabis, Receipt } from 'lucide-react';
 import goAblpLogo from '@assets/GO ABLP logo (500 x 300 px)_1760196935840.png';
 import { useState, useEffect } from 'react';
 
@@ -127,6 +127,12 @@ export default function Navbar({ onLogin, onRegister }: NavbarProps) {
                     <Link href="/profile" className="flex w-full">
                       <User className="mr-2 h-4 w-4" />
                       Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/billing" className="flex w-full">
+                      <Receipt className="mr-2 h-4 w-4" />
+                      Billing & Invoices
                     </Link>
                   </DropdownMenuItem>
                   {(user.blazeAccess || user.role === 'admin' || user.role === 'ablp_admin') && (

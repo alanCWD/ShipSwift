@@ -38,6 +38,7 @@ function Router() {
       <Route path="/create-shipment" component={CreateShipment} />
       <Route path="/track" component={TrackShipment} />
       <Route path="/profile" component={Profile} />
+      <Route path="/billing" component={React.lazy(() => import("./pages/billing"))} />
       <Route path="/shipments" component={React.lazy(() => import("./pages/shipments"))} />
       <Route path="/branding" component={React.lazy(() => import("@/pages/client-branding"))} />
       <Route path="/admin" component={Admin} />

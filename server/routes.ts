@@ -1346,6 +1346,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get billing/invoice history for user
+  app.get("/api/billing/invoices", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { startDate, endDate, search } = req.query;
+      
+      // Get all shipments for the user that have been paid (have stripeChargeId or status not processing)
+      let shipments = await storage.getShipmentsByUser(userId);
+      
+      // Filter to only paid/completed shipments
+      shipments = shipments.filter(s => s.stripeChargeId || ['shipped', 'delivered'].includes(s.status || ''));
+      
+      // Apply date filters if provided
+      if (startDate) {
+        const start = new Date(startDate as string);
+        shipments = shipments.filter(s => s.createdAt && new Date(s.createdAt) >= start);
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate as string);
+        end.setHours(23, 59, 59, 999); // End of day
+        shipments = shipments.filter(s => s.createdAt && new Date(s.createdAt) <= end);
+      }
+      
+      // Sort by date descending (newest first)
+      shipments.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      
+      // Map to invoice format
+      const invoices = shipments.map(s => ({
+        id: s.id,
+        trackingNumber: s.trackingNumber,
+        carrierName: s.carrierName,
+        serviceName: s.serviceName,
+        fromAddress: s.fromAddress,
+        toAddress: s.toAddress,
+        baseCost: s.baseCost,
+        markupCost: s.markupCost,
+        totalCost: s.totalCost,
+        taxAmount: s.taxAmount,
+        status: s.status,
+        stripeChargeId: s.stripeChargeId,
+        createdAt: s.createdAt,
+        shipmentType: s.shipmentType,
+        packageDetails: s.packageDetails,
+      }));
+      
+      res.json(invoices);
+    } catch (error: any) {
+      console.error("Get billing invoices error:", error);
+      res.status(500).json({ message: "Failed to get billing history" });
+    }
+  });
+
   // Track shipment
   app.get("/api/shipments/:id/track", async (req, res) => {
     try {
