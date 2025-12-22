@@ -687,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         <!-- GoABLP Logo Area -->
         <rect x="20" y="20" width="360" height="80" fill="#1E40AF" rx="8"/>
-        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">SHIPSWIFT</text>
+        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">GoABLP</text>
         <text x="200" y="75" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Canadian Shipping Solutions</text>
         
         <!-- Demo Label Notice -->

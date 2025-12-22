@@ -348,7 +348,7 @@ export default function RateResults({ rates, addressData }: RateResultsProps) {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Insurance Type</Label>
-                  <p className="text-lg font-semibold capitalize">{insuranceData.insuranceType}</p>
+                  <p className="text-lg font-semibold capitalize">{insuranceData.insuranceType === 'shipswift' ? 'GoABLP' : 'Carrier'}</p>
                 </div>
                 {insuranceData.insuranceType === 'shipswift' && (
                   <div>
