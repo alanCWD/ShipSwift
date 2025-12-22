@@ -104,7 +104,7 @@ export default function BlazeSettingsPage() {
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: Partial<BlazeSettings>) => {
-      return await apiRequest('/api/admin/blaze/settings', 'POST', data);
+      return await apiRequest('POST', '/api/admin/blaze/settings', data);
     },
     onSuccess: () => {
       toast({
@@ -124,7 +124,7 @@ export default function BlazeSettingsPage() {
 
   const updateUserAccessMutation = useMutation({
     mutationFn: async ({ userId, hasAccess }: { userId: string; hasAccess: boolean }) => {
-      return await apiRequest(`/api/admin/blaze/users/${userId}/access`, 'POST', { hasAccess });
+      return await apiRequest('POST', `/api/admin/blaze/users/${userId}/access`, { hasAccess });
     },
     onSuccess: () => {
       toast({
