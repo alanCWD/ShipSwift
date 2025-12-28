@@ -163,7 +163,7 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
         };
         
         jQuery(document).ready(function($) {
-            console.log('GoABLP: Admin script loaded successfully (INLINE v1.0.12)');
+            console.log('GoABLP: Admin script loaded successfully (INLINE v1.0.13)');
             console.log('GoABLP: goablp_admin =', goablp_admin);
             
             // Test connection button handler
@@ -424,6 +424,8 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
     private function parse_api_response($api_data) {
         
         $rates = array();
+        $local_rates = array();
+        $standard_rates = array();
         
         if (!isset($api_data['rates']) || !is_array($api_data['rates'])) {
             return $rates;
@@ -433,21 +435,51 @@ class WC_GoABLP_Shipping_Method extends WC_Shipping_Method {
             $service_name = isset($rate['service_name']) ? $rate['service_name'] : 'Shipping';
             $cost = isset($rate['total_price']) ? floatval($rate['total_price']) : 0;
             
+            // Check if this is a local delivery rate (handle both camelCase and snake_case)
+            $is_local_delivery = false;
+            if ((isset($rate['isLocalDelivery']) && $rate['isLocalDelivery']) ||
+                (isset($rate['is_local_delivery']) && $rate['is_local_delivery'])) {
+                $is_local_delivery = true;
+            } elseif (isset($rate['carrier']) && stripos($rate['carrier'], 'uber') !== false) {
+                $is_local_delivery = true;
+            }
+            
             // Add delivery time to label if enabled
             if ($this->show_delivery_time === 'yes' && !empty($rate['description'])) {
                 $service_name .= ' (' . $rate['description'] . ')';
             }
             
-            $rates[] = array(
-                'id'    => $this->id . ':' . $index,
+            // Add "Same Day Local" badge for local delivery rates
+            if ($is_local_delivery) {
+                $service_name = '⚡ Same Day Local - ' . $service_name;
+            }
+            
+            $rate_data = array(
+                'id'    => $this->id . ':' . ($is_local_delivery ? 'local_' : '') . $index,
                 'label' => $service_name,
                 'cost'  => $cost,
                 'meta_data' => array(
                     'carrier' => isset($rate['carrier']) ? $rate['carrier'] : '',
                     'delivery_days' => isset($rate['delivery_days']) ? $rate['delivery_days'] : null,
+                    'is_local_delivery' => $is_local_delivery,
                 ),
             );
+            
+            // Separate local and standard rates for sorting
+            if ($is_local_delivery) {
+                $local_rates[] = $rate_data;
+            } else {
+                $standard_rates[] = $rate_data;
+            }
         }
+        
+        // Sort local rates by cost (lowest first)
+        usort($local_rates, function($a, $b) {
+            return $a['cost'] <=> $b['cost'];
+        });
+        
+        // Combine: local rates first, then standard rates
+        $rates = array_merge($local_rates, $standard_rates);
         
         return $rates;
     }

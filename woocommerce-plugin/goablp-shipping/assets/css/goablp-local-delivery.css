@@ -1,0 +1,65 @@
+/**
+ * GoABLP Local Delivery Styles
+ * Highlights same-day local delivery options on checkout
+ */
+
+/* Target shipping method labels containing "Same Day Local" */
+.woocommerce-shipping-methods li label:has(input[value*="local_"]),
+.woocommerce-shipping-methods li:has(label:contains("Same Day Local")) {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    display: block;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    transition: all 0.2s ease;
+}
+
+.woocommerce-shipping-methods li label:has(input[value*="local_"]):hover {
+    border-color: #d97706;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Fallback for browsers that don't support :has() - use JavaScript class */
+.woocommerce-shipping-methods li.goablp-local-delivery label {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    display: block;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    transition: all 0.2s ease;
+}
+
+.woocommerce-shipping-methods li.goablp-local-delivery label:hover {
+    border-color: #d97706;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Style the radio button when local delivery is selected */
+.woocommerce-shipping-methods li.goablp-local-delivery input[type="radio"]:checked + label,
+.woocommerce-shipping-methods li label:has(input[value*="local_"]:checked) {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #d97706;
+}
+
+/* Lightning bolt icon styling */
+.goablp-local-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #d97706;
+    font-weight: 600;
+}
+
+/* Ensure proper spacing for shipping method amounts */
+.woocommerce-shipping-methods li.goablp-local-delivery .woocommerce-Price-amount {
+    color: #92400e;
+    font-weight: 700;
+}
