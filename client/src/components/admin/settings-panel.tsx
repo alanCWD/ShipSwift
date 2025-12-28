@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Globe, CreditCard, Building, Shield, AlertTriangle, CheckCircle, Key, Truck, Mail, Info } from 'lucide-react';
+import { Settings, Globe, CreditCard, Building, Shield, AlertTriangle, CheckCircle, Key, Truck, Mail, Info, Download, Upload, RefreshCw } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import ShipTimeGuidelines from './shiptime-guidelines';
 
@@ -20,6 +20,8 @@ export default function SettingsPanel() {
   const [activeTab, setActiveTab] = useState('shiptime');
   const [testingConnection, setTestingConnection] = useState(false);
   const [initPassword, setInitPassword] = useState('');
+  const [importData, setImportData] = useState('');
+  const [exportedSettings, setExportedSettings] = useState<string | null>(null);
 
   // ShipTime API Settings
   const [shiptimeSettings, setShiptimeSettings] = useState({
@@ -327,6 +329,90 @@ export default function SettingsPanel() {
     initializeUsersMutation.mutate(initPassword);
   };
 
+  // Export settings mutation
+  const exportSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/settings/export');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const exportJson = JSON.stringify(data, null, 2);
+      setExportedSettings(exportJson);
+      toast({
+        title: "Settings Exported",
+        description: `Exported ${data.settingsCount} settings. Copy the JSON below.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Import settings mutation
+  const importSettingsMutation = useMutation({
+    mutationFn: async (settingsJson: string) => {
+      const parsed = JSON.parse(settingsJson);
+      const settings = parsed.settings || parsed;
+      const response = await apiRequest('POST', '/api/admin/settings/import', { settings });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Settings Imported",
+        description: `Successfully imported ${data.importedCount} settings.`,
+      });
+      setImportData('');
+      // Refresh the settings
+      window.location.reload();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import settings. Check JSON format.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleExportSettings = () => {
+    exportSettingsMutation.mutate();
+  };
+
+  const handleImportSettings = () => {
+    if (!importData.trim()) {
+      toast({
+        title: "No Data",
+        description: "Please paste the exported settings JSON.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      JSON.parse(importData);
+      importSettingsMutation.mutate(importData);
+    } catch {
+      toast({
+        title: "Invalid JSON",
+        description: "The pasted data is not valid JSON.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyExport = () => {
+    if (exportedSettings) {
+      navigator.clipboard.writeText(exportedSettings);
+      toast({
+        title: "Copied",
+        description: "Settings JSON copied to clipboard.",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -340,14 +426,14 @@ export default function SettingsPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="shiptime">
             <Truck className="w-4 h-4 mr-2" />
-            ShipTime API
+            ShipTime
           </TabsTrigger>
           <TabsTrigger value="stallion">
             <Truck className="w-4 h-4 mr-2" />
-            Stallion API
+            Stallion
           </TabsTrigger>
           <TabsTrigger value="guidelines">
             <Info className="w-4 h-4 mr-2" />
@@ -355,15 +441,19 @@ export default function SettingsPanel() {
           </TabsTrigger>
           <TabsTrigger value="stripe">
             <CreditCard className="w-4 h-4 mr-2" />
-            Payment Processing
+            Payments
           </TabsTrigger>
           <TabsTrigger value="sendgrid">
             <Mail className="w-4 h-4 mr-2" />
-            Email API
+            Email
           </TabsTrigger>
           <TabsTrigger value="company">
             <Building className="w-4 h-4 mr-2" />
-            Company Settings
+            Company
+          </TabsTrigger>
+          <TabsTrigger value="sync">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Sync
           </TabsTrigger>
         </TabsList>
 
@@ -969,6 +1059,112 @@ export default function SettingsPanel() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sync">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <RefreshCw className="w-5 h-5 mr-2" />
+                Settings Sync
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Export settings from development and import them to production. Use this to sync API credentials between environments.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Development → Production:</strong> Export settings here in development, then paste and import them in your production app's admin panel.
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Export Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Download className="w-5 h-5 mr-2 text-blue-600" />
+                    <h3 className="text-lg font-semibold">Export Settings</h3>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Export all API credentials and settings from this environment.
+                  </p>
+                  <Button
+                    onClick={handleExportSettings}
+                    disabled={exportSettingsMutation.isPending}
+                    className="w-full"
+                    data-testid="button-export-settings"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {exportSettingsMutation.isPending ? 'Exporting...' : 'Export Settings'}
+                  </Button>
+                  
+                  {exportedSettings && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label>Exported Settings JSON</Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyExport}
+                          data-testid="button-copy-export"
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                      <textarea
+                        className="w-full h-48 font-mono text-xs p-3 border rounded-lg bg-gray-50"
+                        value={exportedSettings}
+                        readOnly
+                        data-testid="textarea-export-result"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Import Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Upload className="w-5 h-5 mr-2 text-green-600" />
+                    <h3 className="text-lg font-semibold">Import Settings</h3>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Paste exported settings JSON from another environment to import them here.
+                  </p>
+                  <textarea
+                    className="w-full h-32 font-mono text-xs p-3 border rounded-lg"
+                    value={importData}
+                    onChange={(e) => setImportData(e.target.value)}
+                    placeholder='Paste exported settings JSON here...'
+                    data-testid="textarea-import-data"
+                  />
+                  <Button
+                    onClick={handleImportSettings}
+                    disabled={importSettingsMutation.isPending || !importData.trim()}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    data-testid="button-import-settings"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {importSettingsMutation.isPending ? 'Importing...' : 'Import Settings'}
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">How to Sync Settings to Production</h4>
+                <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+                  <li>Click "Export Settings" above to get your development settings</li>
+                  <li>Click "Copy" to copy the JSON to your clipboard</li>
+                  <li>Open your <strong>production</strong> app in a new browser tab</li>
+                  <li>Log in as admin and go to Admin → Settings → Sync tab</li>
+                  <li>Paste the JSON and click "Import Settings"</li>
+                </ol>
               </div>
             </CardContent>
           </Card>

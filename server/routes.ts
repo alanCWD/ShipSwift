@@ -2078,6 +2078,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export all API settings for syncing to production
+  app.get("/api/admin/settings/export", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Export all API credentials and settings
+      const settingsToExport = [
+        'SHIPTIME_USERNAME',
+        'SHIPTIME_PASSWORD', 
+        'SHIPTIME_ENVIRONMENT',
+        'STRIPE_PUBLISHABLE_KEY',
+        'STRIPE_SECRET_KEY',
+        'STRIPE_ENVIRONMENT',
+        'stallion_api_token',
+        'stallion_environment',
+        'SENDGRID_API_KEY',
+        'SENDGRID_FROM_EMAIL'
+      ];
+
+      const exportData: Record<string, string> = {};
+      
+      for (const key of settingsToExport) {
+        const value = await storage.getSetting(key);
+        if (value) {
+          exportData[key] = value;
+        }
+      }
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        settingsCount: Object.keys(exportData).length,
+        settings: exportData
+      });
+    } catch (error) {
+      console.error("Error exporting settings:", error);
+      res.status(500).json({ message: "Failed to export settings" });
+    }
+  });
+
+  // Import API settings (for syncing from development to production)
+  app.post("/api/admin/settings/import", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { settings } = req.body;
+      
+      if (!settings || typeof settings !== 'object') {
+        return res.status(400).json({ message: "Settings object is required" });
+      }
+
+      // Allowed settings keys that can be imported
+      const allowedKeys = [
+        'SHIPTIME_USERNAME',
+        'SHIPTIME_PASSWORD', 
+        'SHIPTIME_ENVIRONMENT',
+        'STRIPE_PUBLISHABLE_KEY',
+        'STRIPE_SECRET_KEY',
+        'STRIPE_ENVIRONMENT',
+        'stallion_api_token',
+        'stallion_environment',
+        'SENDGRID_API_KEY',
+        'SENDGRID_FROM_EMAIL'
+      ];
+
+      const imported: string[] = [];
+      const skipped: string[] = [];
+
+      for (const [key, value] of Object.entries(settings)) {
+        if (allowedKeys.includes(key) && typeof value === 'string' && value.trim()) {
+          await storage.setSetting(key, value.trim(), userId);
+          imported.push(key);
+        } else {
+          skipped.push(key);
+        }
+      }
+
+      console.log(`Settings imported by ${user.email}: ${imported.join(', ')}`);
+
+      res.json({ 
+        message: "Settings imported successfully",
+        imported,
+        skipped,
+        importedCount: imported.length
+      });
+    } catch (error) {
+      console.error("Error importing settings:", error);
+      res.status(500).json({ message: "Failed to import settings" });
+    }
+  });
+
   // Public endpoint to get Stripe publishable key (safe to expose - no auth required)
   app.get("/api/stripe/config", async (req, res) => {
     try {
