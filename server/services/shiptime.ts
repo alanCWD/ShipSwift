@@ -290,13 +290,7 @@ class ShipTimeService {
         // Day & Ross and other LTL carriers require freight class for rate quotes
         const freightClass = request.packageDetails.freightClass || '70';
         
-        // Determine handling unit type - PALLET is the standard for LTL
-        const handlingUnitType = request.packageDetails.palletType?.toUpperCase() || 'PALLET';
-        
-        // Stackable flag - default to false for safety (non-stackable)
-        const stackable = request.packageDetails.isStackable === true;
-        
-        console.log(`🚚 LTL Pallet request: ${request.packageDetails.palletCount} pallets, freightClass=${freightClass}, handlingUnitType=${handlingUnitType}, stackable=${stackable}`);
+        console.log(`🚚 LTL Pallet request: ${request.packageDetails.palletCount} pallets, freightClass=${freightClass}`);
         
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
@@ -305,8 +299,7 @@ class ShipTimeService {
             height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
             freightClass: freightClass,
-            handlingUnitType: handlingUnitType,
-            stackable: stackable,
+            description: 'Pallet',
           };
           
           lineItems.push(item);
@@ -450,12 +443,6 @@ class ShipTimeService {
         // Determine freight class - default to 70 (common general freight) if not provided
         const freightClass = request.packageDetails.freightClass || '70';
         
-        // Determine handling unit type - PALLET is the standard for LTL
-        const handlingUnitType = request.packageDetails.palletType?.toUpperCase() || 'PALLET';
-        
-        // Stackable flag - default to false for safety (non-stackable)
-        const stackable = request.packageDetails.isStackable === true;
-        
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
             length: Math.round(request.packageDetails.length * 1000) / 1000,
@@ -463,8 +450,7 @@ class ShipTimeService {
             height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
             freightClass: freightClass,
-            handlingUnitType: handlingUnitType,
-            stackable: stackable,
+            description: 'Pallet',
           };
           
           lineItems.push(item);
