@@ -286,18 +286,28 @@ class ShipTimeService {
         // Round to 3 decimal places (ShipTime API requirement)
         const weightPerPallet = Math.round((request.packageDetails.weight / request.packageDetails.palletCount) * 1000) / 1000;
         
+        // Determine freight class - default to 70 (common general freight) if not provided
+        // Day & Ross and other LTL carriers require freight class for rate quotes
+        const freightClass = request.packageDetails.freightClass || '70';
+        
+        // Determine handling unit type - PALLET is the standard for LTL
+        const handlingUnitType = request.packageDetails.palletType?.toUpperCase() || 'PALLET';
+        
+        // Stackable flag - default to false for safety (non-stackable)
+        const stackable = request.packageDetails.isStackable === true;
+        
+        console.log(`🚚 LTL Pallet request: ${request.packageDetails.palletCount} pallets, freightClass=${freightClass}, handlingUnitType=${handlingUnitType}, stackable=${stackable}`);
+        
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
             length: Math.round(request.packageDetails.length * 1000) / 1000,
             width: Math.round(request.packageDetails.width * 1000) / 1000,
             height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
+            freightClass: freightClass,
+            handlingUnitType: handlingUnitType,
+            stackable: stackable,
           };
-          
-          // Add freight class if provided
-          if (request.packageDetails.freightClass) {
-            item.freightClass = request.packageDetails.freightClass;
-          }
           
           lineItems.push(item);
         }
@@ -437,18 +447,25 @@ class ShipTimeService {
         // Round to 3 decimal places (ShipTime API requirement)
         const weightPerPallet = Math.round((request.packageDetails.weight / request.packageDetails.palletCount) * 1000) / 1000;
         
+        // Determine freight class - default to 70 (common general freight) if not provided
+        const freightClass = request.packageDetails.freightClass || '70';
+        
+        // Determine handling unit type - PALLET is the standard for LTL
+        const handlingUnitType = request.packageDetails.palletType?.toUpperCase() || 'PALLET';
+        
+        // Stackable flag - default to false for safety (non-stackable)
+        const stackable = request.packageDetails.isStackable === true;
+        
         for (let i = 0; i < request.packageDetails.palletCount; i++) {
           const item: any = {
             length: Math.round(request.packageDetails.length * 1000) / 1000,
             width: Math.round(request.packageDetails.width * 1000) / 1000,
             height: Math.round(request.packageDetails.height * 1000) / 1000,
             weight: weightPerPallet,
+            freightClass: freightClass,
+            handlingUnitType: handlingUnitType,
+            stackable: stackable,
           };
-          
-          // Add freight class if provided
-          if (request.packageDetails.freightClass) {
-            item.freightClass = request.packageDetails.freightClass;
-          }
           
           lineItems.push(item);
         }
