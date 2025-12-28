@@ -875,7 +875,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       packageDetails,
       shipmentType,
       fromAddress,
-      toAddress
+      toAddress,
+      filterLocalOnly
     } = req.body;
 
     if (!fromPostalCode || !toPostalCode || !packageDetails) {
@@ -970,7 +971,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use rate aggregator for multi-source rate shopping
       const rateAggregator = (await import('./services/rate-aggregator')).default;
-      const markedUpRates = await rateAggregator.getRates(rateRequest, storage);
+      let markedUpRates = await rateAggregator.getRates(rateRequest, storage);
+
+      // Filter for local delivery rates only if requested
+      if (filterLocalOnly) {
+        console.log('🚀 Filtering for local delivery rates only...');
+        markedUpRates = markedUpRates.filter((rate: any) => {
+          const carrierName = rate.carrier?.name || rate.carrierName || '';
+          const isLocalDelivery = rate.isLocalDelivery || carrierName.toLowerCase().includes('uber');
+          return isLocalDelivery;
+        });
+        console.log(`✅ Found ${markedUpRates.length} local delivery rates`);
+        
+        // Sort by total cost (lowest first)
+        markedUpRates.sort((a: any, b: any) => {
+          const aTotal = a.totalCharge?.amount || a.subtotal * 100 + (a.taxAmount || 0) * 100 || 0;
+          const bTotal = b.totalCharge?.amount || b.subtotal * 100 + (b.taxAmount || 0) * 100 || 0;
+          return aTotal - bTotal;
+        });
+      }
 
       res.json({ rates: markedUpRates });
     } catch (apiError: any) {
@@ -1200,7 +1219,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Apply markup to sample rates just like real API rates
-      const markedUpSampleRates = await rateMarkupService.applyMarkups(sampleRates);
+      let markedUpSampleRates = await rateMarkupService.applyMarkups(sampleRates);
+      
+      // Apply same local filtering logic to sample rates
+      if (filterLocalOnly) {
+        console.log('🚀 Filtering sample rates for local delivery only...');
+        markedUpSampleRates = markedUpSampleRates.filter((rate: any) => {
+          const carrierName = rate.carrier?.name || rate.carrierName || '';
+          const isLocalDelivery = rate.isLocalDelivery || carrierName.toLowerCase().includes('uber');
+          return isLocalDelivery;
+        });
+        console.log(`✅ Found ${markedUpSampleRates.length} local delivery sample rates`);
+        
+        // Sort by total cost (lowest first)
+        markedUpSampleRates.sort((a: any, b: any) => {
+          const aTotal = a.totalCharge?.amount || a.subtotal * 100 + (a.taxAmount || 0) * 100 || 0;
+          const bTotal = b.totalCharge?.amount || b.subtotal * 100 + (b.taxAmount || 0) * 100 || 0;
+          return aTotal - bTotal;
+        });
+      }
       
       res.json({
         rates: markedUpSampleRates,

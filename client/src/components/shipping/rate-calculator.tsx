@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Package } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MapPin, Package, Zap } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 interface RateCalculatorProps {
@@ -14,7 +15,7 @@ interface RateCalculatorProps {
 }
 
 export default function RateCalculator({ onRatesReceived }: RateCalculatorProps) {
-  const [shipmentType, setShipmentType] = useState<'package' | 'envelope' | 'pallet'>('package');
+  const [shipmentType, setShipmentType] = useState<'package' | 'envelope' | 'pallet' | 'local'>('package');
   const [envelopeSize, setEnvelopeSize] = useState<string>('letter');
   const [formData, setFormData] = useState({
     fromCountry: 'CA',
@@ -142,7 +143,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         // Convert weight to kg (envelopes always in lbs in UI)
         apiWeight = parseFloat(data.weight) * 0.453592;
       } else {
-        // Package or pallet - use user-provided dimensions
+        // Package, local, or pallet - use user-provided dimensions
         apiLength = parseFloat(data.length);
         apiWidth = parseFloat(data.width);
         apiHeight = parseFloat(data.height);
@@ -189,8 +190,11 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         fromPostalCode: data.fromPostalCode,
         toCountry: data.toCountry,
         toPostalCode: data.toPostalCode,
-        shipmentType,
-        packageDetails
+        // For 'local' type, use 'package' API but mark for local filtering
+        shipmentType: shipmentType === 'local' ? 'package' : shipmentType,
+        packageDetails,
+        // Flag to filter for local delivery rates only
+        filterLocalOnly: shipmentType === 'local'
       };
 
       // Add full address details for all shipments (required by ShipTime)
@@ -616,6 +620,42 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
           <div className="border-t pt-6">
             <div className="space-y-4">
               <Label>Shipment Type</Label>
+              
+              {/* Same Day Local - Prominent bar above other options */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setShipmentType('local');
+                        setHasRates(false);
+                      }}
+                      className={`w-full h-12 ${
+                        shipmentType === 'local'
+                          ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500'
+                          : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 border-2'
+                      }`}
+                      data-testid="button-shipment-local"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Zap className={`w-5 h-5 ${shipmentType === 'local' ? 'text-white' : 'text-amber-500'}`} />
+                        <span className="font-semibold">Same Day Local</span>
+                        <Zap className={`w-5 h-5 ${shipmentType === 'local' ? 'text-white' : 'text-amber-500'}`} />
+                      </div>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-semibold mb-1">Local Delivery Requirements:</p>
+                    <ul className="text-sm space-y-1">
+                      <li>• Within 25 km of pickup location</li>
+                      <li>• Packages under 50 lbs (22 kg)</li>
+                      <li>• Same-day delivery</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   type="button"
@@ -664,7 +704,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
-                {shipmentType === 'package' 
+                {shipmentType === 'local'
+                  ? 'For same-day delivery within your local area (25 km radius)'
+                  : shipmentType === 'package' 
                   ? 'For small to medium parcels shipped via courier services'
                   : shipmentType === 'envelope'
                   ? 'For documents and flat items (max 2 lbs)'
@@ -673,12 +715,16 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
             </div>
           </div>
 
-          {/* Package/Pallet/Envelope Details */}
+          {/* Package/Pallet/Envelope/Local Details */}
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Package className="w-5 h-5 mr-2 text-blue-600" />
-                {shipmentType === 'package' ? 'Package Details' : shipmentType === 'envelope' ? 'Envelope Details' : 'Pallet Details'}
+                {shipmentType === 'local' ? (
+                  <Zap className="w-5 h-5 mr-2 text-amber-500" />
+                ) : (
+                  <Package className="w-5 h-5 mr-2 text-blue-600" />
+                )}
+                {shipmentType === 'local' ? 'Package Details (Local Delivery)' : shipmentType === 'package' ? 'Package Details' : shipmentType === 'envelope' ? 'Envelope Details' : 'Pallet Details'}
               </h3>
               
               {/* Unit Selector - hidden for envelopes since they use standard sizes */}
