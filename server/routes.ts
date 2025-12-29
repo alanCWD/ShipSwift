@@ -16,6 +16,7 @@ import fs from "fs";
 import Stripe from "stripe";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import sgMail from "@sendgrid/mail";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -4024,12 +4025,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Test SendGrid connection by sending a test email
-          const { MailService } = require('@sendgrid/mail');
-          const testMailService = new MailService();
-          testMailService.setApiKey(apiKey);
+          sgMail.setApiKey(apiKey);
 
           // Send a test email to verify the API key works
-          await testMailService.send({
+          await sgMail.send({
             to: fromEmail, // Send test email to the configured from email
             from: {
               email: fromEmail,
