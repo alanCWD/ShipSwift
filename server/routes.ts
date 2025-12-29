@@ -1258,6 +1258,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rateId: otherData.rateId,
         carrierName: otherData.carrierName,
         serviceName: otherData.serviceName,
+        carrierId: otherData.carrierId,
+        serviceId: otherData.serviceId,
+        referenceNumber: otherData.referenceNumber,
         shipmentType: shipmentType || 'package',
         from: {
           countryCode: fromAddress.countryCode,
@@ -1266,6 +1269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           city: fromAddress.city,
           state: fromAddress.state,
           attention: fromAddress.attention,
+          companyName: fromAddress.companyName,
           phone: fromAddress.phone,
         },
         to: {
@@ -1275,6 +1279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           city: toAddress.city,
           state: toAddress.state,
           attention: toAddress.attention,
+          companyName: toAddress.companyName,
           phone: toAddress.phone,
         },
         packageDetails: packageDetails || {

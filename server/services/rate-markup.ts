@@ -13,6 +13,9 @@ interface RateMarkupRule {
 
 interface ShipTimeRate {
   rateId: string;
+  quoteId?: string;
+  carrierId?: string;
+  serviceId?: string;
   carrier: { name: string };
   service: { name: string };
   baseCharge: { amount: number };

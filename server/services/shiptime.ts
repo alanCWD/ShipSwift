@@ -37,10 +37,16 @@ interface ShipmentRequest extends RateRequest {
   rateId: string;
   carrierName: string;
   serviceName: string;
+  carrierId?: string;
+  serviceId?: string;
+  referenceNumber?: string;
 }
 
 interface ShipTimeRate {
   rateId: string;
+  quoteId?: string;
+  carrierId?: string;
+  serviceId?: string;
   carrier: { name: string };
   service: { name: string };
   baseCharge: { amount: number };
@@ -466,10 +472,11 @@ class ShipTimeService {
         });
       }
 
-      const payload: any = {
-        rateId: request.rateId,
+      // Build the rateRequest object that wraps the shipment details
+      const rateRequest: any = {
         from: {
           attention: request.from.attention || 'GoABLP',
+          companyName: request.from.companyName || 'GoABLP',
           streetAddress: request.from.streetAddress || '44322 Yale Rd #3',
           city: request.from.city || 'Chilliwack',
           state: request.from.state || 'BC',
@@ -479,6 +486,7 @@ class ShipTimeService {
         },
         to: {
           attention: request.to.attention || 'Customer',
+          companyName: request.to.companyName || '',
           streetAddress: request.to.streetAddress!,
           city: request.to.city!,
           state: request.to.state!,
@@ -489,16 +497,41 @@ class ShipTimeService {
         packageType,
         unitOfMeasurement: 'METRIC',
         lineItems,
-        // Add special instructions for sandbox testing
-        ...(specialInstructions && { specialInstructions }),
-        // Default to drop-off service for testing (not pickup)
-        serviceType: 'DROP_OFF',
+        shipDate: new Date().toISOString().split('T')[0],
       };
       
-      // Add pallet-specific details if applicable
+      // Add LTL service options for freight shipments
       if (isPallet) {
-        payload.palletType = request.packageDetails.palletType || 'standard';
-        payload.stackable = request.packageDetails.isStackable !== false;
+        const serviceOptions: string[] = [];
+        if (request.packageDetails.fromTailgate) {
+          serviceOptions.push('TAILGATE_ORIGIN');
+        }
+        if (request.packageDetails.toTailgate) {
+          serviceOptions.push('TAILGATE_DESTINATION');
+        }
+        if (serviceOptions.length > 0) {
+          rateRequest.serviceOptions = serviceOptions;
+        }
+      }
+
+      // ShipTime API accepts either:
+      // 1. Just quoteId (simplest, uses the saved quote)
+      // 2. rateRequest + carrierId + serviceId (builds a new shipment)
+      // We use quoteId when available for consistency with rate quote
+      const payload: any = {
+        quoteId: request.rateId,
+        rateRequest,
+        carrierId: request.carrierId || undefined,
+        serviceId: request.serviceId || undefined,
+        // Reference fields for tracking
+        ref1: request.referenceNumber || undefined,
+      };
+      
+      // Add special instructions for sandbox testing
+      if (specialInstructions) {
+        payload.pickupDetail = {
+          specialInstructions: specialInstructions,
+        };
       }
 
       console.log('📦 Creating ShipTime shipment with payload:');
