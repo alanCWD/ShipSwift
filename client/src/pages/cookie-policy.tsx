@@ -282,13 +282,13 @@ export default function CookiePolicy() {
           <div className="text-gray-700">
             <p className="mb-4">If you have questions about this Cookie Policy or our use of cookies, please contact us:</p>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">ABLP Logistics - Privacy Team</p>
+              <p className="font-medium">GoABLP - Privacy Team</p>
               <p>44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada</p>
-              <p>Email: <a href="mailto:privacy@ablplogistics.ca" className="text-blue-600 hover:underline">privacy@ablplogistics.ca</a></p>
+              <p>Email: <a href="mailto:privacy@goablp.com" className="text-blue-600 hover:underline">privacy@goablp.com</a></p>
               <p>Phone: (604) 392-3923</p>
             </div>
             
-            <p className="mt-4 text-sm">For immediate assistance with cookie settings, you can also reach our customer support team at <a href="mailto:support@ablplogistics.ca" className="text-blue-600 hover:underline">support@ablplogistics.ca</a>.</p>
+            <p className="mt-4 text-sm">For immediate assistance with cookie settings, you can also reach our customer support team at <a href="mailto:support@goablp.com" className="text-blue-600 hover:underline">support@goablp.com</a>.</p>
           </div>
         </div>
       </div>

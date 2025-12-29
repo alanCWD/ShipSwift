@@ -29,7 +29,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
-                support@ablplogistics.ca
+                support@goablp.com
               </div>
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-300">
               <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
               <li><Link href="/branding" className="hover:text-white transition-colors">Branding</Link></li>
-              <li><a href="mailto:support@ablplogistics.ca" className="hover:text-white transition-colors">Contact Support</a></li>
+              <li><a href="mailto:support@goablp.com" className="hover:text-white transition-colors">Contact Support</a></li>
               <li><Link href="/insurance-terms" className="hover:text-white transition-colors">Insurance Terms</Link></li>
             </ul>
           </div>
@@ -57,7 +57,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-300">&copy; 2025 GoABLP - A subsidiary of <a href="https://ablplogistics.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">ABLP Logistics</a>. All rights reserved.</p>
+            <p className="text-gray-300">&copy; 2025 GoABLP - A subsidiary of <a href="https://ablplogistics.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">ABLP Logistics</a>. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/terms-of-service" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link>

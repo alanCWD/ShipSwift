@@ -94,7 +94,7 @@ export default function SettingsPanel() {
 
       setSendgridSettings({
         apiKey: settingsMap.SENDGRID_API_KEY || '',
-        fromEmail: settingsMap.SENDGRID_FROM_EMAIL || 'noreply@ablplogistics.ca',
+        fromEmail: settingsMap.SENDGRID_FROM_EMAIL || 'support@goablp.com',
         fromName: settingsMap.SENDGRID_FROM_NAME || 'GoABLP',
       });
 
@@ -106,7 +106,7 @@ export default function SettingsPanel() {
       setCompanySettings({
         companyName: settingsMap.COMPANY_NAME || 'GoABLP',
         businessNumber: settingsMap.BUSINESS_NUMBER || '',
-        supportEmail: settingsMap.SUPPORT_EMAIL || 'support@ablplogistics.ca',
+        supportEmail: settingsMap.SUPPORT_EMAIL || 'support@goablp.com',
         phoneNumber: settingsMap.PHONE_NUMBER || '(604) 392-3923',
         address: settingsMap.COMPANY_ADDRESS || '44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada',
         website: settingsMap.COMPANY_WEBSITE || 'https://ablplogistics.ca',

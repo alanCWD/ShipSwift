@@ -81,7 +81,7 @@ export default function BrandedTracking() {
     trackingPageTitle: 'Track Your Shipment',
     trackingPageDescription: 'Enter your tracking number to get real-time updates',
     supportPhone: '(604) 392-3923',
-    supportEmail: 'support@ablplogistics.ca',
+    supportEmail: 'support@goablp.com',
     footerText: '© 2025 GoABLP - Subsidiary of ABLP Logistics. All rights reserved.',
   };
 

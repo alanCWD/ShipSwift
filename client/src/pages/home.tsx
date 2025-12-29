@@ -231,7 +231,7 @@ export default function Home() {
                   </p>
                   <Button 
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                    onClick={() => window.open('mailto:quotes@ablplogistics.ca?subject=Pallet Shipping Quote Request', '_blank')}
+                    onClick={() => window.open('mailto:support@goablp.com?subject=Pallet Shipping Quote Request', '_blank')}
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     Contact Us

@@ -296,7 +296,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
           <div className="flex justify-center space-x-4 text-sm text-gray-600">
             <span>📍 44322 Yale Rd #3, Chilliwack, BC</span>
             <span>📞 (604) 392-3923</span>
-            <span>✉️ support@ablplogistics.ca</span>
+            <span>✉️ support@goablp.com</span>
           </div>
         </CardContent>
       </Card>

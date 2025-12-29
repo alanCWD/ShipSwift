@@ -31,7 +31,7 @@ export interface ShipmentNotificationData {
 }
 
 class EmailService {
-  private fromEmail = 'noreply@ablplogistics.ca';
+  private fromEmail = 'support@goablp.com';
 
   async sendShipmentNotification(data: ShipmentNotificationData): Promise<boolean> {
     try {
@@ -177,7 +177,7 @@ class EmailService {
             ${nextSteps}
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ablplogistics.ca/track?id=${data.trackingNumber}" class="track-button">
+                <a href="https://goablp.replit.app/track?id=${data.trackingNumber}" class="track-button">
                     Track Your Shipment
                 </a>
             </div>
@@ -190,7 +190,7 @@ class EmailService {
         <div class="footer">
             <p style="margin: 0 0 10px 0;"><strong>GoABLP</strong></p>
             <p style="margin: 0;">44322 Yale Rd #3, Chilliwack, BC V2R 4H1</p>
-            <p style="margin: 5px 0 0 0;">Phone: (604) 392-3923 | Email: support@ablplogistics.ca</p>
+            <p style="margin: 5px 0 0 0;">Phone: (604) 392-3923 | Email: support@goablp.com</p>
         </div>
     </div>
 </body>
@@ -218,11 +218,11 @@ SHIPMENT DETAILS:
 FROM: ${this.formatAddress(data.fromAddress)}
 TO: ${this.formatAddress(data.toAddress)}
 
-Track your shipment online: https://ablplogistics.ca/track?id=${data.trackingNumber}
+Track your shipment online: https://goablp.replit.app/track?id=${data.trackingNumber}
 
 If you have any questions, please contact us:
 Phone: (604) 392-3923
-Email: support@ablplogistics.ca
+Email: support@goablp.com
 
 Thank you for choosing GoABLP!
 

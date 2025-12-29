@@ -167,7 +167,7 @@ export default function PrivacyPolicy() {
               <li><strong>Objection:</strong> Object to processing based on legitimate interests or direct marketing</li>
               <li><strong>Withdraw Consent:</strong> Withdraw consent for processing where consent is the legal basis</li>
             </ul>
-            <p className="mt-4">To exercise these rights, please contact us at <a href="mailto:privacy@ablplogistics.ca" className="text-blue-600 hover:underline">privacy@ablplogistics.ca</a>.</p>
+            <p className="mt-4">To exercise these rights, please contact us at <a href="mailto:privacy@goablp.com" className="text-blue-600 hover:underline">privacy@goablp.com</a>.</p>
           </div>
         </div>
 
@@ -233,9 +233,9 @@ export default function PrivacyPolicy() {
           <div className="text-gray-700">
             <p className="mb-4">If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:</p>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">ABLP Logistics - Privacy Office</p>
+              <p className="font-medium">GoABLP - Privacy Office</p>
               <p>44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada</p>
-              <p>Email: <a href="mailto:privacy@ablplogistics.ca" className="text-blue-600 hover:underline">privacy@ablplogistics.ca</a></p>
+              <p>Email: <a href="mailto:privacy@goablp.com" className="text-blue-600 hover:underline">privacy@goablp.com</a></p>
               <p>Phone: (604) 392-3923</p>
             </div>
           </div>

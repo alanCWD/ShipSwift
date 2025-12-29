@@ -306,9 +306,9 @@ export default function TermsOfService() {
           <div className="text-gray-700">
             <p className="mb-4">If you have questions about these Terms of Service, please contact us:</p>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">ABLP Logistics - Legal Department</p>
+              <p className="font-medium">GoABLP - Legal Department</p>
               <p>44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada</p>
-              <p>Email: <a href="mailto:legal@ablplogistics.ca" className="text-blue-600 hover:underline">legal@ablplogistics.ca</a></p>
+              <p>Email: <a href="mailto:legal@goablp.com" className="text-blue-600 hover:underline">legal@goablp.com</a></p>
               <p>Phone: (604) 392-3923</p>
             </div>
           </div>

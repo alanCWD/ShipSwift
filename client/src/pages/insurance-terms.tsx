@@ -147,8 +147,8 @@ export default function InsuranceTerms() {
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             For questions about insurance coverage or to file a claim, contact our support team at{' '}
-            <a href="mailto:support@ablplogistics.ca" className="text-blue-600 hover:underline">
-              support@ablplogistics.ca
+            <a href="mailto:support@goablp.com" className="text-blue-600 hover:underline">
+              support@goablp.com
             </a>
           </p>
         </div>
