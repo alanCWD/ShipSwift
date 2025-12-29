@@ -501,7 +501,18 @@ class ShipTimeService {
         payload.stackable = request.packageDetails.isStackable !== false;
       }
 
+      console.log('📦 Creating ShipTime shipment with payload:');
+      console.log('  RateId:', request.rateId);
+      console.log('  Carrier:', request.carrierName);
+      console.log('  Service:', request.serviceName);
+      console.log('  Environment:', this.environment);
+      console.log('  API URL:', this.getApiUrl());
+      console.log('  Full payload:', JSON.stringify(payload, null, 2));
+
       const response = await this.makeRequest('shipments', 'POST', payload);
+      
+      console.log('📦 ShipTime shipment response:');
+      console.log('  Response:', JSON.stringify(response, null, 2));
       
       // Auto-cancel sandbox shipments immediately to prevent charges
       if (isSandbox && response.shipmentId) {

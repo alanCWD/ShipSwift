@@ -1290,20 +1290,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
       };
 
-      // Create shipment with ShipTime (with fallback for demo)
+      // Create shipment with ShipTime - NO demo fallback in production
       let shiptimeShipment;
       try {
+        console.log('📦 Creating shipment with ShipTime API...');
+        console.log('  Carrier:', otherData.carrierName);
+        console.log('  Service:', otherData.serviceName);
+        console.log('  From:', shipmentRequest.from.postalCode);
+        console.log('  To:', shipmentRequest.to.postalCode);
+        
         shiptimeShipment = await shiptimeService.createShipment(shipmentRequest);
-      } catch (shiptimeError) {
-        console.log('ShipTime API unavailable, creating demo shipment:', (shiptimeError as Error).message);
-        // Provide demo response when ShipTime API is unavailable
-        shiptimeShipment = {
-          id: `demo_${Date.now()}`,
-          trackingNumber: `DEMO${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-          labelUrl: '/api/demo-label', // Use our own demo label endpoint
-          carrier: { name: otherData.carrierName },
-          service: { name: otherData.serviceName },
-        };
+        
+        console.log('✅ ShipTime shipment created successfully');
+        console.log('  Tracking:', shiptimeShipment.trackingNumber);
+        console.log('  Label URL:', shiptimeShipment.labelUrl);
+      } catch (shiptimeError: any) {
+        const errorMessage = shiptimeError?.message || 'Unknown ShipTime API error';
+        const errorDetails = shiptimeError?.response?.data || shiptimeError?.response || {};
+        
+        console.error('❌ ShipTime API Error - Shipment creation failed');
+        console.error('  Error message:', errorMessage);
+        console.error('  Error details:', JSON.stringify(errorDetails, null, 2));
+        console.error('  Full error:', shiptimeError);
+        
+        // In production, fail properly instead of creating demo shipments
+        // Demo mode should only be used explicitly for testing
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        const allowDemoFallback = isDevelopment && process.env.ALLOW_DEMO_SHIPMENTS === 'true';
+        
+        if (allowDemoFallback) {
+          console.log('⚠️ Development mode: Creating demo shipment as fallback');
+          shiptimeShipment = {
+            id: `demo_${Date.now()}`,
+            trackingNumber: `DEMO${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+            labelUrl: '/api/demo-label',
+            carrier: { name: otherData.carrierName },
+            service: { name: otherData.serviceName },
+          };
+        } else {
+          // In production, return the actual error to the user
+          return res.status(500).json({ 
+            message: `Failed to create shipment with carrier: ${errorMessage}. Please try again or contact support.`,
+            error: 'CARRIER_API_ERROR',
+            details: isDevelopment ? errorDetails : undefined
+          });
+        }
       }
       
       // Calculate markup
