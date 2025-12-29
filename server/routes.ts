@@ -2009,6 +2009,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           key: 'stallion_environment', 
           value: await storage.getSetting('stallion_environment') || 'production',
           description: 'Stallion API environment (production/sandbox)'
+        },
+        { 
+          key: 'SENDGRID_API_KEY', 
+          value: await storage.getSetting('SENDGRID_API_KEY') || '',
+          description: 'SendGrid API key'
+        },
+        { 
+          key: 'SENDGRID_FROM_EMAIL', 
+          value: await storage.getSetting('SENDGRID_FROM_EMAIL') || '',
+          description: 'SendGrid from email address'
+        },
+        { 
+          key: 'SENDGRID_FROM_NAME', 
+          value: await storage.getSetting('SENDGRID_FROM_NAME') || '',
+          description: 'SendGrid from name'
         }
       ];
 
