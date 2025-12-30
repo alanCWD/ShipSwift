@@ -590,10 +590,57 @@ class ShipTimeService {
       
       // For DROP-OFF shipments: omit pickupDetail entirely per ShipTime API contract
       if (!isDropOff) {
+        // Valid ShipTime PickupLocationTypeModel enum values (from API error):
+        // Receiving, Warehouse, SideDoor, Garage, Kiosk, ShippingRoom, Basement, Other,
+        // MailRoom, Pharmacy, Mailbox, BackDoor, Lobby, FrontDoor, Office, ServiceCounter,
+        // Reception, PartsDepartment, LoadingDock
+        const validLocations: Record<string, string> = {
+          'frontdoor': 'FrontDoor',
+          'front_door': 'FrontDoor',
+          'front door': 'FrontDoor',
+          'backdoor': 'BackDoor',
+          'back_door': 'BackDoor',
+          'back door': 'BackDoor',
+          'sidedoor': 'SideDoor',
+          'side_door': 'SideDoor',
+          'side door': 'SideDoor',
+          'office': 'Office',
+          'reception': 'Reception',
+          'warehouse': 'Warehouse',
+          'lobby': 'Lobby',
+          'mailroom': 'MailRoom',
+          'mail_room': 'MailRoom',
+          'mail room': 'MailRoom',
+          'garage': 'Garage',
+          'basement': 'Basement',
+          'kiosk': 'Kiosk',
+          'pharmacy': 'Pharmacy',
+          'mailbox': 'Mailbox',
+          'shippingroom': 'ShippingRoom',
+          'shipping_room': 'ShippingRoom',
+          'shipping room': 'ShippingRoom',
+          'servicecounter': 'ServiceCounter',
+          'service_counter': 'ServiceCounter',
+          'service counter': 'ServiceCounter',
+          'partsdepartment': 'PartsDepartment',
+          'parts_department': 'PartsDepartment',
+          'parts department': 'PartsDepartment',
+          'loadingdock': 'LoadingDock',
+          'loading_dock': 'LoadingDock',
+          'loading dock': 'LoadingDock',
+          'receiving': 'Receiving',
+          'other': 'Other',
+        };
+        
+        // Normalize the pickup location to valid ShipTime enum value
+        const rawLocation = request.pickupDetails?.pickupLocation || 'FrontDoor';
+        const normalizedLocation = validLocations[rawLocation.toLowerCase()] || 
+                                   validLocations[rawLocation.toLowerCase().replace(/\s+/g, '')] ||
+                                   'FrontDoor'; // Default to FrontDoor if unknown
+        
         // For SCHEDULED pickups: build the complete pickupDetail object
         const pickupDetail: any = {
-          // Location where driver should pick up (FrontDoor, BackDoor, Office, Reception, Warehouse, Other)
-          location: request.pickupDetails?.pickupLocation || 'FrontDoor',
+          location: normalizedLocation,
           
           // Pickup tip/gratuity - required as MoneyAmountModel object (not a string!)
           pickupTip: {
