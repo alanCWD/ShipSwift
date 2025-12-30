@@ -220,6 +220,7 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     },
     onSuccess: (data) => {
       // Pass both rates and address data to parent component
+      // Include shipmentType and packageDetails for proper shipment creation
       const addressData = {
         fromCompany: formData.fromCompany,
         fromStreet: formData.fromStreet,
@@ -237,6 +238,20 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         toCountry: formData.toCountry,
         toPhone: formData.toPhone,
         toAttention: formData.toAttention,
+        // Include shipment type and package details for proper LTL/pallet handling
+        shipmentType: shipmentType === 'local' ? 'package' : shipmentType,
+        packageDetails: {
+          length: parseFloat(formData.length),
+          width: parseFloat(formData.width),
+          height: parseFloat(formData.height),
+          weight: parseFloat(formData.weight),
+          palletCount: shipmentType === 'pallet' ? parseInt(formData.palletCount) : undefined,
+          palletType: shipmentType === 'pallet' ? formData.palletType : undefined,
+          isStackable: shipmentType === 'pallet' ? formData.isStackable === 'yes' : undefined,
+          freightClass: shipmentType === 'pallet' ? formData.freightClass : undefined,
+          fromTailgate: formData.fromTailgate === 'yes',
+          toTailgate: formData.toTailgate === 'yes',
+        },
       };
       onRatesReceived(data.rates, addressData);
       setHasRates(true);

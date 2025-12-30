@@ -315,12 +315,49 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       'service.id': rate.service?.id,
     });
     
+    // Use packageDetails from addressData if available (has palletCount for LTL shipments)
+    const packageDetailsFromAddress = addressData?.packageDetails || {};
+    // Normalize shipmentType: only 'pallet' is special, everything else is 'package'
+    const rawShipmentType = addressData?.shipmentType || 'package';
+    const normalizedShipmentType = rawShipmentType === 'pallet' ? 'pallet' : 'package';
+    
+    // Build packageDetails carefully - only include valid numeric values
+    const buildPackageDetails = () => {
+      const details: any = {};
+      
+      // Use rate.lineItems first if available (they have the actual quoted dimensions)
+      const lineItem = rate.lineItems?.[0] || {};
+      if (lineItem.length) details.length = lineItem.length;
+      if (lineItem.width) details.width = lineItem.width;
+      if (lineItem.height) details.height = lineItem.height;
+      if (lineItem.weight) details.weight = lineItem.weight;
+      
+      // For pallet shipments, add critical fields from addressData
+      if (normalizedShipmentType === 'pallet' && packageDetailsFromAddress) {
+        if (packageDetailsFromAddress.palletCount) details.palletCount = packageDetailsFromAddress.palletCount;
+        if (packageDetailsFromAddress.palletType) details.palletType = packageDetailsFromAddress.palletType;
+        if (packageDetailsFromAddress.freightClass) details.freightClass = packageDetailsFromAddress.freightClass;
+        if (packageDetailsFromAddress.isStackable !== undefined) details.isStackable = packageDetailsFromAddress.isStackable;
+        if (packageDetailsFromAddress.fromTailgate) details.fromTailgate = packageDetailsFromAddress.fromTailgate;
+        if (packageDetailsFromAddress.toTailgate) details.toTailgate = packageDetailsFromAddress.toTailgate;
+        
+        // For pallets, also get dimensions from addressData if lineItems are missing
+        if (!details.length && !isNaN(packageDetailsFromAddress.length)) details.length = packageDetailsFromAddress.length;
+        if (!details.width && !isNaN(packageDetailsFromAddress.width)) details.width = packageDetailsFromAddress.width;
+        if (!details.height && !isNaN(packageDetailsFromAddress.height)) details.height = packageDetailsFromAddress.height;
+        if (!details.weight && !isNaN(packageDetailsFromAddress.weight)) details.weight = packageDetailsFromAddress.weight;
+      }
+      
+      return details;
+    };
+    
     const shipmentData = {
       rateId: rate.quoteId || rate.rateId || rate.id,
       carrierId: rate.carrierId || rate.carrier?.id,
       serviceId: rate.serviceId || rate.service?.id,
       carrierName: rate.carrierName || rate.carrier?.name || 'Unknown Carrier',
       serviceName: rate.serviceName || rate.service?.name || 'Standard Service',
+      shipmentType: normalizedShipmentType,
       fromAddress: {
         attention: shippingDetails.fromName,
         companyName: shippingDetails.fromName,
@@ -341,7 +378,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
         countryCode: shippingDetails.toCountry,
         phone: shippingDetails.toPhone,
       },
-      packageDetails: rate.lineItems?.[0] || {},
+      packageDetails: buildPackageDetails(),
       baseCost: total.toString(),
     };
 
