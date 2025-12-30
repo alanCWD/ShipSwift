@@ -34,15 +34,18 @@ interface RateRequest {
 }
 
 interface PickupDetails {
-  // Legacy field name (ShipTime's expected name)
+  // Legacy field name
   pickupType?: 'SCHEDULED' | 'DROPOFF';
-  // Frontend field name - needs to be mapped to pickupType
+  // Frontend field name - needs to be mapped
   pickupOption?: 'schedule_now' | 'schedule_later' | 'drop_off';
   pickupDate?: Date | string;
   readyTime?: { hour: string; minute: string; period: 'AM' | 'PM' };
   // ShipTime expects closeTime, frontend sends closingTime
   closeTime?: { hour: string; minute: string; period: 'AM' | 'PM' };
   closingTime?: { hour: string; minute: string; period: 'AM' | 'PM' };
+  // ShipTime API pickup location fields
+  pickupLocation?: 'FrontDoor' | 'BackDoor' | 'Office' | 'Reception' | 'Warehouse' | 'Other' | string;
+  otherLocation?: string; // Description when pickupLocation is 'Other'
 }
 
 interface ShipmentRequest extends RateRequest {
@@ -569,43 +572,52 @@ class ShipTimeService {
         ref1: request.referenceNumber || undefined,
       };
       
-      // Build pickupDetail - required by ShipTime API for shipment creation
-      // Known ShipTime fields: readyTime, pickupDate, closeTime, type
-      // NOTE: "pickupTip" is a monetary gratuity field (MoneyAmountModel), NOT the pickup type
-      // The pickup type field is likely just "type" based on standard API patterns
-      const pickupDetail: any = {};
+      // Build pickupDetail based on official ShipTime API documentation
+      // Official structure:
+      // {
+      //   "location": "FrontDoor",        // Required for scheduled pickups
+      //   "otherLocation": "string",      // Optional - description if location is "Other"
+      //   "pickupTip": { "currency": "CAD", "amount": 0 },  // Monetary gratuity object
+      //   "pickupDate": "2025-12-30",     // YYYY-MM-DD format
+      //   "readyTime": "08:00",           // 24-hour HH:MM format
+      //   "closeTime": "14:00"            // 24-hour HH:MM format
+      // }
       
-      // Normalize pickup option/type to ShipTime's type field
-      // Frontend sends pickupOption: 'schedule_now' | 'schedule_later' | 'drop_off'
-      // ShipTime expects type: 'SCHEDULED' | 'DROPOFF' (or similar)
-      let pickupType: 'SCHEDULED' | 'DROPOFF' = 'DROPOFF';
+      // Determine if this is a drop-off or scheduled pickup
+      const isDropOff = request.pickupDetails?.pickupOption === 'drop_off' || 
+                        request.pickupDetails?.pickupType === 'DROPOFF' ||
+                        (!request.pickupDetails?.pickupOption && !request.pickupDetails?.pickupDate);
       
-      if (request.pickupDetails?.pickupOption) {
-        // Map frontend pickupOption to ShipTime type
-        if (request.pickupDetails.pickupOption === 'drop_off') {
-          pickupType = 'DROPOFF';
-        } else {
-          // schedule_now or schedule_later both map to SCHEDULED
-          pickupType = 'SCHEDULED';
-        }
-      } else if (request.pickupDetails?.pickupType) {
-        // Legacy support: if pickupType is provided directly
-        pickupType = request.pickupDetails.pickupType;
-      } else if (request.pickupDetails?.pickupDate) {
-        // If date is provided but no type, assume scheduled
-        pickupType = 'SCHEDULED';
-      }
-      
-      // Use "type" field for ShipTime API (not pickupType or pickupTip)
-      pickupDetail.type = pickupType;
-      
-      // Add pickup date if provided
-      if (request.pickupDetails?.pickupDate) {
-        const pickupDate = new Date(request.pickupDetails.pickupDate);
-        pickupDetail.pickupDate = pickupDate.toISOString().split('T')[0];
+      // For DROP-OFF shipments: omit pickupDetail entirely per ShipTime API contract
+      if (!isDropOff) {
+        // For SCHEDULED pickups: build the complete pickupDetail object
+        const pickupDetail: any = {
+          // Location where driver should pick up (FrontDoor, BackDoor, Office, Reception, Warehouse, Other)
+          location: request.pickupDetails?.pickupLocation || 'FrontDoor',
+          
+          // Pickup tip/gratuity - required as MoneyAmountModel object (not a string!)
+          pickupTip: {
+            currency: 'CAD',
+            amount: 0  // No tip by default
+          }
+        };
         
-        // Format ready time (when package is ready for pickup)
-        if (request.pickupDetails.readyTime) {
+        // Add otherLocation description if location is "Other"
+        if (pickupDetail.location === 'Other' && request.pickupDetails?.otherLocation) {
+          pickupDetail.otherLocation = request.pickupDetails.otherLocation;
+        }
+        
+        // Add pickup date (required for scheduled pickups)
+        if (request.pickupDetails?.pickupDate) {
+          const pickupDate = new Date(request.pickupDetails.pickupDate);
+          pickupDetail.pickupDate = pickupDate.toISOString().split('T')[0];
+        } else {
+          // Default to today if no date provided for scheduled pickup
+          pickupDetail.pickupDate = new Date().toISOString().split('T')[0];
+        }
+        
+        // Format ready time (when package is ready for pickup) - 24-hour format
+        if (request.pickupDetails?.readyTime) {
           const { hour, minute, period } = request.pickupDetails.readyTime;
           let hourNum = parseInt(hour);
           if (period === 'PM' && hourNum !== 12) hourNum += 12;
@@ -615,9 +627,8 @@ class ShipTimeService {
           pickupDetail.readyTime = '09:00';
         }
         
-        // Format close time (last time for pickup)
-        // Frontend sends closingTime, ShipTime expects closeTime
-        const closeTimeData = request.pickupDetails.closeTime || request.pickupDetails.closingTime;
+        // Format close time (last time for pickup) - 24-hour format
+        const closeTimeData = request.pickupDetails?.closeTime || request.pickupDetails?.closingTime;
         if (closeTimeData) {
           const { hour, minute, period } = closeTimeData;
           let hourNum = parseInt(hour);
@@ -627,15 +638,12 @@ class ShipTimeService {
         } else {
           pickupDetail.closeTime = '17:00';
         }
+        
+        payload.pickupDetail = pickupDetail;
+        console.log('📅 Scheduled pickup - including pickupDetail:', JSON.stringify(pickupDetail, null, 2));
+      } else {
+        console.log('📦 Drop-off shipment - omitting pickupDetail per ShipTime API contract');
       }
-      
-      // Add special instructions for sandbox testing
-      if (specialInstructions) {
-        pickupDetail.specialInstructions = specialInstructions;
-      }
-      
-      // Always include pickupDetail in payload
-      payload.pickupDetail = pickupDetail;
 
       console.log('📦 Creating ShipTime shipment with payload:');
       console.log('  RateId:', request.rateId);
