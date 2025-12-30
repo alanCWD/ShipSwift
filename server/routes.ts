@@ -1251,7 +1251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/shipments", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const { fromAddress, toAddress, packageDetails, shipmentType, ...otherData } = req.body;
+      const { fromAddress, toAddress, packageDetails, shipmentType, pickupDetails, ...otherData } = req.body;
       
       // Transform the data to match ShipTime service interface
       const shipmentRequest = {
@@ -1287,7 +1287,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           width: 10,
           height: 10,
           weight: 1
-        }
+        },
+        pickupDetails: pickupDetails || undefined
       };
       
       const shipmentData = {
@@ -1411,70 +1412,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Save shipment to database with audit data
-      const shipment = await storage.createShipment({
-        ...shipmentData,
-        baseCost: shipmentData.baseCost || '0',
-        shiptimeShipmentId: shiptimeShipment.id,
-        trackingNumber: shiptimeShipment.trackingNumber,
-        labelUrl: shiptimeShipment.labelUrl,
-        markupCost: markupCost.toString(),
-        totalCost: totalCost.toString(),
-        stripeChargeId: chargeResult.chargeId,
-        status: 'paid', // Mark as paid immediately since we charged the card
-        // Audit fields
-        taxAmount: taxAmount.toString(),
-        carrierNetAmount: carrierNetAmount.toString(),
-        markupPercentage: markupPercentage.toString(),
-        rateBreakdown: shipmentData.rateBreakdown || null,
-        stripeChargeSnapshot: chargeResult.stripeChargeSnapshot || null,
-        customerPaymentSnapshot: chargeResult.customerPaymentSnapshot || null,
-      });
-
-      // Log shipment creation activity
-      await storage.logUserActivity({
-        userId,
-        activityType: 'shipment_created',
-        activityData: {
-          shipmentId: shipment.id,
-          carrierName: shipment.carrierName,
-          serviceName: shipment.serviceName,
-          totalCost: shipment.totalCost,
-          trackingNumber: shipment.trackingNumber
-        },
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-
-      // Send shipment creation notification email
+      // IMPORTANT: Payment was successful - wrap remaining operations in try-catch
+      // and refund if anything fails after this point
       try {
-        const user = await storage.getUser(userId);
-        if (user?.email) {
-          await emailService.sendShipmentNotification({
+        // Save shipment to database with audit data
+        const shipment = await storage.createShipment({
+          ...shipmentData,
+          baseCost: shipmentData.baseCost || '0',
+          shiptimeShipmentId: shiptimeShipment.id,
+          trackingNumber: shiptimeShipment.trackingNumber,
+          labelUrl: shiptimeShipment.labelUrl,
+          markupCost: markupCost.toString(),
+          totalCost: totalCost.toString(),
+          stripeChargeId: chargeResult.chargeId,
+          status: 'paid', // Mark as paid immediately since we charged the card
+          // Audit fields
+          taxAmount: taxAmount.toString(),
+          carrierNetAmount: carrierNetAmount.toString(),
+          markupPercentage: markupPercentage.toString(),
+          rateBreakdown: shipmentData.rateBreakdown || null,
+          stripeChargeSnapshot: chargeResult.stripeChargeSnapshot || null,
+          customerPaymentSnapshot: chargeResult.customerPaymentSnapshot || null,
+        });
+
+        // Log shipment creation activity
+        await storage.logUserActivity({
+          userId,
+          activityType: 'shipment_created',
+          activityData: {
             shipmentId: shipment.id,
-            trackingNumber: (shipment.trackingNumber || shiptimeShipment.trackingNumber) || '',
-            status: shipment.status || 'processing',
             carrierName: shipment.carrierName,
             serviceName: shipment.serviceName,
-            customerEmail: user.email,
-            customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
-            fromAddress: shipment.fromAddress,
-            toAddress: shipment.toAddress,
             totalCost: shipment.totalCost,
-            createdAt: shipment.createdAt ? shipment.createdAt.toISOString() : new Date().toISOString(),
-          });
-        }
-      } catch (emailError) {
-        console.error("Failed to send shipment notification email:", emailError);
-        // Don't fail the shipment creation if email fails
-      }
+            trackingNumber: shipment.trackingNumber
+          },
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent')
+        });
 
-      res.json({ 
-        shipment,
-        paymentComplete: true,
-        chargeId: chargeResult.chargeId,
-        labelUrl: shiptimeShipment.labelUrl
-      });
+        // Send shipment creation notification email
+        try {
+          const user = await storage.getUser(userId);
+          if (user?.email) {
+            await emailService.sendShipmentNotification({
+              shipmentId: shipment.id,
+              trackingNumber: (shipment.trackingNumber || shiptimeShipment.trackingNumber) || '',
+              status: shipment.status || 'processing',
+              carrierName: shipment.carrierName,
+              serviceName: shipment.serviceName,
+              customerEmail: user.email,
+              customerName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
+              fromAddress: shipment.fromAddress,
+              toAddress: shipment.toAddress,
+              totalCost: shipment.totalCost,
+              createdAt: shipment.createdAt ? shipment.createdAt.toISOString() : new Date().toISOString(),
+            });
+          }
+        } catch (emailError) {
+          console.error("Failed to send shipment notification email:", emailError);
+          // Don't fail the shipment creation if email fails
+        }
+
+        res.json({ 
+          shipment,
+          paymentComplete: true,
+          chargeId: chargeResult.chargeId,
+          labelUrl: shiptimeShipment.labelUrl
+        });
+      } catch (postPaymentError: any) {
+        // Payment succeeded but something else failed - issue automatic refund
+        console.error("❌ Post-payment error - initiating automatic refund:", postPaymentError);
+        
+        try {
+          if (chargeResult.chargeId) {
+            console.log(`💰 Refunding charge ${chargeResult.chargeId}...`);
+            await stripeService.createRefund(chargeResult.chargeId);
+            console.log(`✅ Refund issued successfully for charge ${chargeResult.chargeId}`);
+          }
+        } catch (refundError) {
+          console.error("❌ CRITICAL: Failed to issue automatic refund:", refundError);
+          console.error(`  Charge ID that needs manual refund: ${chargeResult.chargeId}`);
+        }
+        
+        return res.status(500).json({ 
+          message: "Shipment creation failed after payment. Your payment has been automatically refunded.",
+          error: 'POST_PAYMENT_ERROR',
+          refunded: true
+        });
+      }
     } catch (error: any) {
       console.error("Shipment creation error:", error);
       res.status(500).json({ message: error.message || "Failed to create shipment" });

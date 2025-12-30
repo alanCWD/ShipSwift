@@ -387,6 +387,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       },
       packageDetails: buildPackageDetails(),
       baseCost: total.toString(),
+      pickupDetails: pickupDetails || undefined,
     };
 
     // Debug: Log final shipment data being sent

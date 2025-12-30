@@ -33,6 +33,13 @@ interface RateRequest {
   shipmentType?: 'package' | 'pallet';
 }
 
+interface PickupDetails {
+  pickupType?: 'SCHEDULED' | 'DROPOFF';
+  pickupDate?: Date | string;
+  readyTime?: { hour: string; minute: string; period: 'AM' | 'PM' };
+  closeTime?: { hour: string; minute: string; period: 'AM' | 'PM' };
+}
+
 interface ShipmentRequest extends RateRequest {
   rateId: string;
   carrierName: string;
@@ -40,6 +47,7 @@ interface ShipmentRequest extends RateRequest {
   carrierId?: string;
   serviceId?: string;
   referenceNumber?: string;
+  pickupDetails?: PickupDetails;
 }
 
 interface ShipTimeRate {
@@ -556,12 +564,53 @@ class ShipTimeService {
         ref1: request.referenceNumber || undefined,
       };
       
+      // Build pickupDetail - required by ShipTime API for shipment creation
+      const pickupDetail: any = {};
+      
+      // Set pickup type - default to DROPOFF if no pickup date, otherwise SCHEDULED
+      if (request.pickupDetails?.pickupType) {
+        pickupDetail.pickupType = request.pickupDetails.pickupType;
+      } else if (request.pickupDetails?.pickupDate) {
+        pickupDetail.pickupType = 'SCHEDULED';
+      } else {
+        pickupDetail.pickupType = 'DROPOFF';
+      }
+      
+      // Add pickup date if provided
+      if (request.pickupDetails?.pickupDate) {
+        const pickupDate = new Date(request.pickupDetails.pickupDate);
+        pickupDetail.pickupDate = pickupDate.toISOString().split('T')[0];
+        
+        // Format ready time (when package is ready for pickup)
+        if (request.pickupDetails.readyTime) {
+          const { hour, minute, period } = request.pickupDetails.readyTime;
+          let hourNum = parseInt(hour);
+          if (period === 'PM' && hourNum !== 12) hourNum += 12;
+          if (period === 'AM' && hourNum === 12) hourNum = 0;
+          pickupDetail.readyTime = `${hourNum.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          pickupDetail.readyTime = '09:00';
+        }
+        
+        // Format close time (last time for pickup)
+        if (request.pickupDetails.closeTime) {
+          const { hour, minute, period } = request.pickupDetails.closeTime;
+          let hourNum = parseInt(hour);
+          if (period === 'PM' && hourNum !== 12) hourNum += 12;
+          if (period === 'AM' && hourNum === 12) hourNum = 0;
+          pickupDetail.closeTime = `${hourNum.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          pickupDetail.closeTime = '17:00';
+        }
+      }
+      
       // Add special instructions for sandbox testing
       if (specialInstructions) {
-        payload.pickupDetail = {
-          specialInstructions: specialInstructions,
-        };
+        pickupDetail.specialInstructions = specialInstructions;
       }
+      
+      // Always include pickupDetail in payload
+      payload.pickupDetail = pickupDetail;
 
       console.log('📦 Creating ShipTime shipment with payload:');
       console.log('  RateId:', request.rateId);

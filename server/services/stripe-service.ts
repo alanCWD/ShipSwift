@@ -373,14 +373,15 @@ class StripeService {
     }
   }
 
-  async createRefund(chargeId: string, amount?: number): Promise<Stripe.Refund> {
+  async createRefund(paymentIntentId: string, amount?: number): Promise<Stripe.Refund> {
     this.ensureInitialized();
     try {
       const refund = await this.stripe!.refunds.create({
-        charge: chargeId,
+        payment_intent: paymentIntentId,
         amount: amount ? Math.round(amount) : undefined,
       });
 
+      console.log(`✅ Refund created: ${refund.id} for PaymentIntent ${paymentIntentId}`);
       return refund;
     } catch (error) {
       console.error('Stripe refund creation error:', error);
