@@ -1304,6 +1304,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('  ServiceId:', otherData.serviceId);
         console.log('  Carrier:', otherData.carrierName);
         console.log('  Service:', otherData.serviceName);
+        console.log('  ShipmentType:', shipmentType);
+        console.log('  PackageDetails:', JSON.stringify(packageDetails, null, 2));
         console.log('  From:', shipmentRequest.from.postalCode);
         console.log('  To:', shipmentRequest.to.postalCode);
         
