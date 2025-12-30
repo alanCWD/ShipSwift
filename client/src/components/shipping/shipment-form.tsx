@@ -303,10 +303,22 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
 
     const total = calculateTotal(rate);
     
-    const shipmentData = {
-      rateId: rate.quoteId || rate.rateId || rate.id,
+    // Debug: Log the rate object to verify IDs are present
+    console.log('📦 Creating shipment with rate:', {
+      quoteId: rate.quoteId,
+      rateId: rate.rateId,
+      id: rate.id,
       carrierId: rate.carrierId,
       serviceId: rate.serviceId,
+      carrierName: rate.carrierName,
+      'carrier.id': rate.carrier?.id,
+      'service.id': rate.service?.id,
+    });
+    
+    const shipmentData = {
+      rateId: rate.quoteId || rate.rateId || rate.id,
+      carrierId: rate.carrierId || rate.carrier?.id,
+      serviceId: rate.serviceId || rate.service?.id,
       carrierName: rate.carrierName || rate.carrier?.name || 'Unknown Carrier',
       serviceName: rate.serviceName || rate.service?.name || 'Standard Service',
       fromAddress: {

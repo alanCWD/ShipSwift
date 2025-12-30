@@ -1299,6 +1299,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let shiptimeShipment;
       try {
         console.log('📦 Creating shipment with ShipTime API...');
+        console.log('  RateId:', otherData.rateId);
+        console.log('  CarrierId:', otherData.carrierId);
+        console.log('  ServiceId:', otherData.serviceId);
         console.log('  Carrier:', otherData.carrierName);
         console.log('  Service:', otherData.serviceName);
         console.log('  From:', shipmentRequest.from.postalCode);
