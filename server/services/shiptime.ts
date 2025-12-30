@@ -570,32 +570,34 @@ class ShipTimeService {
       };
       
       // Build pickupDetail - required by ShipTime API for shipment creation
-      // Known fields: readyTime, pickupDate, pickupTip, otherLocation, closeTime
-      // IMPORTANT: ShipTime API uses "pickupTip" NOT "pickupType" - this was causing 400 errors
+      // Known ShipTime fields: readyTime, pickupDate, closeTime, type
+      // NOTE: "pickupTip" is a monetary gratuity field (MoneyAmountModel), NOT the pickup type
+      // The pickup type field is likely just "type" based on standard API patterns
       const pickupDetail: any = {};
       
-      // Normalize pickup option/type to ShipTime's pickupTip field
+      // Normalize pickup option/type to ShipTime's type field
       // Frontend sends pickupOption: 'schedule_now' | 'schedule_later' | 'drop_off'
-      // ShipTime expects pickupTip: 'SCHEDULED' | 'DROPOFF'
-      let pickupTip: 'SCHEDULED' | 'DROPOFF' = 'DROPOFF';
+      // ShipTime expects type: 'SCHEDULED' | 'DROPOFF' (or similar)
+      let pickupType: 'SCHEDULED' | 'DROPOFF' = 'DROPOFF';
       
       if (request.pickupDetails?.pickupOption) {
-        // Map frontend pickupOption to ShipTime pickupTip
+        // Map frontend pickupOption to ShipTime type
         if (request.pickupDetails.pickupOption === 'drop_off') {
-          pickupTip = 'DROPOFF';
+          pickupType = 'DROPOFF';
         } else {
           // schedule_now or schedule_later both map to SCHEDULED
-          pickupTip = 'SCHEDULED';
+          pickupType = 'SCHEDULED';
         }
       } else if (request.pickupDetails?.pickupType) {
         // Legacy support: if pickupType is provided directly
-        pickupTip = request.pickupDetails.pickupType;
+        pickupType = request.pickupDetails.pickupType;
       } else if (request.pickupDetails?.pickupDate) {
         // If date is provided but no type, assume scheduled
-        pickupTip = 'SCHEDULED';
+        pickupType = 'SCHEDULED';
       }
       
-      pickupDetail.pickupTip = pickupTip;
+      // Use "type" field for ShipTime API (not pickupType or pickupTip)
+      pickupDetail.type = pickupType;
       
       // Add pickup date if provided
       if (request.pickupDetails?.pickupDate) {
