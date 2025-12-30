@@ -304,11 +304,14 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
     const total = calculateTotal(rate);
     
     const shipmentData = {
-      rateId: rate.rateId || rate.id,
+      rateId: rate.quoteId || rate.rateId || rate.id,
+      carrierId: rate.carrierId,
+      serviceId: rate.serviceId,
       carrierName: rate.carrierName || rate.carrier?.name || 'Unknown Carrier',
       serviceName: rate.serviceName || rate.service?.name || 'Standard Service',
       fromAddress: {
         attention: shippingDetails.fromName,
+        companyName: shippingDetails.fromName,
         streetAddress: shippingDetails.fromAddress,
         city: shippingDetails.fromCity,
         state: shippingDetails.fromProvince,
@@ -318,6 +321,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       },
       toAddress: {
         attention: shippingDetails.toName,
+        companyName: shippingDetails.toName,
         streetAddress: shippingDetails.toAddress,
         city: shippingDetails.toCity,
         state: shippingDetails.toProvince,
