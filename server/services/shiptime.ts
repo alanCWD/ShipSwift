@@ -400,10 +400,21 @@ class ShipTimeService {
         console.log(`    baseCharge: ${rate.baseCharge?.amount || 'N/A'} (${rate.baseCharge?.currency || 'N/A'})`);
         console.log(`    Total surcharges: ${rate.surcharges?.length || 0}, Total taxes: ${rate.taxes?.length || 0}`);
         console.log(`    Transit time fields: deliveryDays=${rate.deliveryDays}, transitTime=${rate.transitTime}, transitDays=${rate.transitDays}, estimatedDeliveryDate=${rate.estimatedDeliveryDate}`);
+        console.log(`    IDs: id=${rate.id}, quoteId=${rate.quoteId}, carrier.id=${rate.carrier?.id}, service.id=${rate.service?.id}`);
         console.log(`    All rate keys:`, Object.keys(rate).join(', '));
       });
 
-      return response.availableRates;
+      // Transform rates to include normalized field names for shipment creation
+      const transformedRates = response.availableRates.map((rate: any) => ({
+        ...rate,
+        quoteId: rate.id || rate.quoteId,
+        carrierId: rate.carrier?.id || rate.carrierId,
+        serviceId: rate.service?.id || rate.serviceId,
+        carrierName: rate.carrier?.name || rate.carrierName,
+        serviceName: rate.service?.name || rate.serviceName,
+      }));
+
+      return transformedRates;
     } catch (error) {
       console.error('ShipTime getRates error:', error);
       throw error;
