@@ -3,6 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { shiptimeService } from "./services/shiptime";
+import stallionService from "./services/stallion";
 import { stripeService } from "./services/stripe-service";
 import { emailService } from "./services/email-service";
 import { rateMarkupService } from "./services/rate-markup";
@@ -1296,13 +1297,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
       };
 
-      // Create shipment with ShipTime - NO demo fallback in production
-      let shiptimeShipment;
+      // Determine which carrier API to use based on rateId prefix
+      const isStallionRate = otherData.rateId?.startsWith('stallion_');
+      let carrierShipment;
+      
       try {
-        console.log('📦 Creating shipment with ShipTime API...');
+        console.log('📦 Creating shipment...');
         console.log('  RateId:', otherData.rateId);
-        console.log('  CarrierId:', otherData.carrierId);
-        console.log('  ServiceId:', otherData.serviceId);
+        console.log('  Source:', isStallionRate ? 'Stallion Express' : 'ShipTime');
         console.log('  Carrier:', otherData.carrierName);
         console.log('  Service:', otherData.serviceName);
         console.log('  ShipmentType:', shipmentType);
@@ -1310,19 +1312,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('  From:', shipmentRequest.from.postalCode);
         console.log('  To:', shipmentRequest.to.postalCode);
         
-        shiptimeShipment = await shiptimeService.createShipment(shipmentRequest);
+        if (isStallionRate) {
+          // Route to Stallion Express API
+          console.log('🐴 Routing to Stallion Express API...');
+          
+          // Load Stallion credentials
+          await stallionService.loadCredentials(storage);
+          
+          // Extract postageTypeId from rateId (format: stallion_123)
+          const postageTypeId = parseInt(otherData.rateId.replace('stallion_', ''));
+          if (isNaN(postageTypeId)) {
+            throw new Error('Invalid Stallion rate ID format');
+          }
+          
+          carrierShipment = await stallionService.createShipment({
+            rateId: otherData.rateId,
+            postageTypeId: postageTypeId,
+            from: shipmentRequest.from,
+            to: shipmentRequest.to,
+            packageDetails: shipmentRequest.packageDetails,
+            referenceNumber: otherData.referenceNumber,
+          });
+          
+          console.log('✅ Stallion shipment created successfully');
+        } else {
+          // Route to ShipTime API
+          console.log('⏱️ Routing to ShipTime API...');
+          console.log('  CarrierId:', otherData.carrierId);
+          console.log('  ServiceId:', otherData.serviceId);
+          
+          carrierShipment = await shiptimeService.createShipment(shipmentRequest);
+          
+          console.log('✅ ShipTime shipment created successfully');
+        }
         
-        console.log('✅ ShipTime shipment created successfully');
-        console.log('  Tracking:', shiptimeShipment.trackingNumber);
-        console.log('  Label URL:', shiptimeShipment.labelUrl);
-      } catch (shiptimeError: any) {
-        const errorMessage = shiptimeError?.message || 'Unknown ShipTime API error';
-        const errorDetails = shiptimeError?.response?.data || shiptimeError?.response || {};
+        console.log('  Tracking:', carrierShipment.trackingNumber);
+        console.log('  Label URL:', carrierShipment.labelUrl);
+      } catch (carrierError: any) {
+        const errorMessage = carrierError?.message || 'Unknown carrier API error';
+        const errorDetails = carrierError?.response?.data || carrierError?.response || {};
+        const carrierSource = isStallionRate ? 'Stallion Express' : 'ShipTime';
         
-        console.error('❌ ShipTime API Error - Shipment creation failed');
+        console.error(`❌ ${carrierSource} API Error - Shipment creation failed`);
         console.error('  Error message:', errorMessage);
         console.error('  Error details:', JSON.stringify(errorDetails, null, 2));
-        console.error('  Full error:', shiptimeError);
+        console.error('  Full error:', carrierError);
         
         // In production, fail properly instead of creating demo shipments
         // Demo mode should only be used explicitly for testing
@@ -1331,7 +1365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (allowDemoFallback) {
           console.log('⚠️ Development mode: Creating demo shipment as fallback');
-          shiptimeShipment = {
+          carrierShipment = {
             id: `demo_${Date.now()}`,
             trackingNumber: `DEMO${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
             labelUrl: '/api/demo-label',
@@ -1419,9 +1453,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const shipment = await storage.createShipment({
           ...shipmentData,
           baseCost: shipmentData.baseCost || '0',
-          shiptimeShipmentId: shiptimeShipment.id,
-          trackingNumber: shiptimeShipment.trackingNumber,
-          labelUrl: shiptimeShipment.labelUrl,
+          shiptimeShipmentId: carrierShipment.id,
+          trackingNumber: carrierShipment.trackingNumber,
+          labelUrl: carrierShipment.labelUrl,
           markupCost: markupCost.toString(),
           totalCost: totalCost.toString(),
           stripeChargeId: chargeResult.chargeId,
@@ -1456,7 +1490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (user?.email) {
             await emailService.sendShipmentNotification({
               shipmentId: shipment.id,
-              trackingNumber: (shipment.trackingNumber || shiptimeShipment.trackingNumber) || '',
+              trackingNumber: (shipment.trackingNumber || carrierShipment.trackingNumber) || '',
               status: shipment.status || 'processing',
               carrierName: shipment.carrierName,
               serviceName: shipment.serviceName,
@@ -1477,7 +1511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           shipment,
           paymentComplete: true,
           chargeId: chargeResult.chargeId,
-          labelUrl: shiptimeShipment.labelUrl
+          labelUrl: carrierShipment.labelUrl
         });
       } catch (postPaymentError: any) {
         // Payment succeeded but something else failed - issue automatic refund

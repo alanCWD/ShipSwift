@@ -244,6 +244,141 @@ export class StallionService {
     };
   }
 
+  // Create a shipment with Stallion Express
+  async createShipment(request: {
+    rateId: string;
+    postageTypeId: number;
+    from: any;
+    to: any;
+    packageDetails: any;
+    referenceNumber?: string;
+  }): Promise<{
+    id: string;
+    trackingNumber: string;
+    labelUrl: string;
+    carrier: { name: string };
+    service: { name: string };
+  }> {
+    try {
+      if (!this.apiToken) {
+        throw new Error('Stallion API token not configured');
+      }
+
+      const baseUrl = this.environment === 'sandbox' ? this.sandboxApiUrl : this.apiUrl;
+      
+      // Normalize postal codes
+      const normalizePostalCode = (code: string) => {
+        return code?.replace(/\s+/g, '').toUpperCase() || '';
+      };
+
+      // Calculate declared value
+      const weight = request.packageDetails.weight || 1;
+      const calculatedValue = weight * 50;
+      const declaredValue = request.packageDetails.declaredValue || Math.min(calculatedValue, 1000);
+
+      // Build shipment request payload
+      const shipmentPayload = {
+        postage_type_id: request.postageTypeId,
+        to_address: {
+          name: request.to.attention || request.to.companyName || 'Recipient',
+          address1: request.to.streetAddress || '',
+          address2: request.to.streetAddress2 || '',
+          city: request.to.city || '',
+          province_code: request.to.state || '',
+          postal_code: normalizePostalCode(request.to.postalCode),
+          country_code: request.to.countryCode || 'CA',
+          phone: request.to.phone || '',
+          email: request.to.email || '',
+        },
+        return_address: {
+          name: request.from.attention || request.from.companyName || 'Sender',
+          address1: request.from.streetAddress || '',
+          address2: request.from.streetAddress2 || '',
+          city: request.from.city || '',
+          province_code: request.from.state || '',
+          postal_code: normalizePostalCode(request.from.postalCode),
+          country_code: request.from.countryCode || 'CA',
+          phone: request.from.phone || '',
+          email: request.from.email || '',
+        },
+        weight_unit: 'kg',
+        weight: weight,
+        length: request.packageDetails.length || 10,
+        width: request.packageDetails.width || 10,
+        height: request.packageDetails.height || 10,
+        size_unit: 'cm',
+        package_type: 'Parcel',
+        reference: request.referenceNumber || '',
+        items: [{
+          description: request.packageDetails.description || 'Package',
+          quantity: 1,
+          value: declaredValue,
+          weight: weight,
+          origin_country: 'CA',
+          currency: 'CAD',
+        }],
+      };
+
+      console.log('🚀 Creating Stallion shipment...');
+      console.log('  Postage Type ID:', request.postageTypeId);
+      console.log('  From:', shipmentPayload.return_address.postal_code);
+      console.log('  To:', shipmentPayload.to_address.postal_code);
+      console.log('  Weight:', weight, 'kg');
+
+      const response = await fetch(`${baseUrl}shipments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shipmentPayload),
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        console.error(`Stallion API error (${response.status}):`, responseText);
+        throw new Error(`Stallion API error (${response.status}): ${responseText}`);
+      }
+
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse Stallion API response:', responseText);
+        throw new Error('Invalid JSON response from Stallion API');
+      }
+
+      if (!data.success) {
+        const errorMessage = data.errors?.join(', ') || data.message || 'Unknown error';
+        console.error('Stallion shipment creation failed:', errorMessage);
+        throw new Error(`Stallion shipment creation failed: ${errorMessage}`);
+      }
+
+      const shipment = data.shipment;
+      
+      console.log('✅ Stallion shipment created successfully');
+      console.log('  Ship Code:', shipment.ship_code);
+      console.log('  Tracking Number:', shipment.tracking_number);
+      console.log('  Label URL:', shipment.label_url);
+
+      return {
+        id: shipment.ship_code || shipment.id,
+        trackingNumber: shipment.tracking_number || shipment.ship_code,
+        labelUrl: shipment.label_url || shipment.label,
+        carrier: {
+          name: shipment.carrier_name || 'Stallion Express',
+        },
+        service: {
+          name: shipment.postage_type || 'Standard',
+        },
+      };
+    } catch (error) {
+      console.error('Stallion createShipment error:', error);
+      throw error;
+    }
+  }
+
   // Normalize Stallion rate to standard format (matching ShipTime structure)
   normalizeRate(stallionRate: StallionRate): any {
     // Parse carrier name from postage_type (e.g., "Intelcom", "UPS Standard")
