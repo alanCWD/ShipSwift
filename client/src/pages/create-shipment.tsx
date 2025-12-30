@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function CreateShipment() {
   const [rateResults, setRateResults] = useState<any[] | null>(null);
+  const [addressData, setAddressData] = useState<any>(null);
 
   // For now, skip authentication check to test the rate calculator
   // We'll rely on the API endpoints to handle authentication
@@ -35,12 +36,15 @@ export default function CreateShipment() {
 
         {/* Rate Calculator */}
         <div className="mb-8">
-          <RateCalculator onRatesReceived={setRateResults} />
+          <RateCalculator onRatesReceived={(rates, address) => {
+            setRateResults(rates);
+            setAddressData(address);
+          }} />
         </div>
 
         {/* Rate Results */}
         {rateResults && (
-          <RateResults rates={rateResults} />
+          <RateResults rates={rateResults} addressData={addressData} />
         )}
       </div>
       

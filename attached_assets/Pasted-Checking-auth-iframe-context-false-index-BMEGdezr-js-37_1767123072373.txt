@@ -1,0 +1,26 @@
+Checking auth - iframe context: false
+index-BMEGdezr.js:379 Current origin: https://goablp.com
+index-BMEGdezr.js:379 Cookies available: yes
+api/shipments:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-BMEGdezr.js:379 Auth response status: 401
+index-BMEGdezr.js:379 Auth response headers: Objectaccess-control-allow-credentials: "true"access-control-allow-headers: "Content-Type, Authorization, X-Requested-With, Accept, Origin, Cookie, Set-Cookie"access-control-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"access-control-allow-origin: "https://goablp.com"alt-svc: "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"content-length: "26"content-security-policy: "frame-ancestors https://replit.com https://*.replit.com;"content-type: "application/json; charset=utf-8"cross-origin-embedder-policy: "cross-origin"cross-origin-opener-policy: "cross-origin"date: "Tue, 30 Dec 2025 19:26:28 GMT"etag: "W/\"1a-pljHtlo127JYJR4E/RYOPb6ucbw\""server: "Google Frontend"strict-transport-security: "max-age=63072000; includeSubDomains"via: "1.1 google"x-cloud-trace-context: "0a6586861adbe73c9b09471f6dd1bdca"x-powered-by: "Express"[[Prototype]]: Object
+index-BMEGdezr.js:379 Auth check failed: 401 {"message":"Unauthorized"}
+2index-BMEGdezr.js:423 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ index-BMEGdezr.js:423Understand this warning
+index-BMEGdezr.js:424 📦 Creating shipment with rate: Objectcarrier.id: undefinedcarrierId: "210"carrierName: "Day & Ross"id: undefinedquoteId: "771616e8b0fca517b3c70280c3363f6b"rateId: undefinedservice.id: undefinedserviceId: "GL"[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 AddressData for shipment: ObjecthasAddressData: falsepackageDetails: undefinedshipmentType: undefined[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 Final shipment request: ObjectcarrierId: "210"packageDetails: {}rateId: "771616e8b0fca517b3c70280c3363f6b"serviceId: "GL"shipmentType: "package"[[Prototype]]: Object
+api/shipments:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-BMEGdezr.js:424 📦 Creating shipment with rate: Objectcarrier.id: undefinedcarrierId: "210"carrierName: "Day & Ross"id: undefinedquoteId: "771616e8b0fca517b3c70280c3363f6b"rateId: undefinedservice.id: undefinedserviceId: "GL"[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 AddressData for shipment: ObjecthasAddressData: falsepackageDetails: undefinedshipmentType: undefined[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 Final shipment request: ObjectcarrierId: "210"packageDetails: {}rateId: "771616e8b0fca517b3c70280c3363f6b"serviceId: "GL"shipmentType: "package"[[Prototype]]: Object
+api/shipments:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-BMEGdezr.js:424 📦 Creating shipment with rate: Objectcarrier.id: undefinedcarrierId: "210"carrierName: "Day & Ross"id: undefinedquoteId: "771616e8b0fca517b3c70280c3363f6b"rateId: undefinedservice.id: undefinedserviceId: "GL"[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 AddressData for shipment: ObjecthasAddressData: falsepackageDetails: undefinedshipmentType: undefined[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 Final shipment request: ObjectcarrierId: "210"packageDetails: {}rateId: "771616e8b0fca517b3c70280c3363f6b"serviceId: "GL"shipmentType: "package"[[Prototype]]: Object
+api/shipments:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-BMEGdezr.js:424 📦 Creating shipment with rate: Objectcarrier.id: undefinedcarrierId: "210"carrierName: "Day & Ross"id: undefinedquoteId: "771616e8b0fca517b3c70280c3363f6b"rateId: undefinedservice.id: undefinedserviceId: "GL"[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 AddressData for shipment: ObjecthasAddressData: falsepackageDetails: undefinedshipmentType: undefined[[Prototype]]: Object
+index-BMEGdezr.js:424 📦 Final shipment request: ObjectcarrierId: "210"packageDetails: {}rateId: "771616e8b0fca517b3c70280c3363f6b"serviceId: "GL"shipmentType: "package"[[Prototype]]: Object
+api/shipments:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
