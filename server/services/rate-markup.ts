@@ -16,8 +16,9 @@ interface ShipTimeRate {
   quoteId?: string;
   carrierId?: string;
   serviceId?: string;
-  carrier: { name: string };
-  service: { name: string };
+  id?: string;
+  carrier: { name: string; id?: string };
+  service: { name: string; id?: string };
   baseCharge: { amount: number };
   surcharges?: Array<{ name?: string; price: { amount: number } }>;
   taxes?: Array<{ price: { amount: number } }>;
@@ -54,6 +55,13 @@ export class RateMarkupService {
     // Check both nested and flat structures for carrier/service names
     const carrierName = rate.carrier?.name || (rate as any).carrierName || 'Unknown';
     const serviceName = rate.service?.name || (rate as any).serviceName || 'Unknown';
+    
+    // Preserve ShipTime identifiers for shipment creation
+    const quoteId = rate.quoteId || (rate as any).id;
+    const carrierId = rate.carrierId || rate.carrier?.id;
+    const serviceId = rate.serviceId || rate.service?.id;
+    
+    console.log(`  IDs: quoteId=${quoteId}, carrierId=${carrierId}, serviceId=${serviceId}`);
 
     // Find matching markup rule (most specific first)
     const matchingRule = this.findMatchingRule(carrierName, serviceName, rules);
@@ -174,6 +182,9 @@ export class RateMarkupService {
       
       return {
         ...rate,
+        quoteId,
+        carrierId,
+        serviceId,
         originalBaseCharge: isNaN(baseChargeInDollars) ? 0 : baseChargeInDollars,
         markup: isNaN(markup) ? 0 : markup,
         markupType,
@@ -188,6 +199,9 @@ export class RateMarkupService {
 
     return {
       ...rate,
+      quoteId,
+      carrierId,
+      serviceId,
       originalBaseCharge: baseChargeInDollars,
       markup,
       markupType,
