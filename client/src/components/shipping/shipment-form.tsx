@@ -315,6 +315,13 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       'service.id': rate.service?.id,
     });
     
+    // Debug: Log addressData to verify pallet info is present
+    console.log('📦 AddressData for shipment:', {
+      shipmentType: addressData?.shipmentType,
+      packageDetails: addressData?.packageDetails,
+      hasAddressData: !!addressData,
+    });
+    
     // Use packageDetails from addressData if available (has palletCount for LTL shipments)
     const packageDetailsFromAddress = addressData?.packageDetails || {};
     // Normalize shipmentType: only 'pallet' is special, everything else is 'package'
@@ -381,6 +388,15 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       packageDetails: buildPackageDetails(),
       baseCost: total.toString(),
     };
+
+    // Debug: Log final shipment data being sent
+    console.log('📦 Final shipment request:', {
+      shipmentType: shipmentData.shipmentType,
+      packageDetails: shipmentData.packageDetails,
+      rateId: shipmentData.rateId,
+      carrierId: shipmentData.carrierId,
+      serviceId: shipmentData.serviceId,
+    });
 
     shipmentMutation.mutate(shipmentData);
   };

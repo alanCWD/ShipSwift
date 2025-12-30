@@ -423,6 +423,15 @@ class ShipTimeService {
 
   async createShipment(request: ShipmentRequest): Promise<ShipTimeShipment> {
     try {
+      // Validate required shipment data
+      console.log('🔍 Validating shipment request...');
+      console.log('  shipmentType:', request.shipmentType);
+      console.log('  packageDetails:', JSON.stringify(request.packageDetails, null, 2));
+      
+      if (!request.rateId) {
+        throw new Error('Missing rateId (quoteId). Please get a fresh rate quote.');
+      }
+      
       // Add environment-specific special instructions
       const isSandbox = this.environment === 'sandbox';
       const specialInstructions = isSandbox 
@@ -431,6 +440,15 @@ class ShipTimeService {
 
       const isPallet = request.shipmentType === 'pallet';
       const packageType = isPallet ? 'PALLET' : 'PACKAGE';
+      
+      // Validate pallet-specific requirements
+      if (isPallet) {
+        if (!request.packageDetails.palletCount || request.packageDetails.palletCount <= 0) {
+          console.error('❌ Pallet shipment missing palletCount');
+          throw new Error('Pallet shipment requires palletCount. Please get a fresh pallet rate quote.');
+        }
+        console.log(`✅ Pallet shipment validated: ${request.packageDetails.palletCount} pallets`);
+      }
       
       // Normalize postal codes - ShipTime API requires no spaces
       const normalizePostalCode = (code: string) => {
