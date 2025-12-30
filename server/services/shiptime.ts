@@ -565,15 +565,17 @@ class ShipTimeService {
       };
       
       // Build pickupDetail - required by ShipTime API for shipment creation
+      // Known fields: readyTime, pickupDate, pickupTip, otherLocation, closeTime
       const pickupDetail: any = {};
       
-      // Set pickup type - default to DROPOFF if no pickup date, otherwise SCHEDULED
+      // Set pickupTip - default to DROPOFF if no pickup date, otherwise SCHEDULED
+      // NOTE: ShipTime API uses "pickupTip" not "pickupType"
       if (request.pickupDetails?.pickupType) {
-        pickupDetail.pickupType = request.pickupDetails.pickupType;
+        pickupDetail.pickupTip = request.pickupDetails.pickupType;
       } else if (request.pickupDetails?.pickupDate) {
-        pickupDetail.pickupType = 'SCHEDULED';
+        pickupDetail.pickupTip = 'SCHEDULED';
       } else {
-        pickupDetail.pickupType = 'DROPOFF';
+        pickupDetail.pickupTip = 'DROPOFF';
       }
       
       // Add pickup date if provided
