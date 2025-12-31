@@ -4,6 +4,7 @@ interface CachedQuote {
   serviceName: string;
   carrierNetAmount: number;
   markupAmount: number;
+  markupPercentage: number;
   subtotal: number;
   taxAmount: number;
   total: number;
@@ -26,6 +27,7 @@ class RateQuoteCacheService {
     const serviceName = rate.service?.name || rate.serviceName || 'Unknown';
     const carrierNetAmount = Number(rate.originalBaseCharge || 0);
     const markupAmount = Number(rate.markup || 0);
+    const markupPercentage = carrierNetAmount > 0 ? (markupAmount / carrierNetAmount) * 100 : 15;
     const subtotal = Number(rate.subtotal || 0);
     const taxAmount = Number(rate.taxAmount || 0);
     const total = subtotal + taxAmount;
@@ -37,6 +39,7 @@ class RateQuoteCacheService {
       serviceName,
       carrierNetAmount,
       markupAmount,
+      markupPercentage,
       subtotal,
       taxAmount,
       total,
@@ -45,7 +48,9 @@ class RateQuoteCacheService {
     };
 
     this.cache.set(quoteId, cached);
-    console.log(`📦 Cached rate quote ${quoteId}: ${carrierName} ${serviceName} - $${total.toFixed(2)}`);
+    console.log(`📦 Cached rate quote ${quoteId}: ${carrierName} ${serviceName}`);
+    console.log(`   Carrier net: $${carrierNetAmount.toFixed(2)}, Markup: $${markupAmount.toFixed(2)} (${markupPercentage.toFixed(1)}%)`);
+    console.log(`   Subtotal: $${subtotal.toFixed(2)}, Tax: $${taxAmount.toFixed(2)}, Total: $${total.toFixed(2)}`);
     
     this.cleanExpired();
   }

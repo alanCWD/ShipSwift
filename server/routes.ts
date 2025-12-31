@@ -1429,6 +1429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Variables for validated pricing (will be set from cache or server calculation)
       let carrierNetAmount: number;
       let markupCost: number;
+      let markupPercentage: number;
       let baseCost: number;
       let taxAmount: number;
       let totalCost: number;
@@ -1446,6 +1447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Rate quote validated from cache');
         carrierNetAmount = validation.serverValues.carrierNetAmount;
         markupCost = validation.serverValues.markupAmount;
+        markupPercentage = validation.serverValues.markupPercentage;
         baseCost = validation.serverValues.subtotal;
         taxAmount = validation.serverValues.taxAmount;
         totalCost = validation.serverValues.total;
@@ -1456,6 +1458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('  Server total:', validation.serverValues.total.toFixed(2));
         carrierNetAmount = validation.serverValues.carrierNetAmount;
         markupCost = validation.serverValues.markupAmount;
+        markupPercentage = validation.serverValues.markupPercentage;
         baseCost = validation.serverValues.subtotal;
         taxAmount = validation.serverValues.taxAmount;
         totalCost = validation.serverValues.total;
