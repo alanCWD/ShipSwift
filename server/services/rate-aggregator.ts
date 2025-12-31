@@ -1,6 +1,7 @@
 import { shiptimeService } from './shiptime';
 import stallionService from './stallion';
 import { rateMarkupService } from './rate-markup';
+import { rateQuoteCache } from './rate-quote-cache';
 
 interface AggregatedRateRequest {
   from: any;
@@ -142,6 +143,9 @@ export class RateAggregatorService {
         deliveryType: isLocalDelivery ? 'same-day-local' : 'standard',
       };
     });
+
+    // Cache all rate quotes for server-side validation at shipment time
+    rateQuoteCache.cacheMultipleQuotes(ratesWithLocalDeliveryFlag);
 
     console.log(`✅ Multi-source rate aggregation complete\n`);
 

@@ -358,6 +358,19 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       return details;
     };
     
+    // Extract rate breakdown from the marked-up rate object
+    // These fields come from rateMarkupService.applyMarkups() in the backend
+    const carrierBaseCharge = Number(rate.originalBaseCharge || 0); // What carrier charges (before markup)
+    const markupAmount = Number(rate.markup || 0); // Our profit markup
+    const taxAmount = Number(rate.taxAmount || 0); // Calculated tax
+    const subtotal = Number(rate.subtotal || total); // Pre-tax subtotal (includes markup)
+    
+    // Calculate surcharges from the rate (if available)
+    const surchargesTotal = (rate.surcharges || []).reduce(
+      (sum: number, s: any) => sum + Number(s.price?.amount || 0) / 100,
+      0
+    );
+    
     const shipmentData = {
       rateId: rate.quoteId || rate.rateId || rate.id,
       carrierId: rate.carrierId || rate.carrier?.id,
@@ -386,7 +399,22 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
         phone: shippingDetails.toPhone,
       },
       packageDetails: buildPackageDetails(),
-      baseCost: total.toString(),
+      // IMPORTANT: Send the full rate breakdown from markup service
+      baseCost: subtotal.toString(), // Pre-tax subtotal WITH markup (this is what we display)
+      taxAmount: taxAmount.toString(), // Tax calculated on subtotal
+      carrierNetAmount: (carrierBaseCharge + surchargesTotal).toString(), // What we pay the carrier (no markup)
+      markupAmount: markupAmount.toString(), // Our profit margin
+      markupPercentage: rate.markupType?.includes('%') ? rate.markupType.replace(/[^0-9.]/g, '') : '15',
+      // Rate breakdown for audit trail
+      rateBreakdown: {
+        carrierBaseCharge,
+        surcharges: surchargesTotal,
+        carrierTotal: carrierBaseCharge + surchargesTotal,
+        markupAmount,
+        subtotal,
+        taxAmount,
+        grandTotal: total,
+      },
       pickupDetails: pickupDetails || undefined,
     };
 

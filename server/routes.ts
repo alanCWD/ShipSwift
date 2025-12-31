@@ -1358,6 +1358,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('  Error details:', JSON.stringify(errorDetails, null, 2));
         console.error('  Full error:', carrierError);
         
+        // IMPORTANT: ShipTime may have created a shipment and charged internally before returning an error
+        // Try to extract any shipment ID from the error and cancel it to prevent orphaned charges
+        if (!isStallionRate) {
+          try {
+            // Check for shipment ID in error response (ShipTime sometimes includes it)
+            const errorData = carrierError?.response?.data || {};
+            const possibleShipmentId = errorData.shipmentId || errorData.id || errorData.shipId;
+            
+            // Also check if there's a shipment ID in the error message (e.g., "Ship ID: 8828115")
+            const shipIdMatch = errorMessage.match(/ship(?:ment)?[\s_-]*id[:\s]*(\d+)/i);
+            const extractedShipmentId = possibleShipmentId || (shipIdMatch && shipIdMatch[1]);
+            
+            if (extractedShipmentId) {
+              console.log(`⚠️ Found orphaned ShipTime shipment ID: ${extractedShipmentId}`);
+              console.log('🔄 Attempting to cancel orphaned ShipTime shipment...');
+              
+              try {
+                await shiptimeService.cancelShipment(extractedShipmentId.toString());
+                console.log(`✅ Successfully cancelled orphaned ShipTime shipment ${extractedShipmentId}`);
+              } catch (cancelError: any) {
+                console.error(`❌ Failed to cancel orphaned ShipTime shipment ${extractedShipmentId}:`, cancelError.message);
+                console.error('⚠️ MANUAL ACTION REQUIRED: Cancel this shipment in ShipTime admin to recover funds');
+              }
+            }
+          } catch (cleanupError) {
+            console.error('Error during ShipTime cleanup attempt:', cleanupError);
+          }
+        }
+        
         // In production, fail properly instead of creating demo shipments
         // Demo mode should only be used explicitly for testing
         const isDevelopment = process.env.NODE_ENV === 'development';
@@ -1382,34 +1411,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Calculate markup
-      const markups = await storage.getRateMarkups();
-      const applicableMarkup = markups.find(m => 
-        m.carrierName === shipmentData.carrierName &&
-        (!m.serviceName || m.serviceName === shipmentData.serviceName)
+      // SECURITY: Server-side pricing validation using cached rate quotes
+      // The cache stores authoritative pricing from when rates were fetched
+      
+      const { rateQuoteCache } = await import('./services/rate-quote-cache');
+      const MINIMUM_SHIPMENT_COST = 5.00; // Minimum reasonable shipment cost in CAD
+      
+      // Parse client-provided values
+      const clientBaseCost = parseFloat(shipmentData.baseCost) || 0;
+      const clientTaxAmount = parseFloat(shipmentData.taxAmount) || 0;
+      const clientCarrierNet = parseFloat(shipmentData.carrierNetAmount) || 0;
+      const clientTotal = clientBaseCost + clientTaxAmount;
+      
+      // Get the quote ID from shipment data
+      const quoteId = shipmentData.rateId || shipmentData.quoteId;
+      
+      // Variables for validated pricing (will be set from cache or server calculation)
+      let carrierNetAmount: number;
+      let markupCost: number;
+      let baseCost: number;
+      let taxAmount: number;
+      let totalCost: number;
+      
+      // Try to validate against cached quote (authoritative source)
+      const validation = rateQuoteCache.validateQuote(
+        quoteId,
+        clientCarrierNet,
+        clientTotal,
+        5 // 5% tolerance for floating point differences
       );
-
-      let markupCost = 0;
-      let markupPercentage = 0;
-      const baseCost = parseFloat(shipmentData.baseCost) || 0;
       
-      if (applicableMarkup) {
-        if (applicableMarkup.markupType === 'percentage') {
-          markupPercentage = parseFloat(applicableMarkup.markupValue.toString());
-          markupCost = (baseCost * markupPercentage) / 100;
-        } else {
-          markupCost = parseFloat(applicableMarkup.markupValue.toString());
-          markupPercentage = baseCost > 0 ? (markupCost / baseCost) * 100 : 0;
-        }
+      if (validation.valid && validation.serverValues) {
+        // Use cached (authoritative) values
+        console.log('✅ Rate quote validated from cache');
+        carrierNetAmount = validation.serverValues.carrierNetAmount;
+        markupCost = validation.serverValues.markupAmount;
+        baseCost = validation.serverValues.subtotal;
+        taxAmount = validation.serverValues.taxAmount;
+        totalCost = validation.serverValues.total;
+      } else if (validation.serverValues) {
+        // Cache found but values don't match - use server values anyway
+        console.warn('⚠️ Price mismatch - using cached (authoritative) values');
+        console.warn('  Client total:', clientTotal.toFixed(2));
+        console.warn('  Server total:', validation.serverValues.total.toFixed(2));
+        carrierNetAmount = validation.serverValues.carrierNetAmount;
+        markupCost = validation.serverValues.markupAmount;
+        baseCost = validation.serverValues.subtotal;
+        taxAmount = validation.serverValues.taxAmount;
+        totalCost = validation.serverValues.total;
+      } else {
+        // SECURITY: Quote not in cache - REJECT outright
+        // Never fall back to client data, as it could be tampered
+        console.error('❌ SECURITY: Rate quote not found in cache');
+        console.error('  Quote ID:', quoteId);
+        console.error('  Client carrier net:', clientCarrierNet);
+        console.error('  Client total:', clientTotal);
+        return res.status(400).json({
+          message: 'Rate quote expired or invalid. Please refresh shipping rates and try again.',
+          error: 'QUOTE_EXPIRED'
+        });
       }
-
-      // Extract tax amount from rate breakdown if provided
-      const taxAmount = shipmentData.taxAmount || shipmentData.rateBreakdown?.taxAmount || 0;
       
-      // Calculate carrier net amount (what we pay before markup - base cost without tax)
-      const carrierNetAmount = baseCost;
-      
-      const totalCost = baseCost + markupCost;
+      console.log('💰 Server-validated payment breakdown (from cache):');
+      console.log('  Carrier net (what we pay):', carrierNetAmount.toFixed(2));
+      console.log('  Markup amount (our profit):', markupCost.toFixed(2));
+      console.log('  Subtotal (with markup):', baseCost.toFixed(2));
+      console.log('  Tax amount:', taxAmount.toFixed(2));
+      console.log('  Total to charge customer:', totalCost.toFixed(2));
+      console.log('  Price match:', validation.valid ? 'exact' : 'corrected (client values ignored)');
 
       // Load Stripe credentials from database before processing payment
       const stripeConfigured = await stripeService.loadCredentials();
