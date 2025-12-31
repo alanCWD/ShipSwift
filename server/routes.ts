@@ -1612,11 +1612,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user shipments
+  // Get user shipments (admin users see all shipments)
   app.get("/api/shipments", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const shipments = await storage.getShipmentsByUser(userId);
+      const userRole = req.user!.role;
+      
+      // Admin users see all shipments, regular users see only their own
+      const isAdmin = userRole === 'admin' || userRole === 'ablp_admin';
+      const shipments = isAdmin 
+        ? await storage.getAllShipments()
+        : await storage.getShipmentsByUser(userId);
+      
       res.json({ shipments });
     } catch (error: any) {
       console.error("Get shipments error:", error);
