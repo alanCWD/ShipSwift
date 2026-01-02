@@ -517,7 +517,7 @@ export class DatabaseStorage implements IStorage {
       // Try to calculate accurate savings using real rate comparison
       if (shipmentData) {
         try {
-          const { rateComparisonService } = await import('../services/rate-comparison');
+          const { rateComparisonService } = await import('./services/rate-comparison');
           
           const savingsData = await rateComparisonService.calculateAccurateSavings(
             {
