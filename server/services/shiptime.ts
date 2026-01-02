@@ -218,9 +218,24 @@ class ShipTimeService {
       
       try {
         const errorData = JSON.parse(responseText);
-        const errorMessage = errorData.message || errorData.error || responseText;
+        // Extract error messages from ShipTime's messages array (common format for validation errors)
+        let errorMessage = '';
+        if (errorData.messages && Array.isArray(errorData.messages)) {
+          errorMessage = errorData.messages
+            .map((m: any) => typeof m === 'string' ? m : m.message || m.text || JSON.stringify(m))
+            .filter(Boolean)
+            .join('; ');
+        }
+        // Fallback to other common error fields
+        if (!errorMessage) {
+          errorMessage = errorData.message || errorData.error || responseText;
+        }
+        console.error('ShipTime parsed error:', { success: errorData.success, messages: errorData.messages, errorMessage });
         throw new Error(`ShipTime API error (${response.status}): ${errorMessage}`);
       } catch (parseError) {
+        if (parseError instanceof Error && parseError.message.startsWith('ShipTime API error')) {
+          throw parseError;
+        }
         throw new Error(`ShipTime API error (${response.status}): ${responseText}`);
       }
     }
@@ -537,7 +552,8 @@ class ShipTimeService {
           state: request.to.state!,
           countryCode: request.to.countryCode,
           postalCode: toPostalCode,
-          phone: request.to.phone || '',
+          // UPS and some carriers require destination phone - fallback to sender phone if not provided
+          phone: request.to.phone || request.from.phone || '1-800-225-7564',
         },
         packageType,
         unitOfMeasurement: 'METRIC',
