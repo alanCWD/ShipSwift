@@ -216,7 +216,7 @@ export default function TrackingResults({ shipment, tracking }: TrackingResultsP
           {shipment.labelUrl && (
             <div className="pt-4">
               <Button asChild variant="outline">
-                <a href={shipment.labelUrl} target="_blank" rel="noopener noreferrer">
+                <a href={`/api/shipments/${shipment.id}/label`} target="_blank" rel="noopener noreferrer">
                   <Package className="w-4 h-4 mr-2" />
                   View Shipping Label
                 </a>

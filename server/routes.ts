@@ -1786,6 +1786,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Label download proxy - fetches label from ShipTime with proper authentication
+  app.get("/api/shipments/:id/label", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      
+      // Get shipment from database
+      const shipment = await storage.getShipmentById(id);
+      
+      if (!shipment) {
+        return res.status(404).json({ message: "Shipment not found" });
+      }
+      
+      // Verify user owns this shipment (or is admin)
+      if (shipment.userId !== userId && req.user!.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      if (!shipment.labelUrl) {
+        return res.status(404).json({ message: "Label not available for this shipment" });
+      }
+      
+      console.log('📄 Fetching label for shipment:', id);
+      console.log('  Label URL:', shipment.labelUrl);
+      
+      // Check if this is a ShipTime label URL
+      if (shipment.labelUrl.includes('shiptime.com')) {
+        // Fetch label from ShipTime with authentication
+        await shiptimeService.loadCredentials(storage);
+        
+        const labelResponse = await fetch(shipment.labelUrl, {
+          headers: {
+            'Authorization': `Basic ${Buffer.from(`${(shiptimeService as any).username}:${(shiptimeService as any).password}`).toString('base64')}`,
+            'Accept': 'application/pdf',
+          },
+        });
+        
+        if (!labelResponse.ok) {
+          console.error('Failed to fetch label from ShipTime:', labelResponse.status, labelResponse.statusText);
+          return res.status(502).json({ message: "Failed to fetch label from carrier" });
+        }
+        
+        const labelBuffer = await labelResponse.arrayBuffer();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
+        res.send(Buffer.from(labelBuffer));
+      } else if (shipment.labelUrl.includes('stallionexpress.com') || shipment.labelUrl.includes('stallion')) {
+        // Stallion Express labels - may need different handling
+        await stallionService.loadCredentials(storage);
+        
+        const labelResponse = await fetch(shipment.labelUrl, {
+          headers: {
+            'Authorization': `Bearer ${(stallionService as any).apiKey}`,
+            'Accept': 'application/pdf',
+          },
+        });
+        
+        if (!labelResponse.ok) {
+          console.error('Failed to fetch label from Stallion:', labelResponse.status);
+          return res.status(502).json({ message: "Failed to fetch label from carrier" });
+        }
+        
+        const labelBuffer = await labelResponse.arrayBuffer();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
+        res.send(Buffer.from(labelBuffer));
+      } else {
+        // External URL - redirect user
+        res.redirect(shipment.labelUrl);
+      }
+    } catch (error: any) {
+      console.error("Label fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch label" });
+    }
+  });
+
   // Client branding
   app.get("/api/branding", requireAuth, async (req, res) => {
     try {

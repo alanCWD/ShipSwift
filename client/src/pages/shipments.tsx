@@ -204,7 +204,7 @@ export default function Shipments() {
                           </Link>
                           {shipment.labelUrl && (
                             <a 
-                              href={shipment.labelUrl} 
+                              href={`/api/shipments/${shipment.id}/label`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                             >
