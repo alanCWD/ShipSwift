@@ -1299,118 +1299,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Determine which carrier API to use based on rateId prefix
       const isStallionRate = otherData.rateId?.startsWith('stallion_');
-      let carrierShipment;
+
+      console.log('📦 Creating shipment...');
+      console.log('  RateId:', otherData.rateId);
+      console.log('  Source:', isStallionRate ? 'Stallion Express' : 'ShipTime');
+      console.log('  Carrier:', otherData.carrierName);
+      console.log('  Service:', otherData.serviceName);
+      console.log('  ShipmentType:', shipmentType);
+      console.log('  PackageDetails:', JSON.stringify(packageDetails, null, 2));
+      console.log('  From:', shipmentRequest.from.postalCode);
+      console.log('  To:', shipmentRequest.to.postalCode);
       
-      try {
-        console.log('📦 Creating shipment...');
-        console.log('  RateId:', otherData.rateId);
-        console.log('  Source:', isStallionRate ? 'Stallion Express' : 'ShipTime');
-        console.log('  Carrier:', otherData.carrierName);
-        console.log('  Service:', otherData.serviceName);
-        console.log('  ShipmentType:', shipmentType);
-        console.log('  PackageDetails:', JSON.stringify(packageDetails, null, 2));
-        console.log('  From:', shipmentRequest.from.postalCode);
-        console.log('  To:', shipmentRequest.to.postalCode);
-        
-        if (isStallionRate) {
-          // Route to Stallion Express API
-          console.log('🐴 Routing to Stallion Express API...');
-          
-          // Load Stallion credentials
-          await stallionService.loadCredentials(storage);
-          
-          // Extract postageTypeId from rateId (format: stallion_123)
-          const postageTypeId = parseInt(otherData.rateId.replace('stallion_', ''));
-          if (isNaN(postageTypeId)) {
-            throw new Error('Invalid Stallion rate ID format');
-          }
-          
-          carrierShipment = await stallionService.createShipment({
-            rateId: otherData.rateId,
-            postageTypeId: postageTypeId,
-            from: shipmentRequest.from,
-            to: shipmentRequest.to,
-            packageDetails: shipmentRequest.packageDetails,
-            referenceNumber: otherData.referenceNumber,
-          });
-          
-          console.log('✅ Stallion shipment created successfully');
-        } else {
-          // Route to ShipTime API
-          console.log('⏱️ Routing to ShipTime API...');
-          console.log('  CarrierId:', otherData.carrierId);
-          console.log('  ServiceId:', otherData.serviceId);
-          
-          carrierShipment = await shiptimeService.createShipment(shipmentRequest);
-          
-          console.log('✅ ShipTime shipment created successfully');
-        }
-        
-        console.log('  Tracking:', carrierShipment.trackingNumber);
-        console.log('  Label URL:', carrierShipment.labelUrl);
-      } catch (carrierError: any) {
-        const errorMessage = carrierError?.message || 'Unknown carrier API error';
-        const errorDetails = carrierError?.response?.data || carrierError?.response || {};
-        const carrierSource = isStallionRate ? 'Stallion Express' : 'ShipTime';
-        
-        console.error(`❌ ${carrierSource} API Error - Shipment creation failed`);
-        console.error('  Error message:', errorMessage);
-        console.error('  Error details:', JSON.stringify(errorDetails, null, 2));
-        console.error('  Full error:', carrierError);
-        
-        // IMPORTANT: ShipTime may have created a shipment and charged internally before returning an error
-        // Try to extract any shipment ID from the error and cancel it to prevent orphaned charges
-        if (!isStallionRate) {
-          try {
-            // Check for shipment ID in error response (ShipTime sometimes includes it)
-            const errorData = carrierError?.response?.data || {};
-            const possibleShipmentId = errorData.shipmentId || errorData.id || errorData.shipId;
-            
-            // Also check if there's a shipment ID in the error message (e.g., "Ship ID: 8828115")
-            const shipIdMatch = errorMessage.match(/ship(?:ment)?[\s_-]*id[:\s]*(\d+)/i);
-            const extractedShipmentId = possibleShipmentId || (shipIdMatch && shipIdMatch[1]);
-            
-            if (extractedShipmentId) {
-              console.log(`⚠️ Found orphaned ShipTime shipment ID: ${extractedShipmentId}`);
-              console.log('🔄 Attempting to cancel orphaned ShipTime shipment...');
-              
-              try {
-                await shiptimeService.cancelShipment(extractedShipmentId.toString());
-                console.log(`✅ Successfully cancelled orphaned ShipTime shipment ${extractedShipmentId}`);
-              } catch (cancelError: any) {
-                console.error(`❌ Failed to cancel orphaned ShipTime shipment ${extractedShipmentId}:`, cancelError.message);
-                console.error('⚠️ MANUAL ACTION REQUIRED: Cancel this shipment in ShipTime admin to recover funds');
-              }
-            }
-          } catch (cleanupError) {
-            console.error('Error during ShipTime cleanup attempt:', cleanupError);
-          }
-        }
-        
-        // In production, fail properly instead of creating demo shipments
-        // Demo mode should only be used explicitly for testing
-        const isDevelopment = process.env.NODE_ENV === 'development';
-        const allowDemoFallback = isDevelopment && process.env.ALLOW_DEMO_SHIPMENTS === 'true';
-        
-        if (allowDemoFallback) {
-          console.log('⚠️ Development mode: Creating demo shipment as fallback');
-          carrierShipment = {
-            id: `demo_${Date.now()}`,
-            trackingNumber: `DEMO${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-            labelUrl: '/api/demo-label',
-            carrier: { name: otherData.carrierName },
-            service: { name: otherData.serviceName },
-          };
-        } else {
-          // In production, return the actual error to the user
-          return res.status(500).json({ 
-            message: `Failed to create shipment with carrier: ${errorMessage}. Please try again or contact support.`,
-            error: 'CARRIER_API_ERROR',
-            details: isDevelopment ? errorDetails : undefined
-          });
-        }
-      }
-      
+      // ============================================================
+      // STEP 1: VALIDATE RATE QUOTE AND PRICING (BEFORE ANY CHARGES)
+      // ============================================================
       // SECURITY: Server-side pricing validation using cached rate quotes
       // The cache stores authoritative pricing from when rates were fetched
       
@@ -1483,6 +1385,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('  Total to charge customer:', totalCost.toFixed(2));
       console.log('  Price match:', validation.valid ? 'exact' : 'corrected (client values ignored)');
 
+      // ============================================================
+      // STEP 2: VERIFY STRIPE CONFIGURATION AND PAYMENT METHOD
+      // ============================================================
       // Load Stripe credentials from database before processing payment
       const stripeConfigured = await stripeService.loadCredentials();
       if (!stripeConfigured) {
@@ -1499,7 +1404,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Charge the saved payment method directly
+      // ============================================================
+      // STEP 3: CHARGE CUSTOMER VIA STRIPE (BEFORE CARRIER API)
+      // ============================================================
+      console.log('💳 Charging customer before creating carrier shipment...');
+      console.log('  Amount to charge:', totalCost.toFixed(2), 'CAD');
+      
       const chargeResult = await stripeService.chargeShipment(
         userId,
         Math.round(totalCost * 100), // Convert to cents
@@ -1517,9 +1427,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: chargeResult.error || "Payment failed. Please check your saved payment method." 
         });
       }
+      
+      console.log('✅ Payment successful:', chargeResult.chargeId);
 
-      // IMPORTANT: Payment was successful - wrap remaining operations in try-catch
-      // and refund if anything fails after this point
+      // ============================================================
+      // STEP 4: CREATE CARRIER SHIPMENT (AFTER PAYMENT SUCCESS)
+      // ============================================================
+      // IMPORTANT: Payment was successful - if carrier fails, we MUST refund
+      let carrierShipment;
+      
+      try {
+        if (isStallionRate) {
+          // Route to Stallion Express API
+          console.log('🐴 Routing to Stallion Express API...');
+          
+          // Load Stallion credentials
+          await stallionService.loadCredentials(storage);
+          
+          // Extract postageTypeId from rateId (format: stallion_123)
+          const postageTypeId = parseInt(otherData.rateId.replace('stallion_', ''));
+          if (isNaN(postageTypeId)) {
+            throw new Error('Invalid Stallion rate ID format');
+          }
+          
+          carrierShipment = await stallionService.createShipment({
+            rateId: otherData.rateId,
+            postageTypeId: postageTypeId,
+            from: shipmentRequest.from,
+            to: shipmentRequest.to,
+            packageDetails: shipmentRequest.packageDetails,
+            referenceNumber: otherData.referenceNumber,
+          });
+          
+          console.log('✅ Stallion shipment created successfully');
+        } else {
+          // Route to ShipTime API
+          console.log('⏱️ Routing to ShipTime API...');
+          console.log('  CarrierId:', otherData.carrierId);
+          console.log('  ServiceId:', otherData.serviceId);
+          
+          carrierShipment = await shiptimeService.createShipment(shipmentRequest);
+          
+          console.log('✅ ShipTime shipment created successfully');
+        }
+        
+        console.log('  Tracking:', carrierShipment.trackingNumber);
+        console.log('  Label URL:', carrierShipment.labelUrl);
+      } catch (carrierError: any) {
+        // ============================================================
+        // CARRIER FAILED AFTER PAYMENT - MUST REFUND CUSTOMER
+        // ============================================================
+        const errorMessage = carrierError?.message || 'Unknown carrier API error';
+        const errorDetails = carrierError?.response?.data || carrierError?.response || {};
+        const carrierSource = isStallionRate ? 'Stallion Express' : 'ShipTime';
+        
+        console.error(`❌ ${carrierSource} API Error - Shipment creation failed AFTER payment`);
+        console.error('  Error message:', errorMessage);
+        console.error('  Error details:', JSON.stringify(errorDetails, null, 2));
+        console.error('  Full error:', carrierError);
+        
+        // REFUND THE CUSTOMER since carrier shipment failed
+        console.log('💰 Initiating automatic refund due to carrier failure...');
+        try {
+          if (chargeResult.chargeId) {
+            await stripeService.createRefund(chargeResult.chargeId);
+            console.log(`✅ Refund issued successfully for charge ${chargeResult.chargeId}`);
+          }
+        } catch (refundError) {
+          console.error("❌ CRITICAL: Failed to issue automatic refund:", refundError);
+          console.error(`  Charge ID that needs manual refund: ${chargeResult.chargeId}`);
+        }
+        
+        // In production, fail properly instead of creating demo shipments
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        
+        return res.status(500).json({ 
+          message: `Failed to create shipment with carrier: ${errorMessage}. Your payment has been refunded. Please try again or contact support.`,
+          error: 'CARRIER_API_ERROR',
+          refunded: true,
+          details: isDevelopment ? errorDetails : undefined
+        });
+      }
+
+      // ============================================================
+      // STEP 5: SAVE SHIPMENT TO DATABASE
+      // ============================================================
+      // IMPORTANT: Payment and carrier shipment both successful
+      // Wrap in try-catch to refund if database save fails
       try {
         // Save shipment to database with audit data
         const shipment = await storage.createShipment({

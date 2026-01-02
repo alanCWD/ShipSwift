@@ -817,15 +817,17 @@ class ShipTimeService {
         throw new Error('Invalid shipment response from ShipTime: missing shipment ID');
       }
       
-      // Label URL may not be immediately available - ShipTime sometimes returns it async
+      // Label URL is required - if missing, the shipment response is incomplete
       if (!labelUrl) {
-        console.warn('⚠️ ShipTime response missing label URL - may need to fetch separately');
+        console.error('❌ ShipTime response missing label URL');
+        console.error('  Full response:', JSON.stringify(response, null, 2));
+        throw new Error('Invalid shipment response from ShipTime: missing label URL');
       }
 
       return {
         id: shipmentId,
         trackingNumber: trackingNumber,
-        labelUrl: labelUrl || `/api/shipments/${shipmentId}/label`, // Fallback to our proxy endpoint
+        labelUrl: labelUrl,
         carrier: response.carrier || { name: request.carrierName },
         service: response.service || { name: request.serviceName },
       };
