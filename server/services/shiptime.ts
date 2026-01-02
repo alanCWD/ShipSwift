@@ -242,10 +242,12 @@ class ShipTimeService {
     }
     
     if (!response.ok) {
-      console.error(`ShipTime API error (${response.status}):`, responseText);
+      console.error(`ShipTime API error (${response.status}) - FULL RESPONSE:`, responseText);
       
       try {
         const errorData = JSON.parse(responseText);
+        console.error('ShipTime error data object:', JSON.stringify(errorData, null, 2));
+        
         // Extract error messages from ShipTime's messages array (common format for validation errors)
         let errorMessage = '';
         if (errorData.messages && Array.isArray(errorData.messages) && errorData.messages.length > 0) {
@@ -254,9 +256,16 @@ class ShipTimeService {
             .filter((m: string) => m && m !== '{}' && m !== 'null')
             .join('; ');
         }
+        // Check for nested error details (common in carrier rejection responses)
+        if (!errorMessage && errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors
+            .map((e: any) => typeof e === 'string' ? e : e.message || e.description || JSON.stringify(e))
+            .filter((m: string) => m && m !== '{}' && m !== 'null')
+            .join('; ');
+        }
         // Fallback to other common error fields
         if (!errorMessage) {
-          errorMessage = errorData.message || errorData.error || errorData.errorMessage || '';
+          errorMessage = errorData.message || errorData.error || errorData.errorMessage || errorData.detail || '';
         }
         // If still no message, provide a generic one based on status code
         if (!errorMessage) {
@@ -268,7 +277,7 @@ class ShipTimeService {
             errorMessage = `API returned status ${response.status}`;
           }
         }
-        console.error('ShipTime parsed error:', { success: errorData.success, messages: errorData.messages, errorMessage });
+        console.error('ShipTime parsed error:', { success: errorData.success, messages: errorData.messages, errors: errorData.errors, errorMessage });
         throw new Error(`ShipTime API error (${response.status}): ${errorMessage}`);
       } catch (parseError) {
         if (parseError instanceof Error && parseError.message.startsWith('ShipTime API error')) {
