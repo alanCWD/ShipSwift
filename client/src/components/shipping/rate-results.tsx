@@ -175,142 +175,132 @@ export default function RateResults({ rates, addressData }: RateResultsProps) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-8">Available Shipping Options</h2>
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrier</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transit Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (CAD)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedRates.map((rate, index) => {
-                  const pricing = calculatePricing(rate);
-                  // Handle both sample rates and real API format
-                  const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
-                  const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
-                  const isLocalDelivery = rate.isLocalDelivery || carrierName.toLowerCase().includes('uber');
-                  
-                  return (
-                    <tr key={index} className={`hover:bg-gray-50 ${isLocalDelivery ? 'bg-amber-50 border-l-4 border-l-amber-400' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="mr-3 hidden md:block">
-                            <CarrierLogo carrierName={carrierName} className="w-10 h-8" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{carrierName}</div>
-                            {isLocalDelivery && (
-                              <Badge className="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs flex items-center gap-1 w-fit">
-                                <Zap className="w-3 h-3" />
-                                Same-Day Local
-                              </Badge>
-                            )}
-                          </div>
+          <table className="w-full divide-y divide-gray-200 table-fixed">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-[20%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrier</th>
+                <th className="w-[25%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transit</th>
+                <th className="w-[25%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (CAD)</th>
+                <th className="w-[15%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedRates.map((rate, index) => {
+                const pricing = calculatePricing(rate);
+                const carrierName = rate.carrierName || rate.carrier?.name || 'Unknown Carrier';
+                const serviceName = rate.serviceName || rate.service?.name || 'Standard Service';
+                const isLocalDelivery = rate.isLocalDelivery || carrierName.toLowerCase().includes('uber');
+                
+                return (
+                  <tr key={index} className={`hover:bg-gray-50 ${isLocalDelivery ? 'bg-amber-50 border-l-4 border-l-amber-400' : ''}`}>
+                    <td className="px-3 py-4">
+                      <div className="flex items-center">
+                        <div className="mr-2 hidden lg:block flex-shrink-0">
+                          <CarrierLogo carrierName={carrierName} className="w-8 h-6" />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{serviceName}</div>
-                        <div className="text-sm text-gray-500">{isLocalDelivery ? 'Local Delivery' : (rate.serviceType || 'Standard')}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {rate.transitDays 
-                            ? `${rate.transitDays} ${rate.transitUnit || 'business days'}`
-                            : (rate.deliveryDays || rate.transitTime || 'N/A')}
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">{carrierName}</div>
+                          {isLocalDelivery && (
+                            <Badge className="mt-1 bg-amber-500 hover:bg-amber-600 text-white text-xs flex items-center gap-1 w-fit">
+                              <Zap className="w-3 h-3" />
+                              Same-Day
+                            </Badge>
+                          )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-start gap-2">
-                          <div>
-                            <div className="text-lg font-bold text-gray-900">
-                              ${pricing.subtotal.toFixed(2)} <span className="text-sm font-normal text-gray-600">CAD</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="text-sm text-gray-900 truncate">{serviceName}</div>
+                      <div className="text-xs text-gray-500 truncate">{isLocalDelivery ? 'Local' : (rate.serviceType || 'Standard')}</div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="text-sm text-gray-900">
+                        {rate.transitDays 
+                          ? `${rate.transitDays} days`
+                          : (rate.deliveryDays || rate.transitTime || 'N/A')}
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex items-start gap-1">
+                        <div className="min-w-0">
+                          <div className="text-base font-bold text-gray-900">
+                            ${pricing.subtotal.toFixed(2)}
+                          </div>
+                          {pricing.tax > 0 && (
+                            <div className="text-xs text-gray-500">
+                              +${pricing.tax.toFixed(2)} tax = ${pricing.total.toFixed(2)}
                             </div>
-                            {pricing.tax > 0 && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                + ${pricing.tax.toFixed(2)} tax
-                              </div>
-                            )}
-                            {pricing.tax > 0 && (
-                              <div className="text-xs font-medium text-gray-700 mt-0.5">
-                                Total: ${pricing.total.toFixed(2)}
-                              </div>
-                            )}
-                          </div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button className="mt-1 text-gray-400 hover:text-gray-600 transition-colors">
-                                  <Info className="w-4 h-4" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs p-4" side="left">
-                                <div className="space-y-2">
-                                  <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
-                                  
-                                  {(() => {
-                                    // Base Rate = originalBaseCharge + markup (both include markup applied to base only)
-                                    // Convert to numbers to prevent NaN
-                                    const baseRate = Number(rate.originalBaseCharge || 0) + Number(rate.markup || 0);
-                                    
-                                    return (
-                                      <>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-600">Base Rate:</span>
-                                          <span>${baseRate.toFixed(2)}</span>
-                                        </div>
-                                        
-                                        {rate.surcharges && rate.surcharges.length > 0 && rate.surcharges.map((surcharge: any, idx: number) => (
-                                          <div key={idx} className="flex justify-between text-sm">
-                                            <span className="text-gray-600">{surcharge.name || 'Surcharge'}:</span>
-                                            <span>${(Number(surcharge.price.amount) / 100).toFixed(2)}</span>
-                                          </div>
-                                        ))}
-                                        
-                                        <div className="flex justify-between text-sm pt-2 border-t">
-                                          <span className="font-bold">Before Tax Total:</span>
-                                          <span className="font-bold">${Number(pricing.subtotal).toFixed(2)}</span>
-                                        </div>
-                                        
-                                        {pricing.tax > 0 && (
-                                          <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Tax:</span>
-                                            <span>${Number(pricing.tax).toFixed(2)}</span>
-                                          </div>
-                                        )}
-                                        
-                                        <div className="flex justify-between text-sm pt-2 border-t">
-                                          <span className="font-bold">After Tax Total:</span>
-                                          <span className="font-bold">${Number(pricing.total).toFixed(2)}</span>
-                                        </div>
-                                      </>
-                                    );
-                                  })()}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Button 
-                          onClick={() => handleRateSelection(rate)}
-                          className="bg-blue-600 text-white hover:bg-blue-700"
-                          size="sm"
-                          data-testid={`button-select-rate-${index}`}
-                        >
-                          Select
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="mt-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
+                                <Info className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs p-4" side="left">
+                              <div className="space-y-2">
+                                <h4 className="font-semibold text-sm mb-3 border-b pb-2">Rate Breakdown</h4>
+                                
+                                {(() => {
+                                  const baseRate = Number(rate.originalBaseCharge || 0) + Number(rate.markup || 0);
+                                  
+                                  return (
+                                    <>
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Base Rate:</span>
+                                        <span>${baseRate.toFixed(2)}</span>
+                                      </div>
+                                      
+                                      {rate.surcharges && rate.surcharges.length > 0 && rate.surcharges.map((surcharge: any, idx: number) => (
+                                        <div key={idx} className="flex justify-between text-sm">
+                                          <span className="text-gray-600">{surcharge.name || 'Surcharge'}:</span>
+                                          <span>${(Number(surcharge.price.amount) / 100).toFixed(2)}</span>
+                                        </div>
+                                      ))}
+                                      
+                                      <div className="flex justify-between text-sm pt-2 border-t">
+                                        <span className="font-bold">Before Tax:</span>
+                                        <span className="font-bold">${Number(pricing.subtotal).toFixed(2)}</span>
+                                      </div>
+                                      
+                                      {pricing.tax > 0 && (
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-600">Tax:</span>
+                                          <span>${Number(pricing.tax).toFixed(2)}</span>
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex justify-between text-sm pt-2 border-t">
+                                        <span className="font-bold">Total:</span>
+                                        <span className="font-bold">${Number(pricing.total).toFixed(2)}</span>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <Button 
+                        onClick={() => handleRateSelection(rate)}
+                        className="bg-blue-600 text-white hover:bg-blue-700"
+                        size="sm"
+                        data-testid={`button-select-rate-${index}`}
+                      >
+                        Select
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* Insurance Section */}

@@ -220,15 +220,25 @@ class ShipTimeService {
         const errorData = JSON.parse(responseText);
         // Extract error messages from ShipTime's messages array (common format for validation errors)
         let errorMessage = '';
-        if (errorData.messages && Array.isArray(errorData.messages)) {
+        if (errorData.messages && Array.isArray(errorData.messages) && errorData.messages.length > 0) {
           errorMessage = errorData.messages
             .map((m: any) => typeof m === 'string' ? m : m.message || m.text || JSON.stringify(m))
-            .filter(Boolean)
+            .filter((m: string) => m && m !== '{}' && m !== 'null')
             .join('; ');
         }
         // Fallback to other common error fields
         if (!errorMessage) {
-          errorMessage = errorData.message || errorData.error || responseText;
+          errorMessage = errorData.message || errorData.error || errorData.errorMessage || '';
+        }
+        // If still no message, provide a generic one based on status code
+        if (!errorMessage) {
+          if (response.status === 500) {
+            errorMessage = 'Carrier rejected the shipment request. Please verify all required fields are filled correctly.';
+          } else if (response.status === 400) {
+            errorMessage = 'Invalid request data. Please check your shipment details.';
+          } else {
+            errorMessage = `API returned status ${response.status}`;
+          }
         }
         console.error('ShipTime parsed error:', { success: errorData.success, messages: errorData.messages, errorMessage });
         throw new Error(`ShipTime API error (${response.status}): ${errorMessage}`);
