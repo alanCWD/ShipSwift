@@ -803,14 +803,29 @@ class ShipTimeService {
         }
       }
 
-      if (!response.id || !response.labelUrl) {
-        throw new Error('Invalid shipment response from ShipTime');
+      // ShipTime returns 'shipmentId' not 'id', and label info in 'document'
+      const shipmentId = response.shipmentId || response.id;
+      const trackingNumber = response.trackingNumber || response.tracking?.number || '';
+      const labelUrl = response.labelUrl || response.document?.url || response.labelPdfUrl || '';
+      
+      console.log('📦 Parsed ShipTime response:');
+      console.log('  shipmentId:', shipmentId);
+      console.log('  trackingNumber:', trackingNumber);
+      console.log('  labelUrl:', labelUrl);
+      
+      if (!shipmentId) {
+        throw new Error('Invalid shipment response from ShipTime: missing shipment ID');
+      }
+      
+      // Label URL may not be immediately available - ShipTime sometimes returns it async
+      if (!labelUrl) {
+        console.warn('⚠️ ShipTime response missing label URL - may need to fetch separately');
       }
 
       return {
-        id: response.id,
-        trackingNumber: response.trackingNumber || '',
-        labelUrl: response.labelUrl,
+        id: shipmentId,
+        trackingNumber: trackingNumber,
+        labelUrl: labelUrl || `/api/shipments/${shipmentId}/label`, // Fallback to our proxy endpoint
         carrier: response.carrier || { name: request.carrierName },
         service: response.service || { name: request.serviceName },
       };
