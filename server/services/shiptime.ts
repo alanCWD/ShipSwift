@@ -288,7 +288,14 @@ class ShipTimeService {
     }
 
     try {
-      return JSON.parse(responseText);
+      const parsedResponse = JSON.parse(responseText);
+      console.log('📦 ShipTime makeRequest - successful response:');
+      console.log('  Endpoint:', endpoint);
+      console.log('  Status:', response.status);
+      console.log('  Response type:', typeof parsedResponse);
+      console.log('  Response keys:', parsedResponse ? Object.keys(parsedResponse) : 'null');
+      console.log('  Full response:', JSON.stringify(parsedResponse, null, 2).substring(0, 2000));
+      return parsedResponse;
     } catch (parseError) {
       console.error('Failed to parse ShipTime API response:', responseText);
       throw new Error('Invalid JSON response from ShipTime API');
