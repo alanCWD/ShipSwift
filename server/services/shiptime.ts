@@ -820,9 +820,11 @@ class ShipTimeService {
         }
       }
 
-      // ShipTime returns various field names - check all possible variations
-      const shipmentId = response?.shipmentId || response?.id || response?.ShipmentId || response?.ID || response?.shipment_id;
-      const trackingNumber = response?.trackingNumber || response?.TrackingNumber || response?.tracking?.number || response?.tracking_number || '';
+      // ShipTime returns 'shipId' (not 'shipmentId'), and 'trackingNumbers' as array
+      const shipmentId = response?.shipId || response?.shipmentId || response?.id || response?.ShipmentId || response?.ID || response?.shipment_id;
+      // trackingNumbers is an array - take the first one
+      const trackingNumber = (Array.isArray(response?.trackingNumbers) ? response.trackingNumbers[0] : response?.trackingNumbers) 
+        || response?.trackingNumber || response?.TrackingNumber || response?.tracking?.number || '';
       const labelUrl = response?.labelUrl || response?.LabelUrl || response?.document?.url || response?.labelPdfUrl || response?.label_url || response?.pdfUrl || '';
       
       console.log('📦 Parsed ShipTime response:');
