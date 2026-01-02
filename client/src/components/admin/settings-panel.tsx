@@ -58,6 +58,7 @@ export default function SettingsPanel() {
     phoneNumber: '(604) 392-3923',
     address: '44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada',
     website: 'https://ablplogistics.ca',
+    defaultShipmentEmail: 'shipping@goablp.com',
     autoNotifications: true,
     trackingPageBranding: true,
     allowClientBranding: true,
@@ -110,6 +111,7 @@ export default function SettingsPanel() {
         phoneNumber: settingsMap.PHONE_NUMBER || '(604) 392-3923',
         address: settingsMap.COMPANY_ADDRESS || '44322 Yale Rd #3, Chilliwack, BC V2R 4H1, Canada',
         website: settingsMap.COMPANY_WEBSITE || 'https://ablplogistics.ca',
+        defaultShipmentEmail: settingsMap.DEFAULT_SHIPMENT_EMAIL || 'shipping@goablp.com',
         autoNotifications: settingsMap.AUTO_NOTIFICATIONS === 'true',
         trackingPageBranding: settingsMap.TRACKING_PAGE_BRANDING === 'true',
         allowClientBranding: settingsMap.ALLOW_CLIENT_BRANDING === 'true',
@@ -959,6 +961,20 @@ export default function SettingsPanel() {
                       value={companySettings.address}
                       onChange={(e) => setCompanySettings({...companySettings, address: e.target.value})}
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="defaultShipmentEmail">Default Shipment Email</Label>
+                    <Input
+                      id="defaultShipmentEmail"
+                      type="email"
+                      value={companySettings.defaultShipmentEmail}
+                      onChange={(e) => setCompanySettings({...companySettings, defaultShipmentEmail: e.target.value})}
+                      placeholder="shipping@goablp.com"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Default email used for carrier shipments when recipient email is not provided
+                    </p>
                   </div>
 
                 </div>
