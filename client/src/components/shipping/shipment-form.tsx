@@ -347,12 +347,22 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
         if (packageDetailsFromAddress.isStackable !== undefined) details.isStackable = packageDetailsFromAddress.isStackable;
         if (packageDetailsFromAddress.fromTailgate) details.fromTailgate = packageDetailsFromAddress.fromTailgate;
         if (packageDetailsFromAddress.toTailgate) details.toTailgate = packageDetailsFromAddress.toTailgate;
-        
-        // For pallets, also get dimensions from addressData if lineItems are missing
-        if (!details.length && !isNaN(packageDetailsFromAddress.length)) details.length = packageDetailsFromAddress.length;
-        if (!details.width && !isNaN(packageDetailsFromAddress.width)) details.width = packageDetailsFromAddress.width;
-        if (!details.height && !isNaN(packageDetailsFromAddress.height)) details.height = packageDetailsFromAddress.height;
-        if (!details.weight && !isNaN(packageDetailsFromAddress.weight)) details.weight = packageDetailsFromAddress.weight;
+      }
+      
+      // Get dimensions from addressData if lineItems are missing (for all shipment types)
+      if (packageDetailsFromAddress) {
+        if (!details.length && packageDetailsFromAddress.length && !isNaN(packageDetailsFromAddress.length)) {
+          details.length = packageDetailsFromAddress.length;
+        }
+        if (!details.width && packageDetailsFromAddress.width && !isNaN(packageDetailsFromAddress.width)) {
+          details.width = packageDetailsFromAddress.width;
+        }
+        if (!details.height && packageDetailsFromAddress.height && !isNaN(packageDetailsFromAddress.height)) {
+          details.height = packageDetailsFromAddress.height;
+        }
+        if (!details.weight && packageDetailsFromAddress.weight && !isNaN(packageDetailsFromAddress.weight)) {
+          details.weight = packageDetailsFromAddress.weight;
+        }
       }
       
       return details;
