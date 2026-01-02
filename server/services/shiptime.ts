@@ -7,6 +7,7 @@ interface ShipTimeAddress {
   state?: string;
   attention?: string;
   phone?: string;
+  email?: string;
 }
 
 interface PackageDetails {
@@ -543,6 +544,10 @@ class ShipTimeService {
       }
 
       // Build the rateRequest object that wraps the shipment details
+      // UPS and other carriers may require: attention, companyName, phone, email
+      const fromEmail = request.from.email || 'shipping@goablp.com';
+      const toEmail = request.to.email || request.from.email || 'shipping@goablp.com';
+      
       const rateRequest: any = {
         from: {
           attention: request.from.attention || 'GoABLP',
@@ -553,10 +558,12 @@ class ShipTimeService {
           countryCode: request.from.countryCode,
           postalCode: fromPostalCode,
           phone: request.from.phone || '1-800-225-7564',
+          email: fromEmail,
         },
         to: {
           attention: request.to.attention || 'Customer',
-          companyName: request.to.companyName || '',
+          // UPS requires company name - use attention name as fallback for residential
+          companyName: request.to.companyName || request.to.attention || 'Residential',
           streetAddress: request.to.streetAddress!,
           city: request.to.city!,
           state: request.to.state!,
@@ -564,6 +571,7 @@ class ShipTimeService {
           postalCode: toPostalCode,
           // UPS and some carriers require destination phone - fallback to sender phone if not provided
           phone: request.to.phone || request.from.phone || '1-800-225-7564',
+          email: toEmail,
         },
         packageType,
         unitOfMeasurement: 'METRIC',
