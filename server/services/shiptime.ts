@@ -545,8 +545,20 @@ class ShipTimeService {
 
       // Build the rateRequest object that wraps the shipment details
       // UPS and other carriers may require: attention, companyName, phone, email
-      const fromEmail = request.from.email || 'shipping@goablp.com';
-      const toEmail = request.to.email || request.from.email || 'shipping@goablp.com';
+      // Load default shipment email from settings
+      let defaultEmail = 'shipping@goablp.com';
+      try {
+        const { storage } = await import('../storage');
+        const configuredEmail = await storage.getSetting('DEFAULT_SHIPMENT_EMAIL');
+        if (configuredEmail) {
+          defaultEmail = configuredEmail;
+        }
+      } catch (e) {
+        console.log('Could not load DEFAULT_SHIPMENT_EMAIL from settings, using fallback');
+      }
+      
+      const fromEmail = request.from.email || defaultEmail;
+      const toEmail = request.to.email || request.from.email || defaultEmail;
       
       const rateRequest: any = {
         from: {
