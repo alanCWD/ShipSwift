@@ -782,17 +782,27 @@ class ShipTimeService {
       console.log('  API URL:', this.getApiUrl());
       console.log('  Full payload:', JSON.stringify(payload, null, 2));
 
-      const response = await this.makeRequest('shipments', 'POST', payload);
+      const rawResponse = await this.makeRequest('shipments', 'POST', payload);
       
-      console.log('📦 ShipTime shipment response:');
+      console.log('📦 ShipTime raw shipment response:');
+      console.log('  Type:', typeof rawResponse);
+      console.log('  Keys:', rawResponse ? Object.keys(rawResponse) : 'null/undefined');
+      console.log('  Full response:', JSON.stringify(rawResponse, null, 2));
+      
+      // Handle potential wrapper structures (e.g., { data: {...} } or { shipment: {...} })
+      const response = rawResponse?.data || rawResponse?.shipment || rawResponse?.result || rawResponse;
+      
+      console.log('📦 Unwrapped response:');
+      console.log('  Keys:', response ? Object.keys(response) : 'null/undefined');
       console.log('  Response:', JSON.stringify(response, null, 2));
       
       // Auto-cancel sandbox shipments immediately to prevent charges
-      if (isSandbox && response.shipmentId) {
-        console.log(`Auto-cancelling sandbox shipment ${response.shipmentId} to prevent charges`);
+      const shipmentIdForCancel = response?.shipmentId || response?.id || response?.ShipmentId || response?.ID;
+      if (isSandbox && shipmentIdForCancel) {
+        console.log(`Auto-cancelling sandbox shipment ${shipmentIdForCancel} to prevent charges`);
         try {
-          await this.cancelShipment(response.shipmentId);
-          console.log(`Successfully cancelled sandbox shipment ${response.shipmentId}`);
+          await this.cancelShipment(shipmentIdForCancel);
+          console.log(`Successfully cancelled sandbox shipment ${shipmentIdForCancel}`);
           
           // Add cancellation note to response
           response.autocancelled = true;
@@ -803,10 +813,10 @@ class ShipTimeService {
         }
       }
 
-      // ShipTime returns 'shipmentId' not 'id', and label info in 'document'
-      const shipmentId = response.shipmentId || response.id;
-      const trackingNumber = response.trackingNumber || response.tracking?.number || '';
-      const labelUrl = response.labelUrl || response.document?.url || response.labelPdfUrl || '';
+      // ShipTime returns various field names - check all possible variations
+      const shipmentId = response?.shipmentId || response?.id || response?.ShipmentId || response?.ID || response?.shipment_id;
+      const trackingNumber = response?.trackingNumber || response?.TrackingNumber || response?.tracking?.number || response?.tracking_number || '';
+      const labelUrl = response?.labelUrl || response?.LabelUrl || response?.document?.url || response?.labelPdfUrl || response?.label_url || response?.pdfUrl || '';
       
       console.log('📦 Parsed ShipTime response:');
       console.log('  shipmentId:', shipmentId);
