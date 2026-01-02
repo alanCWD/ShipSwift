@@ -10,6 +10,33 @@ interface ShipTimeAddress {
   email?: string;
 }
 
+// Format phone number to (XXX) XXX-XXXX format required by ShipTime API
+function formatPhoneNumber(phone: string | undefined): string {
+  if (!phone) {
+    return '1-800-225-7564'; // Default fallback
+  }
+  
+  // Strip all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Handle different lengths
+  if (digits.length === 10) {
+    // Format as (XXX) XXX-XXXX
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  } else if (digits.length === 11 && digits.startsWith('1')) {
+    // Remove leading 1 and format
+    const cleaned = digits.slice(1);
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  } else if (digits.length > 10) {
+    // Take first 10 digits and format
+    const cleaned = digits.slice(0, 10);
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+  
+  // Return as-is if we can't normalize it
+  return phone;
+}
+
 interface PackageDetails {
   length: number;
   width: number;
@@ -569,7 +596,7 @@ class ShipTimeService {
           state: request.from.state || 'BC',
           countryCode: request.from.countryCode,
           postalCode: fromPostalCode,
-          phone: request.from.phone || '1-800-225-7564',
+          phone: formatPhoneNumber(request.from.phone),
           email: fromEmail,
         },
         to: {
@@ -582,7 +609,7 @@ class ShipTimeService {
           countryCode: request.to.countryCode,
           postalCode: toPostalCode,
           // UPS and some carriers require destination phone - fallback to sender phone if not provided
-          phone: request.to.phone || request.from.phone || '1-800-225-7564',
+          phone: formatPhoneNumber(request.to.phone || request.from.phone),
           email: toEmail,
         },
         packageType,
