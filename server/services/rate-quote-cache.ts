@@ -22,6 +22,7 @@ class RateQuoteCacheService {
     const quoteId = rate.quoteId || rate.rateId || rate.id;
     if (!quoteId) {
       console.log('⚠️ Cannot cache rate - no quoteId');
+      console.log('   Rate keys:', Object.keys(rate).join(', '));
       return;
     }
 
@@ -50,9 +51,25 @@ class RateQuoteCacheService {
     };
 
     this.cache.set(quoteId, cached);
-    console.log(`📦 Cached rate quote ${quoteId}: ${carrierName} ${serviceName}`);
-    console.log(`   Carrier net: $${carrierNetAmount.toFixed(2)}, Markup: $${markupAmount.toFixed(2)} (${markupPercentage.toFixed(1)}%)`);
-    console.log(`   Subtotal: $${subtotal.toFixed(2)}, Tax: $${taxAmount.toFixed(2)}, Total: $${total.toFixed(2)}`);
+    
+    // Detailed logging for rate tracing
+    console.log(`\n💾 CACHED RATE QUOTE [${quoteId}]`);
+    console.log(`   ├── Carrier: ${carrierName}`);
+    console.log(`   ├── Service: ${serviceName}`);
+    console.log(`   ├── Carrier Net (API price): $${carrierNetAmount.toFixed(2)}`);
+    console.log(`   ├── Markup Amount: $${markupAmount.toFixed(2)} (${markupPercentage.toFixed(1)}%)`);
+    console.log(`   ├── Subtotal (with markup): $${subtotal.toFixed(2)}`);
+    console.log(`   ├── Tax Amount: $${taxAmount.toFixed(2)}`);
+    console.log(`   ├── TOTAL (customer pays): $${total.toFixed(2)}`);
+    console.log(`   └── Expires: ${cached.expiresAt.toISOString()}`);
+    
+    // Log source rate fields for debugging
+    console.log(`   [Debug] Source rate fields:`);
+    console.log(`     - rate.originalBaseCharge: ${rate.originalBaseCharge}`);
+    console.log(`     - rate.markup: ${rate.markup}`);
+    console.log(`     - rate.subtotal: ${rate.subtotal}`);
+    console.log(`     - rate.taxAmount: ${rate.taxAmount}`);
+    console.log(`     - rate.baseCharge?.amount: ${rate.baseCharge?.amount}`);
     
     this.cleanExpired();
   }
@@ -65,17 +82,30 @@ class RateQuoteCacheService {
     const cached = this.cache.get(quoteId);
     
     if (!cached) {
-      console.log(`⚠️ Quote ${quoteId} not found in cache`);
+      console.log(`\n⚠️ CACHE MISS: Quote ${quoteId} not found`);
+      console.log(`   Cache size: ${this.cache.size} quotes`);
+      console.log(`   Available quote IDs: ${Array.from(this.cache.keys()).slice(0, 10).join(', ')}${this.cache.size > 10 ? '...' : ''}`);
       return null;
     }
 
     if (new Date() > cached.expiresAt) {
-      console.log(`⚠️ Quote ${quoteId} has expired`);
+      console.log(`\n⚠️ CACHE EXPIRED: Quote ${quoteId}`);
+      console.log(`   Expired at: ${cached.expiresAt.toISOString()}`);
+      console.log(`   Created at: ${cached.createdAt.toISOString()}`);
       this.cache.delete(quoteId);
       return null;
     }
 
-    console.log(`✅ Retrieved cached quote ${quoteId}: $${cached.total.toFixed(2)}`);
+    console.log(`\n✅ CACHE HIT: Quote ${quoteId}`);
+    console.log(`   ├── Carrier: ${cached.carrierName}`);
+    console.log(`   ├── Service: ${cached.serviceName}`);
+    console.log(`   ├── Carrier Net: $${cached.carrierNetAmount.toFixed(2)}`);
+    console.log(`   ├── Markup: $${cached.markupAmount.toFixed(2)} (${cached.markupPercentage.toFixed(1)}%)`);
+    console.log(`   ├── Subtotal: $${cached.subtotal.toFixed(2)}`);
+    console.log(`   ├── Tax: $${cached.taxAmount.toFixed(2)}`);
+    console.log(`   ├── TOTAL: $${cached.total.toFixed(2)}`);
+    console.log(`   ├── Used: ${cached.usedAt ? `YES at ${cached.usedAt.toISOString()}` : 'NO'}`);
+    console.log(`   └── Expires: ${cached.expiresAt.toISOString()}`);
     return cached;
   }
 
@@ -85,9 +115,13 @@ class RateQuoteCacheService {
     clientTotal: number,
     tolerancePercent: number = 5
   ): { valid: boolean; message: string; serverValues?: CachedQuote } {
+    console.log(`\n🔐 VALIDATING QUOTE [${quoteId}]`);
+    console.log(`   Client values: carrierNet=$${clientCarrierNet.toFixed(2)}, total=$${clientTotal.toFixed(2)}`);
+    
     const cached = this.getQuote(quoteId);
 
     if (!cached) {
+      console.log(`   ❌ VALIDATION FAILED: Quote not in cache`);
       return {
         valid: false,
         message: 'Rate quote not found or expired. Please refresh rates and try again.',
@@ -96,8 +130,9 @@ class RateQuoteCacheService {
 
     // IDEMPOTENCY CHECK: Reject if quote was already used
     if (cached.usedAt) {
-      console.log(`⛔ DUPLICATE BLOCKED: Quote ${quoteId} was already used at ${cached.usedAt.toISOString()}`);
-      console.log(`   Previously created shipment: ${cached.usedForShipmentId}`);
+      console.log(`\n⛔ DUPLICATE BLOCKED: Quote ${quoteId} was already used`);
+      console.log(`   Used at: ${cached.usedAt.toISOString()}`);
+      console.log(`   Shipment ID: ${cached.usedForShipmentId}`);
       return {
         valid: false,
         message: `This rate quote has already been used to create a shipment. Please get fresh rates and try again.`,
@@ -110,7 +145,13 @@ class RateQuoteCacheService {
       ? (carrierDiff / cached.carrierNetAmount) * 100 
       : 100;
 
+    console.log(`   Carrier Net comparison:`);
+    console.log(`     - Client: $${clientCarrierNet.toFixed(2)}`);
+    console.log(`     - Server: $${cached.carrierNetAmount.toFixed(2)}`);
+    console.log(`     - Diff: $${carrierDiff.toFixed(2)} (${carrierDiffPercent.toFixed(1)}%)`);
+
     if (carrierDiffPercent > tolerancePercent) {
+      console.log(`   ❌ VALIDATION FAILED: Carrier rate mismatch exceeds ${tolerancePercent}% tolerance`);
       return {
         valid: false,
         message: 'Carrier rate mismatch detected. Please refresh rates and try again.',
@@ -123,13 +164,27 @@ class RateQuoteCacheService {
       ? (totalDiff / cached.total) * 100 
       : 100;
 
+    console.log(`   Total comparison:`);
+    console.log(`     - Client: $${clientTotal.toFixed(2)}`);
+    console.log(`     - Server: $${cached.total.toFixed(2)}`);
+    console.log(`     - Diff: $${totalDiff.toFixed(2)} (${totalDiffPercent.toFixed(1)}%)`);
+
     if (totalDiffPercent > tolerancePercent) {
+      console.log(`   ❌ VALIDATION FAILED: Total price mismatch exceeds ${tolerancePercent}% tolerance`);
       return {
         valid: false,
         message: 'Price mismatch detected. Please refresh rates and try again.',
         serverValues: cached,
       };
     }
+
+    console.log(`   ✅ VALIDATION PASSED`);
+    console.log(`   Server authoritative values:`);
+    console.log(`     - Carrier Net: $${cached.carrierNetAmount.toFixed(2)}`);
+    console.log(`     - Markup: $${cached.markupAmount.toFixed(2)}`);
+    console.log(`     - Subtotal: $${cached.subtotal.toFixed(2)}`);
+    console.log(`     - Tax: $${cached.taxAmount.toFixed(2)}`);
+    console.log(`     - TOTAL TO CHARGE: $${cached.total.toFixed(2)}`);
 
     return {
       valid: true,

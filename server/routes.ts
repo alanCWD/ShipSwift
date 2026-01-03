@@ -1300,15 +1300,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine which carrier API to use based on rateId prefix
       const isStallionRate = otherData.rateId?.startsWith('stallion_');
 
-      console.log('📦 Creating shipment...');
-      console.log('  RateId:', otherData.rateId);
+      console.log('\n' + '='.repeat(70));
+      console.log('📦 SHIPMENT CREATION REQUEST');
+      console.log('='.repeat(70));
+      console.log('  Timestamp:', new Date().toISOString());
+      console.log('  User ID:', userId);
+      console.log('  Rate/Quote ID:', otherData.rateId);
       console.log('  Source:', isStallionRate ? 'Stallion Express' : 'ShipTime');
       console.log('  Carrier:', otherData.carrierName);
       console.log('  Service:', otherData.serviceName);
       console.log('  ShipmentType:', shipmentType);
-      console.log('  PackageDetails:', JSON.stringify(packageDetails, null, 2));
-      console.log('  From:', shipmentRequest.from.postalCode);
-      console.log('  To:', shipmentRequest.to.postalCode);
+      console.log('  From:', shipmentRequest.from.postalCode, '→ To:', shipmentRequest.to.postalCode);
+      console.log('  Package:', JSON.stringify(packageDetails));
+      console.log('\n  CLIENT-SUBMITTED PRICING:');
+      console.log('    - baseCost (subtotal):', shipmentData.baseCost);
+      console.log('    - taxAmount:', shipmentData.taxAmount);
+      console.log('    - carrierNetAmount:', shipmentData.carrierNetAmount);
+      console.log('    - markupAmount:', shipmentData.markupAmount);
+      console.log('    - total:', shipmentData.total);
+      console.log('='.repeat(70));
       
       // ============================================================
       // STEP 1: VALIDATE RATE QUOTE AND PRICING (BEFORE ANY CHARGES)
