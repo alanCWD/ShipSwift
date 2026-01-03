@@ -80,6 +80,7 @@ export const userActivity = pgTable("user_activity", {
 export const shipments = pgTable("shipments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  quoteId: varchar("quote_id"), // Rate quote ID used to create this shipment - for idempotency tracking
   shiptimeShipmentId: varchar("shiptime_shipment_id"),
   trackingNumber: varchar("tracking_number"),
   carrierName: varchar("carrier_name").notNull(),

@@ -40,6 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **Shipment Capabilities**: Full support for package (parcel), envelope, and pallet/freight (LTL) shipments. Includes specific handling for envelope and pallet shipments. New "Same Day Local" shipment type with specific filtering and UI.
 - **Multi-Source Rate Aggregation**: Integration with ShipTime and Stallion Express APIs for competitive rate comparison, with automatic deduplication and graceful degradation.
 - **Payment Processing**: Stripe integration for card payments, Apple Pay, and Google Pay (CAD), ensuring PCI compliance. Mandatory saved payment methods and automatic overage charging.
+- **Quote Idempotency**: Rate quotes are tracked with unique quoteId. Each quote can only be used once for shipment creation. Prevents duplicate charges from retries or double-clicks. Database-level tracking in `shipments.quote_id` column plus in-memory cache.
 - **ABLP Admin System**: Dedicated admin panel for internal management, including dynamic ShipTime API credential management and advanced rate markup configuration.
 - **Rate Calculation System**: Auto-rate fetching with debounce, graceful API failure handling, and dynamic credential loading.
 - **Insurance System**: Comprehensive insurance options.

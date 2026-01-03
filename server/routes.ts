@@ -1328,6 +1328,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the quote ID from shipment data
       const quoteId = shipmentData.rateId || shipmentData.quoteId;
       
+      // SECURITY: quoteId is required for idempotency and pricing validation
+      if (!quoteId) {
+        console.error('❌ SECURITY: Missing quoteId in shipment request');
+        return res.status(400).json({
+          message: 'Rate quote ID is required. Please refresh shipping rates and try again.',
+          error: 'MISSING_QUOTE_ID'
+        });
+      }
+      
+      // ============================================================
+      // DATABASE-LEVEL IDEMPOTENCY CHECK
+      // ============================================================
+      // Check if this quoteId was already used to create a shipment
+      // This is a permanent check (survives server restarts)
+      const existingShipment = await storage.getShipmentByQuoteId(quoteId);
+      if (existingShipment) {
+        console.log(`⛔ DATABASE DUPLICATE BLOCKED: Quote ${quoteId} was already used`);
+        console.log(`   Existing shipment ID: ${existingShipment.id}`);
+        console.log(`   Created at: ${existingShipment.createdAt}`);
+        console.log(`   Tracking: ${existingShipment.trackingNumber}`);
+        return res.status(400).json({
+          message: 'This rate quote has already been used to create a shipment. Please get fresh rates and try again.',
+          error: 'QUOTE_ALREADY_USED',
+          existingShipmentId: existingShipment.id,
+          existingTrackingNumber: existingShipment.trackingNumber,
+        });
+      }
+      
       // Variables for validated pricing (will be set from cache or server calculation)
       let carrierNetAmount: number;
       let markupCost: number;
@@ -1518,6 +1546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Save shipment to database with audit data
         const shipment = await storage.createShipment({
           ...shipmentData,
+          quoteId: quoteId, // Store quoteId for idempotency tracking
           baseCost: shipmentData.baseCost || '0',
           shiptimeShipmentId: carrierShipment.id,
           trackingNumber: carrierShipment.trackingNumber,
@@ -1534,6 +1563,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           stripeChargeSnapshot: chargeResult.stripeChargeSnapshot || null,
           customerPaymentSnapshot: chargeResult.customerPaymentSnapshot || null,
         });
+
+        // IDEMPOTENCY: Mark quote as consumed after successful shipment creation
+        rateQuoteCache.markQuoteAsUsed(quoteId, shipment.id);
+        console.log(`✅ Quote ${quoteId} marked as consumed for shipment ${shipment.id}`);
 
         // Log shipment creation activity
         await storage.logUserActivity({

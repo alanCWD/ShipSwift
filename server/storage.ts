@@ -449,6 +449,15 @@ export class DatabaseStorage implements IStorage {
     return shipment;
   }
 
+  // Check if a rate quote was already used to create a shipment (database-level idempotency)
+  async getShipmentByQuoteId(quoteId: string): Promise<Shipment | undefined> {
+    const [shipment] = await db
+      .select()
+      .from(shipments)
+      .where(eq(shipments.quoteId, quoteId));
+    return shipment;
+  }
+
   async getShipmentsByUser(userId: string): Promise<Shipment[]> {
     return await db
       .select()

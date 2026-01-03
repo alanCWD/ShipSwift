@@ -10,6 +10,8 @@ interface CachedQuote {
   total: number;
   createdAt: Date;
   expiresAt: Date;
+  usedAt?: Date; // When this quote was consumed to create a shipment
+  usedForShipmentId?: string; // The shipment ID created with this quote
 }
 
 class RateQuoteCacheService {
@@ -92,6 +94,17 @@ class RateQuoteCacheService {
       };
     }
 
+    // IDEMPOTENCY CHECK: Reject if quote was already used
+    if (cached.usedAt) {
+      console.log(`⛔ DUPLICATE BLOCKED: Quote ${quoteId} was already used at ${cached.usedAt.toISOString()}`);
+      console.log(`   Previously created shipment: ${cached.usedForShipmentId}`);
+      return {
+        valid: false,
+        message: `This rate quote has already been used to create a shipment. Please get fresh rates and try again.`,
+        serverValues: cached,
+      };
+    }
+
     const carrierDiff = Math.abs(clientCarrierNet - cached.carrierNetAmount);
     const carrierDiffPercent = cached.carrierNetAmount > 0 
       ? (carrierDiff / cached.carrierNetAmount) * 100 
@@ -123,6 +136,52 @@ class RateQuoteCacheService {
       message: 'Quote validated successfully',
       serverValues: cached,
     };
+  }
+
+  /**
+   * Mark a quote as consumed after successful shipment creation
+   * This prevents the same quote from being used again
+   */
+  markQuoteAsUsed(quoteId: string, shipmentId: string): boolean {
+    const cached = this.cache.get(quoteId);
+    
+    if (!cached) {
+      console.log(`⚠️ Cannot mark quote ${quoteId} as used - not found in cache`);
+      return false;
+    }
+
+    if (cached.usedAt) {
+      console.log(`⚠️ Quote ${quoteId} was already marked as used at ${cached.usedAt.toISOString()}`);
+      return false;
+    }
+
+    cached.usedAt = new Date();
+    cached.usedForShipmentId = shipmentId;
+    this.cache.set(quoteId, cached);
+
+    console.log(`✅ Quote ${quoteId} marked as used for shipment ${shipmentId}`);
+    return true;
+  }
+
+  /**
+   * Check if a quote has already been used
+   */
+  isQuoteUsed(quoteId: string): { used: boolean; shipmentId?: string; usedAt?: Date } {
+    const cached = this.cache.get(quoteId);
+    
+    if (!cached) {
+      return { used: false };
+    }
+
+    if (cached.usedAt) {
+      return {
+        used: true,
+        shipmentId: cached.usedForShipmentId,
+        usedAt: cached.usedAt,
+      };
+    }
+
+    return { used: false };
   }
 
   private cleanExpired(): void {
