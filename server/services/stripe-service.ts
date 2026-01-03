@@ -9,6 +9,14 @@ class StripeService {
     console.log('StripeService initialized for dynamic credentials');
   }
 
+  // Clear credentials cache (for testing mode switching)
+  async clearCredentials() {
+    this.stripe = undefined;
+    this.secretKey = undefined;
+    this.environment = undefined;
+    console.log('Stripe credentials cleared - will reload on next request');
+  }
+
   async loadCredentials(): Promise<boolean> {
     try {
       const { storage } = await import('../storage');

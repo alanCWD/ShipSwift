@@ -1434,6 +1434,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // ============================================================
+      // SAFETY CHECK: Prevent production ShipTime with sandbox Stripe
+      // ============================================================
+      const stripeEnv = await storage.getSetting('STRIPE_ENVIRONMENT') || 'production';
+      const shiptimeEnv = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+      
+      console.log(`🔒 Environment check: Stripe=${stripeEnv}, ShipTime=${shiptimeEnv}`);
+      
+      if (stripeEnv === 'sandbox' && shiptimeEnv === 'production') {
+        console.error('❌ SAFETY BLOCK: Cannot create production shipment with sandbox payment');
+        return res.status(400).json({
+          message: "Safety block: Cannot create real shipments while using test payments. Please switch ShipTime to sandbox mode or Stripe to production mode in admin settings.",
+          error: 'ENVIRONMENT_MISMATCH'
+        });
+      }
+
       // Check for saved payment method (mandatory)
       const user = await storage.getUser(userId);
       if (!user?.stripeCustomerId || !user?.defaultPaymentMethodId) {
@@ -2422,6 +2438,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error saving Stripe credentials:", error);
       res.status(500).json({ message: "Failed to save Stripe credentials" });
+    }
+  });
+
+  // Test Mode environment settings
+  app.post("/api/admin/settings/test-mode", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin' && user?.role !== 'ablp_admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { stripeEnvironment, shiptimeEnvironment } = req.body;
+      
+      // Validate environment values
+      const validEnvironments = ['sandbox', 'production'];
+      if (!validEnvironments.includes(stripeEnvironment)) {
+        return res.status(400).json({ message: "Invalid Stripe environment. Must be 'sandbox' or 'production'" });
+      }
+      if (!validEnvironments.includes(shiptimeEnvironment)) {
+        return res.status(400).json({ message: "Invalid ShipTime environment. Must be 'sandbox' or 'production'" });
+      }
+
+      console.log(`🔧 Test Mode Settings Updated by ${user.email}:`);
+      console.log(`   Stripe: ${stripeEnvironment}`);
+      console.log(`   ShipTime: ${shiptimeEnvironment}`);
+
+      await storage.setSetting('STRIPE_ENVIRONMENT', stripeEnvironment, userId);
+      await storage.setSetting('SHIPTIME_ENVIRONMENT', shiptimeEnvironment, userId);
+
+      // Clear cached credentials so they reload with new environment
+      await shiptimeService.clearCredentials();
+      await stripeService.clearCredentials();
+
+      res.json({ 
+        message: "Test mode settings saved successfully",
+        stripeEnvironment,
+        shiptimeEnvironment,
+      });
+    } catch (error) {
+      console.error("Error saving test mode settings:", error);
+      res.status(500).json({ message: "Failed to save test mode settings" });
     }
   });
 

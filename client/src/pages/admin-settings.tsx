@@ -9,9 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Settings, Plus, Edit, Trash2, Save } from "lucide-react";
+import { Settings, Plus, Edit, Trash2, Save, AlertTriangle, TestTube, Shield } from "lucide-react";
 
 interface SystemSetting {
   key: string;
@@ -41,6 +43,11 @@ export default function AdminSettings() {
   const [shiptimePassword, setShiptimePassword] = useState('');
   const [stallionApiToken, setStallionApiToken] = useState('');
   const [stallionEnvironment, setStallionEnvironment] = useState<'production' | 'sandbox'>('production');
+  
+  // Test Mode settings
+  const [stripeEnvironment, setStripeEnvironment] = useState<'production' | 'sandbox'>('production');
+  const [shiptimeEnvironment, setShiptimeEnvironment] = useState<'production' | 'sandbox'>('production');
+  
   const [newMarkup, setNewMarkup] = useState<{
     carrierName: string;
     serviceName: string;
@@ -80,18 +87,22 @@ export default function AdminSettings() {
     queryKey: ['/api/admin/rate-markups'],
   });
 
-  // Load current ShipTime and Stallion credentials
+  // Load current settings including test mode
   useEffect(() => {
     if (settings && Array.isArray(settings)) {
       const username = settings.find((s: SystemSetting) => s.key === 'SHIPTIME_USERNAME');
       const password = settings.find((s: SystemSetting) => s.key === 'SHIPTIME_PASSWORD');
       const stallionToken = settings.find((s: SystemSetting) => s.key === 'stallion_api_token');
       const stallionEnv = settings.find((s: SystemSetting) => s.key === 'stallion_environment');
+      const stripeEnv = settings.find((s: SystemSetting) => s.key === 'STRIPE_ENVIRONMENT');
+      const shiptimeEnv = settings.find((s: SystemSetting) => s.key === 'SHIPTIME_ENVIRONMENT');
       
       if (username) setShiptimeUsername(username.value || '');
       if (password) setShiptimePassword(password.value || '');
       if (stallionToken) setStallionApiToken(stallionToken.value || '');
       if (stallionEnv) setStallionEnvironment(stallionEnv.value as 'production' | 'sandbox' || 'production');
+      if (stripeEnv) setStripeEnvironment(stripeEnv.value as 'production' | 'sandbox' || 'production');
+      if (shiptimeEnv) setShiptimeEnvironment(shiptimeEnv.value as 'production' | 'sandbox' || 'production');
     }
   }, [settings]);
 
@@ -188,6 +199,34 @@ export default function AdminSettings() {
     },
   });
 
+  // Save Test Mode settings
+  const saveTestModeMutation = useMutation({
+    mutationFn: async (data: { stripeEnvironment: string; shiptimeEnvironment: string }) => {
+      return await apiRequest('/api/admin/settings/test-mode', 'POST', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Test mode settings saved successfully. Services will use the new environment on next request.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/settings'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save test mode settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveTestMode = () => {
+    saveTestModeMutation.mutate({
+      stripeEnvironment,
+      shiptimeEnvironment,
+    });
+  };
+
   const handleSaveCredentials = () => {
     if (!shiptimeUsername || !shiptimePassword) {
       toast({
@@ -251,12 +290,138 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      <Tabs defaultValue="credentials" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="testmode" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="testmode" className="flex items-center gap-2">
+            <TestTube className="h-4 w-4" />
+            Test Mode
+          </TabsTrigger>
           <TabsTrigger value="credentials">ShipTime API</TabsTrigger>
           <TabsTrigger value="stallion">Stallion API</TabsTrigger>
           <TabsTrigger value="markups">Rate Markups</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="testmode">
+          <div className="space-y-6">
+            {/* Current Status Banner */}
+            <Alert variant={stripeEnvironment === 'sandbox' || shiptimeEnvironment === 'sandbox' ? 'default' : 'destructive'}>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>
+                {stripeEnvironment === 'production' && shiptimeEnvironment === 'production' 
+                  ? 'Production Mode Active' 
+                  : 'Test Mode Active'}
+              </AlertTitle>
+              <AlertDescription>
+                {stripeEnvironment === 'production' && shiptimeEnvironment === 'production' 
+                  ? 'Real payments and shipments are being processed. Customers will be charged.'
+                  : 'One or more services are in sandbox/test mode. Use test cards for Stripe sandbox.'}
+              </AlertDescription>
+            </Alert>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  Environment Configuration
+                </CardTitle>
+                <CardDescription>
+                  Control which environment each service uses. This allows you to test payment flows 
+                  with test cards while fetching real shipping rates, or vice versa.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Stripe Environment */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-base font-semibold">Stripe Payments</Label>
+                      <Badge variant={stripeEnvironment === 'sandbox' ? 'secondary' : 'destructive'}>
+                        {stripeEnvironment === 'sandbox' ? 'Sandbox' : 'Production'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {stripeEnvironment === 'sandbox' 
+                        ? 'Test mode: Use Stripe test cards (4242 4242 4242 4242). No real charges.'
+                        : 'Live mode: Real credit cards will be charged. Use for actual customers.'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">Sandbox</span>
+                    <Switch
+                      checked={stripeEnvironment === 'production'}
+                      onCheckedChange={(checked) => setStripeEnvironment(checked ? 'production' : 'sandbox')}
+                      data-testid="switch-stripe-environment"
+                    />
+                    <span className="text-sm text-muted-foreground">Production</span>
+                  </div>
+                </div>
+
+                {/* ShipTime Environment */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-base font-semibold">ShipTime Shipping</Label>
+                      <Badge variant={shiptimeEnvironment === 'sandbox' ? 'secondary' : 'destructive'}>
+                        {shiptimeEnvironment === 'sandbox' ? 'Sandbox' : 'Production'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {shiptimeEnvironment === 'sandbox' 
+                        ? 'Test mode: Shipments will NOT be created with carriers. No real shipping.'
+                        : 'Live mode: Real shipments will be created and billed to your account.'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">Sandbox</span>
+                    <Switch
+                      checked={shiptimeEnvironment === 'production'}
+                      onCheckedChange={(checked) => setShiptimeEnvironment(checked ? 'production' : 'sandbox')}
+                      data-testid="switch-shiptime-environment"
+                    />
+                    <span className="text-sm text-muted-foreground">Production</span>
+                  </div>
+                </div>
+
+                {/* Safety Warning */}
+                {stripeEnvironment === 'sandbox' && shiptimeEnvironment === 'production' && (
+                  <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertTitle>Safety Block Active</AlertTitle>
+                    <AlertDescription>
+                      Shipment creation is blocked when Stripe is in sandbox but ShipTime is in production.
+                      This prevents creating real shipments without real payment.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Test Card Info */}
+                {stripeEnvironment === 'sandbox' && (
+                  <Card className="bg-muted/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Stripe Test Cards</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-1">
+                      <p><code className="bg-background px-1 py-0.5 rounded">4242 4242 4242 4242</code> - Successful payment</p>
+                      <p><code className="bg-background px-1 py-0.5 rounded">4000 0000 0000 0002</code> - Card declined</p>
+                      <p><code className="bg-background px-1 py-0.5 rounded">4000 0000 0000 3220</code> - 3D Secure required</p>
+                      <p className="text-muted-foreground mt-2">Use any future expiry date and any 3-digit CVC.</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Button 
+                  onClick={handleSaveTestMode}
+                  disabled={saveTestModeMutation.isPending}
+                  className="w-full"
+                  data-testid="button-save-test-mode"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveTestModeMutation.isPending ? 'Saving...' : 'Save Environment Settings'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="credentials">
           <Card>
