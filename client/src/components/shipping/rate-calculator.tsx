@@ -136,26 +136,29 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       
       if (shipmentType === 'envelope') {
         // Use pre-defined dimensions from envelope size
+        // Convert from cm to inches for ShipTime API (expects imperial)
         const dimensions = envelopeDimensions[envelopeSize];
-        apiLength = dimensions.length;
-        apiWidth = dimensions.width;
-        apiHeight = dimensions.height;
-        // Convert weight to kg (envelopes always in lbs in UI)
-        apiWeight = parseFloat(data.weight) * 0.453592;
+        apiLength = dimensions.length / 2.54; // cm to inches
+        apiWidth = dimensions.width / 2.54;   // cm to inches
+        apiHeight = dimensions.height / 2.54; // cm to inches
+        // Envelope weight is already in lbs from UI, use directly
+        apiWeight = parseFloat(data.weight);
       } else {
         // Package, local, or pallet - use user-provided dimensions
+        // ShipTime API expects IMPERIAL units (inches and lbs)
         apiLength = parseFloat(data.length);
         apiWidth = parseFloat(data.width);
         apiHeight = parseFloat(data.height);
         apiWeight = parseFloat(data.weight);
         
-        if (units === 'imperial') {
-          // Convert from imperial to metric for API
-          apiLength = parseFloat(convertToMetric(data.length, 'length'));
-          apiWidth = parseFloat(convertToMetric(data.width, 'length'));
-          apiHeight = parseFloat(convertToMetric(data.height, 'length'));
-          apiWeight = parseFloat(convertToMetric(data.weight, 'weight'));
+        if (units === 'metric') {
+          // Convert from metric to imperial for API (ShipTime expects imperial)
+          apiLength = parseFloat(convertToImperial(data.length, 'length'));
+          apiWidth = parseFloat(convertToImperial(data.width, 'length'));
+          apiHeight = parseFloat(convertToImperial(data.height, 'length'));
+          apiWeight = parseFloat(convertToImperial(data.weight, 'weight'));
         }
+        // If units are already imperial, use them directly
       }
       
       const packageDetails: any = {
@@ -223,6 +226,21 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
     onSuccess: (data) => {
       // Pass both rates and address data to parent component
       // Include shipmentType and packageDetails for proper shipment creation
+      
+      // Convert dimensions/weight to imperial for shipment creation (ShipTime expects imperial)
+      let lengthImperial = parseFloat(formData.length) || 0;
+      let widthImperial = parseFloat(formData.width) || 0;
+      let heightImperial = parseFloat(formData.height) || 0;
+      let weightImperial = parseFloat(formData.weight) || 0;
+      
+      if (units === 'metric') {
+        // Convert from metric to imperial
+        lengthImperial = parseFloat(formData.length) / 2.54 || 0;
+        widthImperial = parseFloat(formData.width) / 2.54 || 0;
+        heightImperial = parseFloat(formData.height) / 2.54 || 0;
+        weightImperial = parseFloat(formData.weight) * 2.205 || 0;
+      }
+      
       const addressData = {
         fromCompany: formData.fromCompany,
         fromStreet: formData.fromStreet,
@@ -241,12 +259,13 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         toPhone: formData.toPhone,
         toAttention: formData.toAttention,
         // Include shipment type and package details for proper LTL/pallet handling
+        // All dimensions/weights are now in imperial (inches/lbs) for ShipTime API
         shipmentType: shipmentType === 'local' ? 'package' : shipmentType,
         packageDetails: {
-          length: parseFloat(formData.length),
-          width: parseFloat(formData.width),
-          height: parseFloat(formData.height),
-          weight: parseFloat(formData.weight),
+          length: lengthImperial,
+          width: widthImperial,
+          height: heightImperial,
+          weight: weightImperial,
           palletCount: shipmentType === 'pallet' ? parseInt(formData.palletCount) : undefined,
           palletType: shipmentType === 'pallet' ? formData.palletType : undefined,
           isStackable: shipmentType === 'pallet' ? formData.isStackable === 'yes' : undefined,

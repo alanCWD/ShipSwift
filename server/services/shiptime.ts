@@ -328,12 +328,12 @@ class ShipTimeService {
           phone: '604-555-0123'
         },
         packageType: 'PACKAGE',
-        unitOfMeasurement: 'METRIC',
+        unitOfMeasurement: 'IMPERIAL',
         lineItems: [{
-          length: 30,
-          width: 20,
-          height: 10,
-          weight: 1,
+          length: 12,  // 12 inches
+          width: 8,    // 8 inches
+          height: 4,   // 4 inches
+          weight: 2,   // 2 lbs
         }],
         shipDate: new Date().toISOString(),
       };
@@ -440,7 +440,7 @@ class ShipTimeService {
           })
         },
         packageType,
-        unitOfMeasurement: 'METRIC',
+        unitOfMeasurement: 'IMPERIAL',
         lineItems,
         shipDate: new Date().toISOString(),
       };
@@ -647,7 +647,7 @@ class ShipTimeService {
           email: toEmail,
         },
         packageType,
-        unitOfMeasurement: 'METRIC',
+        unitOfMeasurement: 'IMPERIAL',
         lineItems,
         shipDate: new Date().toISOString().split('T')[0],
       };
