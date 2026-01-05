@@ -387,6 +387,7 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
       serviceId: rate.serviceId || rate.service?.id,
       carrierName: rate.carrierName || rate.carrier?.name || 'Unknown Carrier',
       serviceName: rate.serviceName || rate.service?.name || 'Standard Service',
+      postageType: rate.postageType, // Required for Stallion shipments
       shipmentType: normalizedShipmentType,
       fromAddress: {
         attention: shippingDetails.fromName,

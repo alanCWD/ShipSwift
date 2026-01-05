@@ -471,6 +471,8 @@ export class StallionService {
       
       source: 'stallion',
       rateId: `stallion_${stallionRate.postage_type_id}`,
+      // Preserve original postage_type for shipment creation (Stallion API requires exact value)
+      postageType: postageType,
     };
   }
 }

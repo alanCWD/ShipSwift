@@ -1509,10 +1509,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error('Invalid Stallion rate ID format');
           }
           
+          // Use preserved postageType from rate (original Stallion API value)
+          // Falls back to serviceName for backward compatibility with cached rates
+          const stallionPostageType = otherData.postageType || otherData.serviceName;
+          console.log('  Postage Type for Stallion:', stallionPostageType);
+          
           carrierShipment = await stallionService.createShipment({
             rateId: otherData.rateId,
             postageTypeId: postageTypeId,
-            postageType: otherData.serviceName, // Required by Stallion API
+            postageType: stallionPostageType, // Required by Stallion API - must be exact value
             from: shipmentRequest.from,
             to: shipmentRequest.to,
             packageDetails: shipmentRequest.packageDetails,
