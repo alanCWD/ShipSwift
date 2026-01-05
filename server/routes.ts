@@ -890,15 +890,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       // Map frontend field names to backend field names for LTL services
+      // Note: Frontend sends toResidential directly, but also support legacy isResidentialDelivery
       const mappedPackageDetails = {
         ...packageDetails,
         // Map tailgate fields
-        fromTailgate: packageDetails.requiresTailgatePickup,
-        toTailgate: packageDetails.requiresTailgateDelivery,
-        // Map residential fields
-        fromResidential: packageDetails.isResidentialPickup,
-        toResidential: packageDetails.isResidentialDelivery
+        fromTailgate: packageDetails.requiresTailgatePickup || packageDetails.fromTailgate,
+        toTailgate: packageDetails.requiresTailgateDelivery || packageDetails.toTailgate,
+        // Map residential fields (support both new direct fields and legacy names)
+        fromResidential: packageDetails.isResidentialPickup || packageDetails.fromResidential,
+        toResidential: packageDetails.isResidentialDelivery || packageDetails.toResidential
       };
+      
+      console.log('📦 Package details for rate request:');
+      console.log('  toResidential:', mappedPackageDetails.toResidential);
+      console.log('  fromResidential:', mappedPackageDetails.fromResidential);
       
       rateRequest = {
         from: { countryCode: fromCountry, postalCode: fromPostalCode },

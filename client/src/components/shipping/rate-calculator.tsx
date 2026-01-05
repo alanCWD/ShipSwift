@@ -170,6 +170,9 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         packageDetails.envelopeSize = envelopeSize;
       }
       
+      // Add residential flag for all shipment types (affects carrier surcharges)
+      packageDetails.toResidential = data.toResidential === 'yes';
+      
       // Add pallet-specific fields if shipment type is pallet
       if (shipmentType === 'pallet') {
         packageDetails.palletCount = parseInt(data.palletCount);
@@ -178,9 +181,8 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
         if (data.freightClass) {
           packageDetails.freightClass = data.freightClass;
         }
-        // LTL accessorial services
+        // LTL accessorial services (pickup residential and tailgate options)
         packageDetails.fromResidential = data.fromResidential === 'yes';
-        packageDetails.toResidential = data.toResidential === 'yes';
         packageDetails.fromTailgate = data.fromTailgate === 'yes';
         packageDetails.toTailgate = data.toTailgate === 'yes';
       }
@@ -843,6 +845,48 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     required
                   />
                 </div>
+              </div>
+            )}
+            
+            {/* Residential Delivery Toggle - for package, envelope, and local shipments */}
+            {(shipmentType === 'package' || shipmentType === 'envelope' || shipmentType === 'local') && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">Destination Type</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="toResidential"
+                      value="no"
+                      checked={formData.toResidential === 'no'}
+                      onChange={() => {
+                        handleInputChange('toResidential', 'no');
+                        setHasRates(false);
+                      }}
+                      className="w-4 h-4 text-blue-600"
+                      data-testid="radio-commercial"
+                    />
+                    <span className="text-sm">Business/Commercial</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="toResidential"
+                      value="yes"
+                      checked={formData.toResidential === 'yes'}
+                      onChange={() => {
+                        handleInputChange('toResidential', 'yes');
+                        setHasRates(false);
+                      }}
+                      className="w-4 h-4 text-blue-600"
+                      data-testid="radio-residential"
+                    />
+                    <span className="text-sm">Residential</span>
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Residential deliveries may include additional surcharges from carriers
+                </p>
               </div>
             )}
             
