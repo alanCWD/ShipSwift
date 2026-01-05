@@ -479,16 +479,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                   />
                 </div>
                 <div>
-                  <Label htmlFor="fromAttention">Contact Person</Label>
-                  <Input
-                    id="fromAttention"
-                    placeholder="e.g., John Smith"
-                    value={formData.fromAttention}
-                    onChange={(e) => handleInputChange('fromAttention', e.target.value)}
-                    data-testid="input-from-attention"
-                  />
-                </div>
-                <div>
                   <Label htmlFor="fromCountry">Country</Label>
                   <Select 
                     value={formData.fromCountry}
@@ -592,16 +582,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                     onChange={(e) => handleInputChange('toPhone', e.target.value)}
                     required
                     data-testid="input-to-phone"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="toAttention">Contact Person</Label>
-                  <Input
-                    id="toAttention"
-                    placeholder="e.g., Jane Doe"
-                    value={formData.toAttention}
-                    onChange={(e) => handleInputChange('toAttention', e.target.value)}
-                    data-testid="input-to-attention"
                   />
                 </div>
                 <div>
