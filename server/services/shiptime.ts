@@ -465,7 +465,10 @@ class ShipTimeService {
       // The packageType: "PALLET" is sufficient to indicate pallet shipments
       // Pallet-specific metadata is stored in our database for reference only
 
-      console.log(`Fetching ${packageType} rates with payload:`, JSON.stringify(payload, null, 2));
+      console.log('\n' + '='.repeat(80));
+      console.log(`📊 SHIPTIME RATE REQUEST - ${packageType}`);
+      console.log('='.repeat(80));
+      console.log('Payload:', JSON.stringify(payload, null, 2));
       const response = await this.makeRequest('rates', 'POST', payload);
       
       // Log full response for debugging missing carriers
@@ -481,13 +484,28 @@ class ShipTimeService {
       console.log(`📦 Carriers returned by ShipTime: ${carriers.join(', ')}`);
       console.log(`Received ${response.availableRates.length} ${packageType} rates from ShipTime API:`);
       response.availableRates.forEach((rate: any, index: number) => {
-        console.log(`  Rate ${index + 1}: ${rate.carrier?.name || rate.carrierName} - ${rate.service?.name || rate.serviceName}`);
-        console.log(`    baseCharge: ${rate.baseCharge?.amount || 'N/A'} (${rate.baseCharge?.currency || 'N/A'})`);
-        console.log(`    Total surcharges: ${rate.surcharges?.length || 0}, Total taxes: ${rate.taxes?.length || 0}`);
-        console.log(`    Transit time fields: deliveryDays=${rate.deliveryDays}, transitTime=${rate.transitTime}, transitDays=${rate.transitDays}, estimatedDeliveryDate=${rate.estimatedDeliveryDate}`);
-        console.log(`    IDs: id=${rate.id}, quoteId=${rate.quoteId}, carrier.id=${rate.carrier?.id}, service.id=${rate.service?.id}`);
-        console.log(`    All rate keys:`, Object.keys(rate).join(', '));
+        const carrierName = rate.carrier?.name || rate.carrierName;
+        const serviceName = rate.service?.name || rate.serviceName;
+        console.log(`\n  Rate ${index + 1}: ${carrierName} - ${serviceName}`);
+        console.log(`    📋 QuoteId: id="${rate.id}" | quoteId="${rate.quoteId}"`);
+        console.log(`    💵 baseCharge: $${rate.baseCharge?.amount || 'N/A'} ${rate.baseCharge?.currency || ''}`);
+        console.log(`    📦 Surcharges: ${rate.surcharges?.length || 0}, Taxes: ${rate.taxes?.length || 0}`);
+        console.log(`    🚚 Transit: deliveryDays=${rate.deliveryDays}, transitDays=${rate.transitDays}`);
+        console.log(`    🔑 CarrierId: ${rate.carrier?.id}, ServiceId: ${rate.service?.id}`);
+        
+        // Calculate total from surcharges for debugging
+        let surchargeTotal = 0;
+        if (rate.surcharges?.length > 0) {
+          console.log(`    📝 Surcharges breakdown:`);
+          rate.surcharges.forEach((s: any) => {
+            const amt = s.amount?.amount || s.amount || 0;
+            surchargeTotal += Number(amt);
+            console.log(`       - ${s.name || s.description || s.type || 'Unknown'}: $${amt}`);
+          });
+        }
+        console.log(`    💰 Total (base + surcharges): $${(Number(rate.baseCharge?.amount || 0) + surchargeTotal).toFixed(2)}`);
       });
+      console.log('='.repeat(80) + '\n');
 
       // Transform rates to include normalized field names for shipment creation
       const transformedRates = response.availableRates.map((rate: any) => ({
@@ -781,12 +799,20 @@ class ShipTimeService {
         console.log('📦 Drop-off shipment - omitting pickupDetail per ShipTime API contract');
       }
 
-      console.log('📦 Creating ShipTime shipment with payload:');
-      console.log('  RateId:', request.rateId);
+      console.log('\n' + '='.repeat(80));
+      console.log('📦 SHIPTIME SHIPMENT CREATION - PRICING TRACE');
+      console.log('='.repeat(80));
+      console.log('  QuoteId/RateId sent to ShipTime:', request.rateId);
       console.log('  Carrier:', request.carrierName);
       console.log('  Service:', request.serviceName);
+      console.log('  CarrierId:', request.carrierId);
+      console.log('  ServiceId:', request.serviceId);
       console.log('  Environment:', this.environment);
       console.log('  API URL:', this.getApiUrl());
+      console.log('  LineItems (dimensions/weight):');
+      lineItems.forEach((item, i) => {
+        console.log(`    [${i}] ${item.length}x${item.width}x${item.height} cm, ${item.weight} kg`);
+      });
       console.log('  Full payload:', JSON.stringify(payload, null, 2));
 
       const rawResponse = await this.makeRequest('shipments', 'POST', payload);
@@ -802,6 +828,24 @@ class ShipTimeService {
       console.log('📦 Unwrapped response:');
       console.log('  Keys:', response ? Object.keys(response) : 'null/undefined');
       console.log('  Response:', JSON.stringify(response, null, 2));
+      
+      // Extract and log pricing info from ShipTime response for comparison
+      console.log('\n💰 SHIPTIME ACTUAL CHARGES (from response):');
+      console.log('  baseCharge:', response?.baseCharge || response?.base_charge || 'N/A');
+      console.log('  totalCharge:', response?.totalCharge || response?.total_charge || response?.total || 'N/A');
+      console.log('  surcharges:', JSON.stringify(response?.surcharges || []));
+      console.log('  taxes:', JSON.stringify(response?.taxes || []));
+      console.log('  freightCharge:', response?.freightCharge || 'N/A');
+      console.log('  fuelSurcharge:', response?.fuelSurcharge || 'N/A');
+      console.log('  All pricing keys:', Object.keys(response || {}).filter(k => 
+        k.toLowerCase().includes('charge') || 
+        k.toLowerCase().includes('cost') || 
+        k.toLowerCase().includes('price') ||
+        k.toLowerCase().includes('amount') ||
+        k.toLowerCase().includes('total') ||
+        k.toLowerCase().includes('fee')
+      ).join(', ') || 'none found');
+      console.log('='.repeat(80) + '\n');
       
       // Auto-cancel sandbox shipments immediately to prevent charges
       const shipmentIdForCancel = response?.shipmentId || response?.id || response?.ShipmentId || response?.ID;
