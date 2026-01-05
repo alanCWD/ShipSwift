@@ -248,6 +248,7 @@ export class StallionService {
   async createShipment(request: {
     rateId: string;
     postageTypeId: number;
+    postageType: string; // Required by Stallion API - the service name
     from: any;
     to: any;
     packageDetails: any;
@@ -279,6 +280,7 @@ export class StallionService {
       // Build shipment request payload
       const shipmentPayload = {
         postage_type_id: request.postageTypeId,
+        postage_type: request.postageType, // Required by Stallion API
         to_address: {
           name: request.to.attention || request.to.companyName || 'Recipient',
           address1: request.to.streetAddress || '',

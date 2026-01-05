@@ -1507,6 +1507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           carrierShipment = await stallionService.createShipment({
             rateId: otherData.rateId,
             postageTypeId: postageTypeId,
+            postageType: otherData.serviceName, // Required by Stallion API
             from: shipmentRequest.from,
             to: shipmentRequest.to,
             packageDetails: shipmentRequest.packageDetails,
