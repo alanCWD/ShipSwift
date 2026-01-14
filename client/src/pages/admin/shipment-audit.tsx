@@ -23,6 +23,10 @@ interface ShipmentAudit {
   stripeChargeId: string | null;
   customerPaymentSnapshot: { last4?: string; brand?: string; expMonth?: number; expYear?: number } | null;
   createdAt: string;
+  rateBreakdown: {
+    baseCharge?: { amount: number };
+    surcharges?: Array<{ name: string; amount: number }>;
+  } | null;
   user: {
     id: string;
     email: string;
@@ -250,7 +254,7 @@ export default function ShipmentAuditPage() {
                       </th>
                       <th className="text-left p-3 font-medium">Carrier</th>
                       <th className="text-left p-3 font-medium">Status</th>
-                      <th className="text-right p-3 font-medium">Net Carrier Cost</th>
+                      <th className="text-right p-3 font-medium">Base + Surcharges</th>
                       <th className="text-right p-3 font-medium">Markup</th>
                       <th className="text-right p-3 font-medium">Total</th>
                       <th className="text-center p-3 font-medium">Actions</th>
@@ -290,7 +294,10 @@ export default function ShipmentAuditPage() {
                         </td>
                         <td className="p-3">{getStatusBadge(shipment.status)}</td>
                         <td className="p-3 text-right font-mono">
-                          ${(parseFloat(shipment.baseCost || '0') - parseFloat(shipment.markupCost || '0')).toFixed(2)}
+                          <div>${((shipment.rateBreakdown?.baseCharge?.amount || 0) / 100).toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">
+                            surcharges ${((shipment.rateBreakdown?.surcharges?.reduce((sum, s) => sum + (s.amount || 0), 0) || 0) / 100).toFixed(2)}
+                          </div>
                         </td>
                         <td className="p-3 text-right font-mono text-green-600">
                           +${parseFloat(shipment.markupCost || '0').toFixed(2)}
@@ -448,9 +455,18 @@ export default function ShipmentAuditPage() {
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Net Carrier Cost:</span>
+                    <span className="text-gray-500">Base Rate:</span>
+                    <span className="font-mono">${((detailData.financial.rateBreakdown?.baseCharge?.amount || 0) / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Surcharges:</span>
+                    <span className="font-mono">${((detailData.financial.rateBreakdown?.surcharges?.reduce((sum: number, s: any) => sum + (s.amount || 0), 0) || 0) / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-medium">
+                    <span className="text-gray-500">Carrier Total:</span>
                     <span className="font-mono">${detailData.financial.carrierNetAmount.toFixed(2)}</span>
                   </div>
+                  <Separator />
                   <div className="flex justify-between text-green-600">
                     <span>Markup ({detailData.financial.markupPercentage.toFixed(1)}%):</span>
                     <span className="font-mono">+${detailData.financial.markupCost.toFixed(2)}</span>
