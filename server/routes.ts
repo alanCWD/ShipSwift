@@ -1920,10 +1920,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fetch label from ShipTime with authentication
         await shiptimeService.loadCredentials();
         
+        const username = (shiptimeService as any).username;
+        const password = (shiptimeService as any).password;
+        const environment = (shiptimeService as any).environment;
+        
+        console.log('  ShipTime auth check:', {
+          hasUsername: !!username,
+          usernameLength: username?.length || 0,
+          hasPassword: !!password,
+          passwordLength: password?.length || 0,
+          environment: environment
+        });
+        
+        if (!username || !password) {
+          console.error('❌ ShipTime credentials not loaded properly');
+          return res.status(500).json({
+            message: "Failed to authenticate with carrier",
+            details: "ShipTime credentials not configured"
+          });
+        }
+        
         try {
+          const authHeader = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
+          console.log('  Auth header (first 20 chars):', authHeader.substring(0, 20) + '...');
+          
           const labelResponse = await fetch(labelUrl, {
             headers: {
-              'Authorization': `Basic ${Buffer.from(`${(shiptimeService as any).username}:${(shiptimeService as any).password}`).toString('base64')}`,
+              'Authorization': authHeader,
               'Accept': 'application/pdf',
             },
           });
