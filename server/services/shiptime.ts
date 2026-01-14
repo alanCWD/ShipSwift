@@ -919,6 +919,41 @@ class ShipTimeService {
       throw error;
     }
   }
+
+  // Get shipment details including label URL
+  async getShipmentDetails(shipmentId: string): Promise<{ labelUrl: string | null; trackingNumber: string | null }> {
+    try {
+      console.log('📋 Fetching ShipTime shipment details for:', shipmentId);
+      const response = await this.makeRequest(`shipments/${shipmentId}`, 'GET');
+      
+      console.log('  Response keys:', Object.keys(response || {}));
+      
+      // Try multiple possible label URL field names
+      const labelUrl = response?.labelUrl || response?.LabelUrl || response?.document?.url || 
+                       response?.labelPdfUrl || response?.label_url || response?.pdfUrl ||
+                       response?.label?.url || response?.labels?.[0]?.url || null;
+      
+      const trackingNumber = (Array.isArray(response?.trackingNumbers) ? response.trackingNumbers[0] : response?.trackingNumbers) 
+        || response?.trackingNumber || response?.TrackingNumber || null;
+      
+      console.log('  Found labelUrl:', labelUrl);
+      console.log('  Found trackingNumber:', trackingNumber);
+      
+      return { labelUrl, trackingNumber };
+    } catch (error: any) {
+      console.error('ShipTime getShipmentDetails error:', error.message);
+      throw error;
+    }
+  }
+
+  // Get label URL directly
+  async getLabelUrl(shipmentId: string): Promise<string> {
+    // ShipTime label URL is typically: http://restapi.shiptime.com/rest/shipments/{shipmentId}/label
+    const apiUrl = this.getApiUrl();
+    const labelUrl = `${apiUrl}shipments/${shipmentId}/label`;
+    console.log('📄 Generated ShipTime label URL:', labelUrl);
+    return labelUrl;
+  }
 }
 
 export const shiptimeService = new ShipTimeService();

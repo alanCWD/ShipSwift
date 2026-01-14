@@ -1867,7 +1867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('  User ID:', userId);
       
       // Get shipment from database
-      const shipment = await storage.getShipmentById(id);
+      const shipment = await storage.getShipment(id);
       
       if (!shipment) {
         console.error('❌ Shipment not found:', id);
@@ -1888,24 +1888,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      if (!shipment.labelUrl) {
-        console.error('❌ No label URL stored for shipment:', id);
+      let labelUrl = shipment.labelUrl;
+      
+      // If no label URL stored but we have a ShipTime shipment ID, try to fetch/generate it
+      if (!labelUrl && shipment.shiptimeShipmentId) {
+        console.log('  No label URL stored, attempting to generate from ShipTime shipment ID:', shipment.shiptimeShipmentId);
+        await shiptimeService.loadCredentials();
+        labelUrl = await shiptimeService.getLabelUrl(shipment.shiptimeShipmentId);
+        
+        // Save the label URL for future requests
+        if (labelUrl) {
+          await storage.updateShipment(shipment.id, { labelUrl });
+          console.log('  ✅ Generated and saved label URL:', labelUrl);
+        }
+      }
+      
+      if (!labelUrl) {
+        console.error('❌ No label URL available for shipment:', id);
+        console.error('  shiptimeShipmentId:', shipment.shiptimeShipmentId);
         return res.status(404).json({ 
           message: "Label not available for this shipment",
-          details: "No label URL was stored when this shipment was created. The carrier may not have provided a label."
+          details: "No label URL was stored and no carrier shipment ID is available to retrieve it."
         });
       }
       
-      console.log('  Label URL:', shipment.labelUrl);
+      console.log('  Label URL:', labelUrl);
       
       // Check if this is a ShipTime label URL
-      if (shipment.labelUrl.includes('shiptime.com')) {
+      if (labelUrl.includes('shiptime.com')) {
         console.log('  Source: ShipTime');
         // Fetch label from ShipTime with authentication
-        await shiptimeService.loadCredentials(storage);
+        await shiptimeService.loadCredentials();
         
         try {
-          const labelResponse = await fetch(shipment.labelUrl, {
+          const labelResponse = await fetch(labelUrl, {
             headers: {
               'Authorization': `Basic ${Buffer.from(`${(shiptimeService as any).username}:${(shiptimeService as any).password}`).toString('base64')}`,
               'Accept': 'application/pdf',
@@ -1938,13 +1954,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             details: fetchError.message
           });
         }
-      } else if (shipment.labelUrl.includes('stallionexpress.com') || shipment.labelUrl.includes('stallion')) {
+      } else if (labelUrl.includes('stallionexpress.com') || labelUrl.includes('stallion')) {
         console.log('  Source: Stallion Express');
         // Stallion Express labels - may need different handling
         await stallionService.loadCredentials(storage);
         
         try {
-          const labelResponse = await fetch(shipment.labelUrl, {
+          const labelResponse = await fetch(labelUrl, {
             headers: {
               'Authorization': `Bearer ${(stallionService as any).apiKey}`,
               'Accept': 'application/pdf',
@@ -1979,7 +1995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // External URL - redirect user directly
         console.log('  Source: External URL, redirecting user');
-        res.redirect(shipment.labelUrl);
+        res.redirect(labelUrl);
       }
     } catch (error: any) {
       console.error("❌ Label fetch error:", error.message || error);
