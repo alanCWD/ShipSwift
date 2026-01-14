@@ -12,6 +12,10 @@ interface CachedQuote {
   expiresAt: Date;
   usedAt?: Date; // When this quote was consumed to create a shipment
   usedForShipmentId?: string; // The shipment ID created with this quote
+  rateBreakdown?: {
+    baseCharge: { amount: number };
+    surcharges: Array<{ name: string; amount: number }>;
+  };
 }
 
 class RateQuoteCacheService {
@@ -36,6 +40,14 @@ class RateQuoteCacheService {
     const total = subtotal + taxAmount;
 
     const now = new Date();
+    // Extract rateBreakdown from original rate for storage
+    const rateBreakdown = rate.baseCharge ? {
+      baseCharge: { amount: Number(rate.baseCharge?.amount || 0) },
+      surcharges: Array.isArray(rate.surcharges) 
+        ? rate.surcharges.map((s: any) => ({ name: s.name || 'Surcharge', amount: Number(s.amount || 0) }))
+        : []
+    } : undefined;
+
     const cached: CachedQuote = {
       quoteId,
       carrierName,
@@ -48,6 +60,7 @@ class RateQuoteCacheService {
       total,
       createdAt: now,
       expiresAt: new Date(now.getTime() + this.QUOTE_TTL_MS),
+      rateBreakdown,
     };
 
     this.cache.set(quoteId, cached);

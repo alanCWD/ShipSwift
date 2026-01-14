@@ -1387,6 +1387,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         5 // 5% tolerance for floating point differences
       );
       
+      // Variable to store the rate breakdown from cache
+      let cachedRateBreakdown: any = null;
+      
       if (validation.valid && validation.serverValues) {
         // Use cached (authoritative) values
         console.log('✅ Rate quote validated from cache');
@@ -1396,12 +1399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baseCost = validation.serverValues.subtotal;
         taxAmount = validation.serverValues.taxAmount;
         totalCost = validation.serverValues.total;
+        cachedRateBreakdown = (validation.serverValues as any).rateBreakdown;
       } else if (validation.serverValues) {
         // Cache found but values don't match - use server values anyway
         console.warn('⚠️ Price mismatch - using cached (authoritative) values');
         console.warn('  Client total:', clientTotal.toFixed(2));
         console.warn('  Server total:', validation.serverValues.total.toFixed(2));
         carrierNetAmount = validation.serverValues.carrierNetAmount;
+        cachedRateBreakdown = (validation.serverValues as any).rateBreakdown;
         markupCost = validation.serverValues.markupAmount;
         markupPercentage = validation.serverValues.markupPercentage;
         baseCost = validation.serverValues.subtotal;
@@ -1596,7 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           taxAmount: taxAmount.toString(),
           carrierNetAmount: carrierNetAmount.toString(),
           markupPercentage: markupPercentage.toString(),
-          rateBreakdown: shipmentData.rateBreakdown || null,
+          rateBreakdown: cachedRateBreakdown || shipmentData.rateBreakdown || null,
           stripeChargeSnapshot: chargeResult.stripeChargeSnapshot || null,
           customerPaymentSnapshot: chargeResult.customerPaymentSnapshot || null,
         });
