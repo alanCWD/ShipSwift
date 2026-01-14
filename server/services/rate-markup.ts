@@ -66,10 +66,21 @@ export class RateMarkupService {
     // Find matching markup rule (most specific first)
     const matchingRule = this.findMatchingRule(carrierName, serviceName, rules);
 
-    // Calculate base charge only (excluding surcharges and taxes)
+    // Calculate base charge (excluding surcharges and taxes)
     // Ensure baseChargeAmount is a number (convert strings to numbers)
     const baseChargeAmount = Number(rate.baseCharge?.amount || 0);
     const baseChargeInDollars = baseChargeAmount / 100; // Convert from cents
+    
+    // Calculate surcharges separately
+    // Ensure each surcharge amount is a number
+    const surchargesAmount = (rate.surcharges || []).reduce(
+      (sum, s) => sum + Number(s.price?.amount || 0), 
+      0
+    );
+    const surchargesInDollars = surchargesAmount / 100; // Convert from cents
+    
+    // TOTAL CARRIER COST = base + surcharges (what carrier actually bills us)
+    const totalCarrierCost = baseChargeInDollars + surchargesInDollars;
     
     // DEBUG: Log the raw rate data from API
     console.log(`\n🔍 Processing rate for ${carrierName} - ${serviceName}`);
@@ -82,6 +93,7 @@ export class RateMarkupService {
         console.log(`      - ${s.name}: ${s.price?.amount} cents = $${(Number(s.price?.amount || 0) / 100).toFixed(2)}`);
       });
     }
+    console.log('    Total carrier cost (base + surcharges):', totalCarrierCost.toFixed(2));
     
     // Log API-provided taxes (for comparison/validation)
     const apiTaxAmount = (rate.taxes || []).reduce(
@@ -95,16 +107,9 @@ export class RateMarkupService {
       });
       console.log(`    Total API tax: $${apiTaxAmount.toFixed(2)}`);
     }
-    
-    // Calculate surcharges separately
-    // Ensure each surcharge amount is a number
-    const surchargesAmount = (rate.surcharges || []).reduce(
-      (sum, s) => sum + Number(s.price?.amount || 0), 
-      0
-    );
-    const surchargesInDollars = surchargesAmount / 100; // Convert from cents
 
-    // Apply markup to BASE CHARGE ONLY (not surcharges or taxes)
+    // Apply markup to TOTAL CARRIER COST (base + surcharges)
+    // This ensures we make the full markup percentage on everything we pay to the carrier
     let markup = 0;
     let markupType = 'default';
 
@@ -113,7 +118,8 @@ export class RateMarkupService {
       const markupValue = parseFloat(matchingRule.markupValue);
 
       if (matchingRule.markupType === 'percentage') {
-        markup = baseChargeInDollars * (markupValue / 100);
+        // Apply markup to total carrier cost (base + surcharges)
+        markup = totalCarrierCost * (markupValue / 100);
       } else {
         markup = markupValue;
       }
@@ -128,14 +134,13 @@ export class RateMarkupService {
         markup = Math.min(markup, maxMarkup);
       }
     } else {
-      // Apply default markup percentage to base charge only
-      markup = baseChargeInDollars * (this.defaultMarkupPercentage / 100);
+      // Apply default markup percentage to total carrier cost
+      markup = totalCarrierCost * (this.defaultMarkupPercentage / 100);
       markupType = `default_${this.defaultMarkupPercentage}%`;
     }
 
-    // Calculate subtotal: (base + markup) + surcharges (excluding taxes)
-    const baseWithMarkup = baseChargeInDollars + markup;
-    const subtotal = baseWithMarkup + surchargesInDollars;
+    // Calculate subtotal: total carrier cost + markup (excluding taxes)
+    const subtotal = totalCarrierCost + markup;
     
     // Calculate accurate Canadian tax using official rates
     // This OVERRIDES API-provided taxes to ensure 100% accuracy
@@ -153,11 +158,10 @@ export class RateMarkupService {
     
     // DEBUG: Log markup calculation results
     console.log('  Markup calculation:');
+    console.log('    carrier cost (base + surcharges):', `$${totalCarrierCost.toFixed(2)}`);
     console.log('    markup percentage:', this.defaultMarkupPercentage + '%');
     console.log('    markup amount:', `$${markup.toFixed(2)}`);
-    console.log('    base + markup:', `$${baseWithMarkup.toFixed(2)}`);
-    console.log('    surcharges total:', `$${surchargesInDollars.toFixed(2)}`);
-    console.log('    subtotal (before tax):', `$${subtotal.toFixed(2)}`);
+    console.log('    subtotal (carrier + markup, before tax):', `$${subtotal.toFixed(2)}`);
     console.log('    tax amount:', `$${taxAmount.toFixed(2)}`);
     console.log('    total (with tax):', `$${(subtotal + taxAmount).toFixed(2)}`);
     
@@ -185,7 +189,7 @@ export class RateMarkupService {
         quoteId,
         carrierId,
         serviceId,
-        originalBaseCharge: isNaN(baseChargeInDollars) ? 0 : baseChargeInDollars,
+        originalBaseCharge: isNaN(totalCarrierCost) ? 0 : totalCarrierCost, // Total carrier cost (base + surcharges)
         markup: isNaN(markup) ? 0 : markup,
         markupType,
         taxAmount: fallbackTaxAmount,
@@ -202,11 +206,11 @@ export class RateMarkupService {
       quoteId,
       carrierId,
       serviceId,
-      originalBaseCharge: baseChargeInDollars,
+      originalBaseCharge: totalCarrierCost, // Total carrier cost (base + surcharges) - what we pay carrier
       markup,
       markupType,
       taxAmount,
-      subtotal, // This is (base + markup + surcharges), before tax
+      subtotal, // This is carrier cost + markup, before tax
       baseCharge: {
         ...rate.baseCharge,
         amount: Math.round(subtotal * 100) // Update baseCharge to include markup
