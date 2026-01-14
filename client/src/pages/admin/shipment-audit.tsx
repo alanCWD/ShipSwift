@@ -294,10 +294,16 @@ export default function ShipmentAuditPage() {
                         </td>
                         <td className="p-3">{getStatusBadge(shipment.status)}</td>
                         <td className="p-3 text-right font-mono">
-                          <div>${((shipment.rateBreakdown?.baseCharge?.amount || 0) / 100).toFixed(2)}</div>
-                          <div className="text-xs text-gray-500">
-                            surcharges ${((shipment.rateBreakdown?.surcharges?.reduce((sum, s) => sum + (s.amount || 0), 0) || 0) / 100).toFixed(2)}
-                          </div>
+                          {shipment.rateBreakdown?.baseCharge ? (
+                            <>
+                              <div>${((shipment.rateBreakdown.baseCharge.amount || 0) / 100).toFixed(2)}</div>
+                              <div className="text-xs text-gray-500">
+                                surcharges ${((shipment.rateBreakdown.surcharges?.reduce((sum: number, s: any) => sum + (s?.amount || 0), 0) || 0) / 100).toFixed(2)}
+                              </div>
+                            </>
+                          ) : (
+                            <div>${(parseFloat(shipment.baseCost || '0') - parseFloat(shipment.markupCost || '0')).toFixed(2)}</div>
+                          )}
                         </td>
                         <td className="p-3 text-right font-mono text-green-600">
                           +${parseFloat(shipment.markupCost || '0').toFixed(2)}
@@ -454,14 +460,18 @@ export default function ShipmentAuditPage() {
                   Financial Details
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Base Rate:</span>
-                    <span className="font-mono">${((detailData.financial.rateBreakdown?.baseCharge?.amount || 0) / 100).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Surcharges:</span>
-                    <span className="font-mono">${((detailData.financial.rateBreakdown?.surcharges?.reduce((sum: number, s: any) => sum + (s.amount || 0), 0) || 0) / 100).toFixed(2)}</span>
-                  </div>
+                  {detailData.financial.rateBreakdown?.baseCharge ? (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Base Rate:</span>
+                        <span className="font-mono">${((detailData.financial.rateBreakdown.baseCharge.amount || 0) / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Surcharges:</span>
+                        <span className="font-mono">${((detailData.financial.rateBreakdown.surcharges?.reduce((sum: number, s: any) => sum + (s?.amount || 0), 0) || 0) / 100).toFixed(2)}</span>
+                      </div>
+                    </>
+                  ) : null}
                   <div className="flex justify-between font-medium">
                     <span className="text-gray-500">Carrier Total:</span>
                     <span className="font-mono">${detailData.financial.carrierNetAmount.toFixed(2)}</span>
