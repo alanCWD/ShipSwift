@@ -337,16 +337,12 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       width,
       height,
       weight,
-      fromCompany,
       fromStreet,
       fromCity,
       fromProvince,
-      fromPhone,
-      toCompany,
       toStreet,
       toCity,
-      toProvince,
-      toPhone
+      toProvince
     } = formData;
     
     // Check if all required fields have valid values
@@ -357,18 +353,14 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
       parseFloat(height) > 0 && 
       parseFloat(weight) > 0;
     
-    // Require full addresses for ALL shipment types (ShipTime needs them)
+    // Require addresses for rate quotes (company/phone collected during shipment creation)
     const hasValidFullAddresses = (
-      fromCompany.trim().length > 0 &&
       fromStreet.trim().length > 0 &&
       fromCity.trim().length > 0 &&
       fromProvince.trim().length > 0 &&
-      fromPhone.trim().length > 0 &&
-      toCompany.trim().length > 0 &&
       toStreet.trim().length > 0 &&
       toCity.trim().length > 0 &&
-      toProvince.trim().length > 0 &&
-      toPhone.trim().length > 0
+      toProvince.trim().length > 0
     );
     
     if (hasValidPostalCodes && hasValidDimensions && hasValidFullAddresses && !ratesMutation.isPending && !hasRates) {
@@ -426,17 +418,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
               </h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="fromCompany">Company Name *</Label>
-                  <Input
-                    id="fromCompany"
-                    placeholder="e.g., ABLP Logistics"
-                    value={formData.fromCompany}
-                    onChange={(e) => handleInputChange('fromCompany', e.target.value)}
-                    required
-                    data-testid="input-from-company"
-                  />
-                </div>
-                <div>
                   <Label htmlFor="fromStreet">Street Address *</Label>
                   <Input
                     id="fromStreet"
@@ -487,17 +468,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="fromPhone">Phone Number *</Label>
-                  <Input
-                    id="fromPhone"
-                    placeholder="e.g., 1-800-225-7564"
-                    value={formData.fromPhone}
-                    onChange={(e) => handleInputChange('fromPhone', e.target.value)}
-                    required
-                    data-testid="input-from-phone"
-                  />
-                </div>
-                <div>
                   <Label htmlFor="fromCountry">Country</Label>
                   <Select 
                     value={formData.fromCountry}
@@ -531,17 +501,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                 Ship To
               </h3>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="toCompany">Company Name *</Label>
-                  <Input
-                    id="toCompany"
-                    placeholder="e.g., Recipient Company"
-                    value={formData.toCompany}
-                    onChange={(e) => handleInputChange('toCompany', e.target.value)}
-                    required
-                    data-testid="input-to-company"
-                  />
-                </div>
                 <div>
                   <Label htmlFor="toStreet">Street Address *</Label>
                   <Input
@@ -591,17 +550,6 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="toPhone">Phone Number *</Label>
-                  <Input
-                    id="toPhone"
-                    placeholder="e.g., 613-555-1234"
-                    value={formData.toPhone}
-                    onChange={(e) => handleInputChange('toPhone', e.target.value)}
-                    required
-                    data-testid="input-to-phone"
-                  />
                 </div>
                 <div>
                   <Label htmlFor="toCountry">Country</Label>
