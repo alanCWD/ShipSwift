@@ -1862,75 +1862,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const userId = req.user!.id;
       
+      console.log('\n📄 LABEL FETCH REQUEST');
+      console.log('  Shipment ID:', id);
+      console.log('  User ID:', userId);
+      
       // Get shipment from database
       const shipment = await storage.getShipmentById(id);
       
       if (!shipment) {
+        console.error('❌ Shipment not found:', id);
         return res.status(404).json({ message: "Shipment not found" });
       }
       
+      console.log('  Shipment found:', {
+        trackingNumber: shipment.trackingNumber,
+        carrierName: shipment.carrierName,
+        status: shipment.status,
+        hasLabelUrl: !!shipment.labelUrl,
+        labelUrlLength: shipment.labelUrl?.length || 0
+      });
+      
       // Verify user owns this shipment (or is admin)
       if (shipment.userId !== userId && req.user!.role !== 'ablp_admin') {
+        console.error('❌ Access denied - user does not own shipment');
         return res.status(403).json({ message: "Access denied" });
       }
       
       if (!shipment.labelUrl) {
-        return res.status(404).json({ message: "Label not available for this shipment" });
+        console.error('❌ No label URL stored for shipment:', id);
+        return res.status(404).json({ 
+          message: "Label not available for this shipment",
+          details: "No label URL was stored when this shipment was created. The carrier may not have provided a label."
+        });
       }
       
-      console.log('📄 Fetching label for shipment:', id);
       console.log('  Label URL:', shipment.labelUrl);
       
       // Check if this is a ShipTime label URL
       if (shipment.labelUrl.includes('shiptime.com')) {
+        console.log('  Source: ShipTime');
         // Fetch label from ShipTime with authentication
         await shiptimeService.loadCredentials(storage);
         
-        const labelResponse = await fetch(shipment.labelUrl, {
-          headers: {
-            'Authorization': `Basic ${Buffer.from(`${(shiptimeService as any).username}:${(shiptimeService as any).password}`).toString('base64')}`,
-            'Accept': 'application/pdf',
-          },
-        });
-        
-        if (!labelResponse.ok) {
-          console.error('Failed to fetch label from ShipTime:', labelResponse.status, labelResponse.statusText);
-          return res.status(502).json({ message: "Failed to fetch label from carrier" });
+        try {
+          const labelResponse = await fetch(shipment.labelUrl, {
+            headers: {
+              'Authorization': `Basic ${Buffer.from(`${(shiptimeService as any).username}:${(shiptimeService as any).password}`).toString('base64')}`,
+              'Accept': 'application/pdf',
+            },
+          });
+          
+          if (!labelResponse.ok) {
+            const errorText = await labelResponse.text().catch(() => 'No error details');
+            console.error('❌ Failed to fetch label from ShipTime:', {
+              status: labelResponse.status,
+              statusText: labelResponse.statusText,
+              errorBody: errorText.substring(0, 500)
+            });
+            return res.status(502).json({ 
+              message: "Failed to fetch label from carrier",
+              details: `ShipTime returned status ${labelResponse.status}: ${labelResponse.statusText}`
+            });
+          }
+          
+          const labelBuffer = await labelResponse.arrayBuffer();
+          console.log('✅ Label fetched successfully, size:', labelBuffer.byteLength, 'bytes');
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
+          res.send(Buffer.from(labelBuffer));
+        } catch (fetchError: any) {
+          console.error('❌ Network error fetching ShipTime label:', fetchError.message);
+          return res.status(502).json({ 
+            message: "Failed to connect to carrier label server",
+            details: fetchError.message
+          });
         }
-        
-        const labelBuffer = await labelResponse.arrayBuffer();
-        
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
-        res.send(Buffer.from(labelBuffer));
       } else if (shipment.labelUrl.includes('stallionexpress.com') || shipment.labelUrl.includes('stallion')) {
+        console.log('  Source: Stallion Express');
         // Stallion Express labels - may need different handling
         await stallionService.loadCredentials(storage);
         
-        const labelResponse = await fetch(shipment.labelUrl, {
-          headers: {
-            'Authorization': `Bearer ${(stallionService as any).apiKey}`,
-            'Accept': 'application/pdf',
-          },
-        });
-        
-        if (!labelResponse.ok) {
-          console.error('Failed to fetch label from Stallion:', labelResponse.status);
-          return res.status(502).json({ message: "Failed to fetch label from carrier" });
+        try {
+          const labelResponse = await fetch(shipment.labelUrl, {
+            headers: {
+              'Authorization': `Bearer ${(stallionService as any).apiKey}`,
+              'Accept': 'application/pdf',
+            },
+          });
+          
+          if (!labelResponse.ok) {
+            const errorText = await labelResponse.text().catch(() => 'No error details');
+            console.error('❌ Failed to fetch label from Stallion:', {
+              status: labelResponse.status,
+              errorBody: errorText.substring(0, 500)
+            });
+            return res.status(502).json({ 
+              message: "Failed to fetch label from carrier",
+              details: `Stallion returned status ${labelResponse.status}`
+            });
+          }
+          
+          const labelBuffer = await labelResponse.arrayBuffer();
+          console.log('✅ Label fetched successfully, size:', labelBuffer.byteLength, 'bytes');
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
+          res.send(Buffer.from(labelBuffer));
+        } catch (fetchError: any) {
+          console.error('❌ Network error fetching Stallion label:', fetchError.message);
+          return res.status(502).json({ 
+            message: "Failed to connect to carrier label server",
+            details: fetchError.message
+          });
         }
-        
-        const labelBuffer = await labelResponse.arrayBuffer();
-        
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="label-${shipment.trackingNumber || id}.pdf"`);
-        res.send(Buffer.from(labelBuffer));
       } else {
-        // External URL - redirect user
+        // External URL - redirect user directly
+        console.log('  Source: External URL, redirecting user');
         res.redirect(shipment.labelUrl);
       }
     } catch (error: any) {
-      console.error("Label fetch error:", error);
-      res.status(500).json({ message: "Failed to fetch label" });
+      console.error("❌ Label fetch error:", error.message || error);
+      console.error("  Stack:", error.stack);
+      res.status(500).json({ 
+        message: "Failed to fetch label",
+        details: error.message || 'Unknown error occurred'
+      });
     }
   });
 
