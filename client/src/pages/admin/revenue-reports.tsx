@@ -418,7 +418,7 @@ export default function RevenueReportsPage() {
                       <TableHead>Tracking</TableHead>
                       <TableHead>Carrier</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Base Cost</TableHead>
+                      <TableHead className="text-right">Net Carrier Cost</TableHead>
                       <TableHead className="text-right">Markup</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead>Status</TableHead>
@@ -433,7 +433,7 @@ export default function RevenueReportsPage() {
                         </TableCell>
                         <TableCell>{shipment.carrier_name}</TableCell>
                         <TableCell className="capitalize">{shipment.shipment_type}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(shipment.base_cost)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(String(parseFloat(shipment.base_cost) - parseFloat(shipment.markup_cost)))}</TableCell>
                         <TableCell className="text-right text-green-600 font-medium">
                           {formatCurrency(shipment.markup_cost)}
                         </TableCell>

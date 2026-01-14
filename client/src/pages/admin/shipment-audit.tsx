@@ -250,7 +250,7 @@ export default function ShipmentAuditPage() {
                       </th>
                       <th className="text-left p-3 font-medium">Carrier</th>
                       <th className="text-left p-3 font-medium">Status</th>
-                      <th className="text-right p-3 font-medium">Base</th>
+                      <th className="text-right p-3 font-medium">Net Carrier Cost</th>
                       <th className="text-right p-3 font-medium">Markup</th>
                       <th className="text-right p-3 font-medium">Total</th>
                       <th className="text-center p-3 font-medium">Actions</th>
@@ -290,7 +290,7 @@ export default function ShipmentAuditPage() {
                         </td>
                         <td className="p-3">{getStatusBadge(shipment.status)}</td>
                         <td className="p-3 text-right font-mono">
-                          ${parseFloat(shipment.baseCost || '0').toFixed(2)}
+                          ${(parseFloat(shipment.baseCost || '0') - parseFloat(shipment.markupCost || '0')).toFixed(2)}
                         </td>
                         <td className="p-3 text-right font-mono text-green-600">
                           +${parseFloat(shipment.markupCost || '0').toFixed(2)}
@@ -448,12 +448,8 @@ export default function ShipmentAuditPage() {
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Carrier Net Amount:</span>
+                    <span className="text-gray-500">Net Carrier Cost:</span>
                     <span className="font-mono">${detailData.financial.carrierNetAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Base Cost:</span>
-                    <span className="font-mono">${detailData.financial.baseCost.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-green-600">
                     <span>Markup ({detailData.financial.markupPercentage.toFixed(1)}%):</span>
