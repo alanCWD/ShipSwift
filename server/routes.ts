@@ -1922,12 +1922,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if this is a ShipTime label URL
       if (labelUrl.includes('shiptime.com')) {
         console.log('  Source: ShipTime');
+        
+        // Detect environment from the label URL to ensure correct credentials
+        const isProductionUrl = labelUrl.includes('restapi.shiptime.com');
+        const isSandboxUrl = labelUrl.includes('sandboxapi.shiptime.com');
+        const urlEnvironment = isProductionUrl ? 'production' : (isSandboxUrl ? 'sandbox' : 'production');
+        console.log('  Label URL environment detected:', urlEnvironment);
+        
         // Fetch label from ShipTime with authentication
         await shiptimeService.loadCredentials();
         
         const username = (shiptimeService as any).username;
         const password = (shiptimeService as any).password;
-        const environment = (shiptimeService as any).environment;
+        const currentEnvironment = (shiptimeService as any).environment;
+        
+        // Warn if there's an environment mismatch
+        if (currentEnvironment !== urlEnvironment) {
+          console.warn(`  ⚠️ Environment mismatch: Label URL is ${urlEnvironment} but credentials are for ${currentEnvironment}`);
+          console.warn('  This may cause authentication failures. The label was created in a different environment.');
+        }
+        
+        const environment = currentEnvironment;
         
         console.log('  ShipTime auth check:', {
           hasUsername: !!username,
