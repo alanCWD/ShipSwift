@@ -426,13 +426,15 @@ class ShipTimeService {
         to: {
           countryCode: request.to.countryCode,
           postalCode: toPostalCode,
-          ...(request.to.companyName && { companyName: request.to.companyName }),
+          // ShipTime requires these fields for rate quotes - use defaults if not provided
+          companyName: request.to.companyName || 'Recipient',
+          attention: request.to.attention || 'Recipient',
+          phone: request.to.phone || '1-800-000-0000',
+          // Include address details if provided
           ...(request.to.streetAddress && {
             streetAddress: request.to.streetAddress,
             city: request.to.city,
             state: request.to.state,
-            attention: request.to.attention,
-            phone: request.to.phone,
           }),
           // Add residential flag for delivery
           ...(request.packageDetails.toResidential !== undefined && {
