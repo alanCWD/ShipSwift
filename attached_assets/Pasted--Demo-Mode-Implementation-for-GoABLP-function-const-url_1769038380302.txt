@@ -1,0 +1,67 @@
+// Demo Mode Implementation for GoABLP
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') !== 'true') return;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      // Helper function to fill input fields
+      const fillInput = (selector, value) => {
+        const el = document.querySelector(selector);
+        if (el) {
+          el.value = value;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true })); // For some frameworks, change is also important
+        }
+      };
+
+      // Helper function to fill select elements (especially those with custom UI like comboboxes)
+      const fillSelect = (buttonTestId, selectValue, visibleText) => {
+        const comboboxButton = document.querySelector(`[data-testid="${buttonTestId}"]`);
+        if (comboboxButton) {
+          const hiddenSelect = comboboxButton.nextElementSibling; // The actual <select> is a sibling
+          if (hiddenSelect && hiddenSelect.tagName === 'SELECT') {
+            hiddenSelect.value = selectValue;
+            hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            hiddenSelect.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input for completeness
+
+            // Update the visible text in the combobox button for UI consistency
+            const span = comboboxButton.querySelector('span');
+            if (span) {
+              span.textContent = visibleText;
+            }
+          }
+        }
+      };
+
+      // Pre-fill 'Ship From' address details
+      fillInput('#fromStreet', '44322 Yale Rd #3');
+      fillInput('#fromCity', 'Chilliwack');
+      fillSelect('select-from-province', 'BC', 'British Columbia (BC)');
+      fillSelect('select-from-country', 'CA', 'Canada'); // Assuming a similar structure for country select
+      fillInput('#fromPostalCode', 'V2R 4H1');
+
+      // Pre-fill 'Ship To' address details
+      fillInput('#toStreet', '100 Queen St W');
+      fillInput('#toCity', 'Toronto');
+      fillSelect('select-to-province', 'ON', 'Ontario (ON)');
+      fillSelect('select-to-country', 'CA', 'Canada'); // Assuming a similar structure for country select
+      fillInput('#toPostalCode', 'M5H 2N2');
+
+      // Optional: Auto-submit after delay
+      // The 'Get Instant Quote' button is in the hero section, outside the form, but likely triggers the calculation.
+      setTimeout(() => {
+        const submitBtn = document.querySelector('[data-testid="button-get-quote"]');
+        if (submitBtn) {
+          submitBtn.click();
+          console.log('Demo mode: "Get Instant Quote" button clicked.');
+        } else {
+          console.warn('Demo mode: Could not find "Get Instant Quote" button to auto-submit.');
+        }
+      }, 2000); // Wait 2 seconds before attempting to submit
+
+    } catch (e) {
+      console.error('Demo mode error:', e);
+    }
+  });
+})();

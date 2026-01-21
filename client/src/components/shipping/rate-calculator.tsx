@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,8 +54,34 @@ export default function RateCalculator({ onRatesReceived }: RateCalculatorProps)
   
   const [hasRates, setHasRates] = useState(false);
   const [units, setUnits] = useState<'metric' | 'imperial'>('imperial'); // cm/kg or in/lbs
+  const demoInitialized = useRef(false);
 
   const { toast } = useToast();
+  const { isDemoMode, demoData, shouldAutoSubmit, clearAutoSubmit } = useDemoMode();
+
+  // Demo mode: Pre-fill form data when demo=true in URL
+  useEffect(() => {
+    if (isDemoMode && demoData && !demoInitialized.current) {
+      demoInitialized.current = true;
+      console.log('Demo mode: Pre-filling form data');
+      setFormData(prev => ({
+        ...prev,
+        fromStreet: demoData.fromStreet,
+        fromCity: demoData.fromCity,
+        fromProvince: demoData.fromProvince,
+        fromPostalCode: demoData.fromPostalCode,
+        toStreet: demoData.toStreet,
+        toCity: demoData.toCity,
+        toProvince: demoData.toProvince,
+        toPostalCode: demoData.toPostalCode,
+        // Set default package dimensions for demo
+        length: '12',
+        width: '8',
+        height: '6',
+        weight: '5',
+      }));
+    }
+  }, [isDemoMode, demoData]);
 
   // Unit conversion functions
   const convertToMetric = (value: string, fromUnit: 'length' | 'weight') => {
