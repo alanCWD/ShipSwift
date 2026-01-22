@@ -201,10 +201,24 @@ export class StallionService {
       return code?.replace(/\s+/g, '').toUpperCase() || '';
     };
 
-    // Calculate total weight and default value
-    const weight = packageDetails.weight || 1;
+    // Frontend sends imperial units (inches/lbs) - convert to metric for Stallion API
+    // Stallion API uses metric units (cm/kg)
+    const inchesToCm = (inches: number) => Math.round(inches * 2.54 * 10) / 10;
+    const lbsToKg = (lbs: number) => Math.round(lbs / 2.205 * 10) / 10;
+
+    // Convert weight from lbs to kg
+    const weightLbs = packageDetails.weight || 1;
+    const weightKg = lbsToKg(weightLbs);
+    
+    // Convert dimensions from inches to cm
+    const lengthCm = inchesToCm(packageDetails.length || 10);
+    const widthCm = inchesToCm(packageDetails.width || 10);
+    const heightCm = inchesToCm(packageDetails.height || 10);
+
+    console.log(`📦 Stallion unit conversion: ${packageDetails.length}x${packageDetails.width}x${packageDetails.height} in, ${weightLbs} lbs → ${lengthCm}x${widthCm}x${heightCm} cm, ${weightKg} kg`);
+
     // Default $50/kg, capped at Stallion's max of $1000
-    const calculatedValue = weight * 50;
+    const calculatedValue = weightKg * 50;
     const declaredValue = packageDetails.declaredValue || Math.min(calculatedValue, 1000);
 
     return {
@@ -226,18 +240,18 @@ export class StallionService {
         country_code: from.countryCode || 'CA',
         phone: from.phone,
       },
-      weight_unit: 'kg', // Metric units (matching our standard)
-      weight: weight,
-      length: packageDetails.length || 10,
-      width: packageDetails.width || 10,
-      height: packageDetails.height || 10,
-      size_unit: 'cm', // Metric units (matching our standard)
+      weight_unit: 'kg', // Metric units for Stallion API
+      weight: weightKg,
+      length: lengthCm,
+      width: widthCm,
+      height: heightCm,
+      size_unit: 'cm', // Metric units for Stallion API
       package_type: 'Parcel', // Standard package type for Stallion
       items: [{
         description: packageDetails.description || 'Package',
         quantity: 1,
         value: declaredValue,
-        weight: weight,
+        weight: weightKg,
         origin_country: 'CA',
         currency: 'CAD', // Required by Stallion API
       }],
