@@ -287,6 +287,15 @@ class ShipTimeService {
       }
     }
 
+    // Some ShipTime endpoints (e.g. cancel) return an empty body on success.
+    // Attempting JSON.parse('') throws — treat empty responses as a void success.
+    if (!responseText || !responseText.trim()) {
+      console.log('📦 ShipTime makeRequest - empty body success response');
+      console.log('  Endpoint:', endpoint);
+      console.log('  Status:', response.status);
+      return null;
+    }
+
     try {
       const parsedResponse = JSON.parse(responseText);
       console.log('📦 ShipTime makeRequest - successful response:');

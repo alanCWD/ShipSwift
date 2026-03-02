@@ -1817,10 +1817,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Cancel with ShipTime API if shipment ID exists
       if (shipment.shiptimeShipmentId) {
         try {
+          await shiptimeService.loadCredentials();
           await shiptimeService.cancelShipment(shipment.shiptimeShipmentId);
+          console.log(`✅ ShipTime cancellation confirmed for shipment ${shipment.shiptimeShipmentId}`);
         } catch (shiptimeError: any) {
           console.error("ShipTime cancel error:", shiptimeError);
-          // Continue with local cancellation even if ShipTime API fails
+          // If ShipTime refuses to cancel, we must not mark it cancelled locally —
+          // doing so would leave the shipment active on the carrier's dashboard.
+          return res.status(502).json({
+            message: "Failed to cancel shipment with carrier. Please try again or contact support.",
+            details: shiptimeError?.message || "ShipTime API error"
+          });
         }
       }
 
