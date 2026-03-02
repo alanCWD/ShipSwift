@@ -1894,6 +1894,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       let labelUrl = shipment.labelUrl;
+
+      // Normalize http:// → https:// to prevent redirect-stripping the Authorization header.
+      // ShipTime API responses historically returned http:// label URLs; fetching those causes
+      // an HTTP→HTTPS redirect which strips the Authorization header, resulting in a 401.
+      if (labelUrl) {
+        labelUrl = labelUrl.replace(/^http:\/\//i, 'https://');
+      }
       
       // If no label URL stored but we have a ShipTime shipment ID, try to fetch/generate it
       if (!labelUrl && shipment.shiptimeShipmentId) {
