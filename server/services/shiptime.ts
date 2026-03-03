@@ -914,7 +914,7 @@ class ShipTimeService {
   // Cancel a shipment
   async cancelShipment(shipmentId: string): Promise<void> {
     try {
-      await this.makeRequest(`shipments/${shipmentId}/cancel`, 'POST');
+      await this.makeRequest(`shipments/${shipmentId}`, 'DELETE');
     } catch (error: any) {
       console.error('ShipTime cancel shipment error:', error.message);
       throw error;
