@@ -202,7 +202,7 @@ export default function Shipments() {
                               Track
                             </Button>
                           </Link>
-                          {shipment.labelUrl && (
+                          {shipment.labelUrl && shipment.status !== 'cancelled' && (
                             <a 
                               href={`/api/shipments/${shipment.id}/label`} 
                               target="_blank" 

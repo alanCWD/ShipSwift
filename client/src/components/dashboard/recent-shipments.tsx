@@ -294,7 +294,7 @@ export default function RecentShipments({ shipments }: RecentShipmentsProps) {
                         Track
                       </Button>
                     </Link>
-                    {shipment.labelUrl && (
+                    {shipment.labelUrl && shipment.status !== 'cancelled' && (
                       <a 
                         href={`/api/shipments/${shipment.id}/label`} 
                         target="_blank" 
