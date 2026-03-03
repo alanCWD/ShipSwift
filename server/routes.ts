@@ -1831,6 +1831,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Issue partial Stripe refund: refund baseCost + taxAmount, retain markupCost as service fee
+      let stripeRefundId: string | null = null;
+      if (shipment.stripeChargeId) {
+        try {
+          const baseCost = parseFloat(shipment.baseCost || '0');
+          const taxAmount = parseFloat(shipment.taxAmount || '0');
+          const refundAmountCents = Math.round((baseCost + taxAmount) * 100);
+          console.log(`💰 Issuing partial Stripe refund of $${(refundAmountCents / 100).toFixed(2)} CAD (baseCost: $${baseCost.toFixed(2)}, tax: $${taxAmount.toFixed(2)}, markup retained: $${parseFloat(shipment.markupCost || '0').toFixed(2)})`);
+          const refund = await stripeService.createRefund(shipment.stripeChargeId, refundAmountCents);
+          stripeRefundId = refund.id;
+          console.log(`✅ Stripe refund issued: ${refund.id}`);
+        } catch (refundError: any) {
+          console.error("❌ Stripe refund failed after successful carrier cancellation:", refundError);
+          // Still cancel the shipment locally — the carrier cancellation succeeded.
+          // Flag the missing refund so it can be handled manually.
+          console.error(`  Manual refund required for PaymentIntent: ${shipment.stripeChargeId}`);
+        }
+      }
+
       // Update shipment status in database
       const cancelledShipment = await storage.updateShipmentStatus(id, 'cancelled');
 
@@ -1860,7 +1879,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         message: "Shipment cancelled successfully",
-        shipment: cancelledShipment
+        shipment: cancelledShipment,
+        refund: stripeRefundId ? { id: stripeRefundId, status: "issued" } : null
       });
     } catch (error: any) {
       console.error("Cancel shipment error:", error);
