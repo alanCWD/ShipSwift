@@ -465,21 +465,23 @@ export default function ShipmentAuditPage() {
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                   {(() => {
                     const rb = detailData.financial.rateBreakdown as any;
-                    if (rb?.baseCharge?.amount !== undefined) {
-                      const base = (rb.baseCharge.amount || 0) / 100;
-                      const surcharges = Array.isArray(rb.surcharges) 
-                        ? rb.surcharges.reduce((sum: number, s: any) => sum + ((s?.amount || 0) / 100), 0)
+                    if (rb?.surcharges !== undefined || detailData.financial.carrierNetAmount > 0) {
+                      const surcharges = Array.isArray(rb?.surcharges)
+                        ? rb.surcharges.reduce((sum: number, s: any) => sum + ((s?.price?.amount || 0) / 100), 0)
                         : 0;
+                      const carrierBase = detailData.financial.carrierNetAmount - surcharges;
                       return (
                         <>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Base Rate:</span>
-                            <span className="font-mono">${base.toFixed(2)}</span>
+                            <span className="text-gray-500">Carrier Base:</span>
+                            <span className="font-mono">${carrierBase.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Surcharges:</span>
-                            <span className="font-mono">${surcharges.toFixed(2)}</span>
-                          </div>
+                          {surcharges > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Surcharges:</span>
+                              <span className="font-mono">${surcharges.toFixed(2)}</span>
+                            </div>
+                          )}
                         </>
                       );
                     }

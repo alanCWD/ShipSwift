@@ -676,32 +676,26 @@ export default function ShipmentForm({ rate, pickupDetails, addressData, onBack 
                   </div>
                   <Separator />
                   <div className="space-y-2 text-sm">
-                    {/* Show breakdown for real API rates */}
-                    {rate.baseCharge?.amount && (
-                      <div className="flex justify-between">
-                        <span>Base Rate:</span>
-                        <span>${(rate.baseCharge.amount / 100).toFixed(2)}</span>
-                      </div>
-                    )}
-                    {rate.surcharges?.map((surcharge: any, idx: number) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>{surcharge.name || 'Surcharge'}:</span>
-                        <span>${(surcharge.price.amount / 100).toFixed(2)}</span>
-                      </div>
-                    ))}
-                    {rate.taxes?.map((tax: any, idx: number) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>{tax.name || 'Tax'}:</span>
-                        <span>${(tax.price.amount / 100).toFixed(2)}</span>
-                      </div>
-                    ))}
-                    {/* Show simple rate for sample rates */}
-                    {(rate.totalCharge || rate.price) && !rate.baseCharge?.amount && (
+                    {/* Clean customer-facing breakdown — markup is embedded in Shipping Rate */}
+                    {rate.subtotal !== undefined && rate.taxAmount !== undefined ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Shipping Rate:</span>
+                          <span>${Number(rate.subtotal).toFixed(2)}</span>
+                        </div>
+                        {Number(rate.taxAmount) > 0 && (
+                          <div className="flex justify-between">
+                            <span>Tax:</span>
+                            <span>${Number(rate.taxAmount).toFixed(2)}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (rate.totalCharge || rate.price) ? (
                       <div className="flex justify-between">
                         <span>Shipping Rate:</span>
                         <span>${parseFloat(rate.totalCharge || rate.price).toFixed(2)}</span>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg mb-6">
