@@ -1831,14 +1831,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Issue partial Stripe refund: refund baseCost + taxAmount, retain markupCost as service fee
+      // Issue partial Stripe refund: refund carrierNetAmount + taxAmount, retain markupCost as service fee
+      // Note: baseCost in DB = carrierNetAmount + markupCost (subtotal), so we must use carrierNetAmount directly
       let stripeRefundId: string | null = null;
       if (shipment.stripeChargeId) {
         try {
-          const baseCost = parseFloat(shipment.baseCost || '0');
+          const carrierNetAmount = parseFloat(shipment.carrierNetAmount || '0');
           const taxAmount = parseFloat(shipment.taxAmount || '0');
-          const refundAmountCents = Math.round((baseCost + taxAmount) * 100);
-          console.log(`💰 Issuing partial Stripe refund of $${(refundAmountCents / 100).toFixed(2)} CAD (baseCost: $${baseCost.toFixed(2)}, tax: $${taxAmount.toFixed(2)}, markup retained: $${parseFloat(shipment.markupCost || '0').toFixed(2)})`);
+          const markupCost = parseFloat(shipment.markupCost || '0');
+          const refundAmountCents = Math.round((carrierNetAmount + taxAmount) * 100);
+          console.log(`💰 Issuing partial Stripe refund of $${(refundAmountCents / 100).toFixed(2)} CAD (carrierNet: $${carrierNetAmount.toFixed(2)}, tax: $${taxAmount.toFixed(2)}, markup retained: $${markupCost.toFixed(2)})`);
           const refund = await stripeService.createRefund(shipment.stripeChargeId, refundAmountCents);
           stripeRefundId = refund.id;
           console.log(`✅ Stripe refund issued: ${refund.id}`);
