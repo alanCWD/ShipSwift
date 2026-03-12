@@ -446,7 +446,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EMERGENCY FIX ENDPOINT - FIXES PRODUCTION DATABASE
   app.post("/api/debug/emergency-fix", async (req, res) => {
     try {
-      const password = "12345678";
+      const password = process.env.EMERGENCY_FIX_PASSWORD;
+      if (!password) {
+        return res.status(500).json({ error: "EMERGENCY_FIX_PASSWORD environment variable is not set" });
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
       const results = [];
 
@@ -602,7 +605,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // FINAL USER FIXES - ADAM TO ADMIN & TEST USER CREATION
   app.get("/api/debug/final-fix", async (req, res) => {
     try {
-      const password = "12345678";
+      const password = process.env.EMERGENCY_FIX_PASSWORD;
+      if (!password) {
+        return res.status(500).json({ error: "EMERGENCY_FIX_PASSWORD environment variable is not set" });
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
       const results = [];
       
