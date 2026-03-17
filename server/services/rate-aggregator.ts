@@ -82,6 +82,21 @@ export class RateAggregatorService {
     // Fetch rates from all applicable sources in parallel
     const ratePromises = applicableSources.map(async (sourceKey) => {
       try {
+        // Check if source is temporarily suspended before fetching
+        if (sourceKey === 'shiptime') {
+          const shiptimeEnv = await storage.getSetting('SHIPTIME_ENVIRONMENT') || 'production';
+          if (shiptimeEnv === 'suspended') {
+            console.log(`⏸️  Skipping ShipTime (temporarily suspended)`);
+            return [];
+          }
+        } else if (sourceKey === 'stallion') {
+          const stallionEnv = await storage.getSetting('stallion_environment') || 'production';
+          if (stallionEnv === 'suspended') {
+            console.log(`⏸️  Skipping Stallion (temporarily suspended)`);
+            return [];
+          }
+        }
+
         console.log(`\n🔄 Fetching rates from ${this.sources.get(sourceKey)?.name}...`);
         
         if (sourceKey === 'shiptime') {

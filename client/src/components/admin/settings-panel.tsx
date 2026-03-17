@@ -516,9 +516,17 @@ export default function SettingsPanel() {
                       <SelectContent>
                         <SelectItem value="production">Production (Live)</SelectItem>
                         <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                        <SelectItem value="suspended">Temporarily Suspended</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {shiptimeSettings.environment === 'suspended' && (
+                    <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-start gap-2">
+                      <span className="text-yellow-600 font-bold text-sm mt-0.5">⚠</span>
+                      <p className="text-sm text-yellow-800">ShipTime rates are <strong>suspended</strong> and will not appear in rate results until this is changed back.</p>
+                    </div>
+                  )}
 
                   <div className="bg-gray-50 border rounded-lg p-4">
                     <h4 className="font-medium text-gray-800 mb-2">API Status</h4>
@@ -605,9 +613,17 @@ export default function SettingsPanel() {
                       <SelectContent>
                         <SelectItem value="production">Production (Live)</SelectItem>
                         <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                        <SelectItem value="suspended">Temporarily Suspended</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {stallionSettings.environment === 'suspended' && (
+                    <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-start gap-2">
+                      <span className="text-yellow-600 font-bold text-sm mt-0.5">⚠</span>
+                      <p className="text-sm text-yellow-800">Stallion rates are <strong>suspended</strong> and will not appear in rate results until this is changed back.</p>
+                    </div>
+                  )}
 
                   <div className="bg-gray-50 border rounded-lg p-4">
                     <h4 className="font-medium text-gray-800 mb-2">API Status</h4>
