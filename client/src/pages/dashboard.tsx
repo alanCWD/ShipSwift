@@ -3,7 +3,6 @@ import Navbar from '../components/layout/navbar';
 import Footer from '../components/layout/footer';
 import StatsCards from '../components/dashboard/stats-cards';
 import RecentShipments from '../components/dashboard/recent-shipments';
-import { apiRequest } from '@/lib/queryClient';
 
 export default function Dashboard() {
   const { data: shipmentsData, isLoading } = useQuery({
